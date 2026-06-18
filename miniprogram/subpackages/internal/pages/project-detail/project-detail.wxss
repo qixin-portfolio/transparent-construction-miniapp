@@ -1,0 +1,853 @@
+/* ================================================================
+   工地详情页 · 核心页面
+   ================================================================ */
+.manager-detail-page {
+  padding: 0 32rpx 56rpx;
+}
+
+/* 管理端 Hero */
+.manager-hero {
+  margin-top: 24rpx;
+  margin-bottom: 24rpx;
+  padding: 36rpx 32rpx;
+  box-sizing: border-box;
+  border-radius: 40rpx;
+  background: linear-gradient(135deg, #0F6A4A 0%, #1F8B61 100%);
+  color: #FFFFFF;
+}
+
+.manager-hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.manager-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.manager-eyebrow {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 24rpx;
+  line-height: 1.3;
+}
+
+.manager-project-title {
+  margin-top: 12rpx;
+  color: #FFFFFF;
+  font-size: 40rpx;
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+.manager-address {
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+.manager-status {
+  flex-shrink: 0;
+  min-height: 48rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  font-size: 24rpx;
+  line-height: 48rpx;
+  font-weight: 600;
+}
+
+.manager-progress-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 22rpx;
+  margin-top: 40rpx;
+}
+
+.manager-progress-left {
+  flex: 1;
+}
+
+.manager-progress-number {
+  color: #FFFFFF;
+  font-size: 80rpx;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.manager-progress-unit {
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.manager-progress-label {
+  margin-top: 10rpx;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 24rpx;
+}
+
+.manager-stage-panel {
+  width: 260rpx;
+  min-height: 112rpx;
+  padding: 20rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.14);
+  box-sizing: border-box;
+}
+
+.manager-stage-label {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 22rpx;
+  line-height: 1.25;
+}
+
+.manager-stage-name {
+  display: -webkit-box;
+  margin-top: 8rpx;
+  overflow: hidden;
+  color: #FFFFFF;
+  font-size: 28rpx;
+  line-height: 1.25;
+  font-weight: 600;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.manager-progress {
+  height: 16rpx;
+  margin-top: 32rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.manager-progress-bar {
+  height: 100%;
+  border-radius: 999rpx;
+  background: #FFFFFF;
+}
+
+.manager-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin-top: 28rpx;
+}
+
+.manager-metric {
+  min-height: 112rpx;
+  padding: 20rpx 16rpx;
+  box-sizing: border-box;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.metric-value {
+  color: #FFFFFF;
+  font-size: 36rpx;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.metric-value.short {
+  display: -webkit-box;
+  min-height: 44rpx;
+  overflow: hidden;
+  font-size: 24rpx;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.metric-label {
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 22rpx;
+  line-height: 1.3;
+}
+
+/* 简化卡 */
+.project-simple-card {
+  margin-top: 24rpx;
+}
+
+/* 快捷操作 */
+.quick-action-section {
+  margin-bottom: 24rpx;
+}
+
+/* 设计图纸入口 */
+.drawing-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.drawing-entry:active {
+  opacity: 0.94;
+}
+
+.drawing-entry-left {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.drawing-entry-icon {
+  flex-shrink: 0;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 22rpx;
+  background: #EAF7F1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  line-height: 1;
+}
+
+/* 业主绑定 */
+.bind-section {
+  margin-bottom: 24rpx;
+}
+
+.bind-code {
+  color: #0F6A4A;
+  font-size: 72rpx;
+  font-weight: 700;
+  letter-spacing: 16rpx;
+  text-align: center;
+}
+
+.bind-code-wrap {
+  margin: 28rpx 0 12rpx;
+  padding: 40rpx 28rpx;
+  border-radius: 28rpx;
+  background: #EAF7F1;
+  text-align: center;
+}
+
+.bind-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+/* 照片墙 + 时间线 */
+.photo-section,
+.timeline-section {
+  margin-bottom: 28rpx;
+}
+
+.stage-filter {
+  display: flex;
+  gap: 14rpx;
+  margin-bottom: 20rpx;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.stage-filter::-webkit-scrollbar {
+  display: none;
+}
+
+.photo-wall {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+
+.photo-tile {
+  position: relative;
+  height: 240rpx;
+  overflow: hidden;
+  border-radius: 24rpx;
+  background: #F3F4F6;
+}
+
+.photo-tile:active,
+.inline-photo:active {
+  opacity: 0.88;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+}
+
+.photo-caption {
+  position: absolute;
+  right: 12rpx;
+  bottom: 12rpx;
+  max-width: 220rpx;
+  min-height: 44rpx;
+  padding: 0 14rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: rgba(17, 24, 39, 0.72);
+  color: #FFFFFF;
+  font-size: 22rpx;
+  line-height: 44rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.timeline-item {
+  position: relative;
+  margin-left: 24rpx;
+}
+
+.timeline-dot {
+  position: absolute;
+  top: 36rpx;
+  left: -36rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border: 6rpx solid #F7FAF8;
+  border-radius: 50%;
+  background: #0F6A4A;
+}
+
+.log-content {
+  margin-top: 18rpx;
+  color: #111827;
+  font-size: 28rpx;
+  line-height: 1.55;
+}
+
+.risk-box,
+.confirm-box {
+  margin-top: 14rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
+.risk-box {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
+.confirm-box {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.plan-text {
+  margin-top: 14rpx;
+}
+
+.inline-photos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12rpx;
+  margin-top: 20rpx;
+}
+
+.inline-photo {
+  width: 100%;
+  height: 180rpx;
+  border-radius: 20rpx;
+  background: #F3F4F6;
+}
+
+.timeline-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-top: 24rpx;
+  padding: 20rpx;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+  box-shadow: 0 4rpx 20rpx rgba(17, 24, 39, 0.03);
+}
+
+.toggle-text {
+  color: #0F6A4A;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.toggle-arrow {
+  width: 0;
+  height: 0;
+  border-left: 10rpx solid transparent;
+  border-right: 10rpx solid transparent;
+}
+
+.arrow-down {
+  border-top: 12rpx solid #0F6A4A;
+}
+
+.arrow-up {
+  border-bottom: 12rpx solid #0F6A4A;
+}
+
+/* UI 1.1 · 工地详情管理页 */
+.manager-detail-page {
+  min-height: 100vh;
+  padding: 24rpx 28rpx calc(56rpx + env(safe-area-inset-bottom));
+  background: #F8F4EA;
+  box-sizing: border-box;
+}
+
+.manager-hero {
+  margin: 0 0 20rpx;
+  padding: 30rpx 28rpx;
+  border-radius: 14rpx;
+  background: #147657;
+  box-shadow: none;
+}
+
+.manager-eyebrow {
+  font-weight: 700;
+}
+
+.manager-project-title {
+  font-size: 36rpx;
+  font-weight: 800;
+}
+
+.manager-status {
+  background: #DDF1E9;
+  color: #147657;
+}
+
+.manager-progress-row {
+  margin-top: 34rpx;
+}
+
+.manager-progress-number {
+  font-size: 68rpx;
+}
+
+.manager-stage-panel,
+.manager-metric {
+  border: 1rpx solid rgba(255, 255, 255, 0.22);
+  border-radius: 12rpx;
+}
+
+.manager-progress {
+  height: 10rpx;
+}
+
+.quick-action-section .button-primary {
+  height: 84rpx;
+  line-height: 84rpx;
+  border-radius: 12rpx;
+}
+
+.drawing-entry,
+.bind-section,
+.timeline-item,
+.project-simple-card {
+  border: 1rpx solid #E9DDC8;
+  border-radius: 12rpx;
+  background: #FFFDF7;
+  box-shadow: none;
+}
+
+.drawing-entry-icon {
+  border-radius: 10rpx;
+  background: #DDF1E9;
+}
+
+.bind-code-wrap {
+  border: 1rpx solid #E9DDC8;
+  border-radius: 12rpx;
+  background: #F1E7D4;
+}
+
+.bind-code {
+  color: #147657;
+}
+
+.bind-actions {
+  grid-template-columns: 1fr;
+}
+
+.photo-tile,
+.inline-photo {
+  border-radius: 12rpx;
+  background: #D7CDB8;
+}
+
+.photo-caption {
+  background: rgba(20, 118, 87, 0.86);
+}
+
+.timeline {
+  border-left-color: #147657;
+}
+
+.timeline-dot {
+  border-color: #F8F4EA;
+  background: #147657;
+}
+
+.log-content {
+  color: #173E33;
+}
+
+.risk-box {
+  border-radius: 10rpx;
+  background: #F7E3DF;
+  color: #C24E45;
+}
+
+.confirm-box {
+  border-radius: 10rpx;
+  background: #F5EBD6;
+  color: #9A6B24;
+}
+
+.timeline-toggle {
+  border: 1rpx solid #E9DDC8;
+  border-radius: 12rpx;
+  background: #FFFDF7;
+  box-shadow: none;
+}
+
+.toggle-text {
+  color: #147657;
+}
+
+.arrow-down {
+  border-top-color: #147657;
+}
+
+.arrow-up {
+  border-bottom-color: #147657;
+}
+
+/* UI 1.2 · 对齐 figma-import/pages/05-project-detail.html */
+.manager-detail-page {
+  min-height: 100vh;
+  padding: 32rpx 32rpx calc(48rpx + env(safe-area-inset-bottom));
+  background: #F8FAF9;
+  box-sizing: border-box;
+}
+
+.manager-hero,
+.project-simple-card {
+  margin: 0 0 32rpx;
+  padding: 48rpx;
+  border: none;
+  border-radius: 40rpx;
+  background: linear-gradient(135deg, #0F6A4A 0%, #1F8B61 100%);
+  color: #FFFFFF;
+  box-shadow: none;
+}
+
+.manager-project-title {
+  color: #FFFFFF;
+  font-size: 38rpx;
+  font-weight: 800;
+}
+
+.manager-address,
+.manager-eyebrow {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.manager-status {
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+}
+
+.manager-progress-number {
+  font-size: 72rpx;
+}
+
+.manager-stage-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150rpx;
+  height: 150rpx;
+  min-height: 150rpx;
+  padding: 18rpx;
+  border: 10rpx solid rgba(255, 255, 255, 0.28);
+  border-left-color: #FFFFFF;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.manager-stage-label {
+  display: none;
+}
+
+.manager-stage-name {
+  margin-top: 0;
+  color: #FFFFFF;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.manager-progress,
+.manager-metrics {
+  display: none;
+}
+
+.detail-action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.detail-action-cell {
+  min-height: 132rpx;
+  padding: 22rpx 8rpx;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-action-cell.action-green {
+  background: #EAF7F1;
+  color: #0F6A4A;
+}
+
+.detail-action-icon {
+  margin-bottom: 10rpx;
+  font-size: 38rpx;
+  line-height: 1;
+}
+
+.detail-action-text {
+  color: #111827;
+  font-size: 22rpx;
+  line-height: 1.25;
+  font-weight: 800;
+  text-align: center;
+}
+
+.action-green .detail-action-text {
+  color: #0F6A4A;
+}
+
+.bind-section,
+.photo-section,
+.timeline-section,
+.manager-detail-page > .section,
+.manager-detail-page .card.empty {
+  border: none;
+  border-radius: 40rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
+}
+
+.photo-section,
+.timeline-section {
+  padding: 36rpx;
+}
+
+.section-head {
+  margin-bottom: 24rpx;
+}
+
+.section-head .sub-title {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.photo-wall {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+
+.photo-tile {
+  height: 240rpx;
+  border-radius: 24rpx;
+  background: #E5E7EB;
+}
+
+.photo-caption {
+  background: rgba(15, 106, 74, 0.86);
+}
+
+.timeline {
+  border-left: none;
+}
+
+.timeline-item {
+  position: relative;
+  margin: 0;
+  padding: 0 0 42rpx 38rpx;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: 9rpx;
+  top: 22rpx;
+  bottom: -10rpx;
+  width: 4rpx;
+  background: #E5E7EB;
+}
+
+.timeline-item:first-child::before {
+  background: #0F6A4A;
+}
+
+.timeline-dot {
+  left: 0;
+  top: 8rpx;
+  width: 18rpx;
+  height: 18rpx;
+  border: 4rpx solid #EAF7F1;
+  background: #0F6A4A;
+  box-shadow: 0 0 0 2rpx #EAF7F1;
+}
+
+.timeline-item .row {
+  align-items: flex-start;
+}
+
+.timeline-item .sub-title {
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.log-content {
+  margin-top: 10rpx;
+  color: #6B7280;
+}
+
+.inline-photos {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.inline-photo {
+  height: 180rpx;
+}
+
+.bind-code-wrap {
+  background: #F8FAF9;
+}
+
+.bind-actions {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* Stage 1 · 当前工地闭环状态 */
+.detail-flow-card {
+  margin-bottom: 32rpx;
+  padding: 32rpx;
+  border-radius: 32rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
+}
+
+.detail-flow-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 28rpx;
+}
+
+.detail-flow-title {
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.detail-flow-desc {
+  margin-top: 8rpx;
+  color: #6B7280;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+.detail-flow-count {
+  flex-shrink: 0;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: #EAF7F1;
+  color: #0F6A4A;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.detail-flow-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14rpx;
+}
+
+.detail-flow-step {
+  min-width: 0;
+  padding: 22rpx 10rpx;
+  border-radius: 24rpx;
+  background: #F8FAF9;
+  text-align: center;
+}
+
+.detail-flow-dot {
+  width: 42rpx;
+  height: 42rpx;
+  margin: 0 auto 12rpx;
+  border-radius: 50%;
+  background: #E5E7EB;
+  color: #6B7280;
+  font-size: 22rpx;
+  line-height: 42rpx;
+  font-weight: 800;
+}
+
+.detail-flow-step.done .detail-flow-dot {
+  background: #0F6A4A;
+  color: #FFFFFF;
+}
+
+.detail-flow-step.warning .detail-flow-dot {
+  background: #F59E0B;
+  color: #FFFFFF;
+}
+
+.detail-flow-label {
+  color: #111827;
+  font-size: 22rpx;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.detail-flow-value {
+  margin-top: 8rpx;
+  color: #6B7280;
+  font-size: 20rpx;
+  line-height: 1.25;
+  font-weight: 700;
+}

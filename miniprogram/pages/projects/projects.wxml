@@ -1,27 +1,334 @@
-<view class="page">
-  <view class="section row">
-    <view>
-      <view class="title">工地</view>
-      <view class="muted">内部人员按权限查看相关工地。</view>
-    </view>
-    <button wx:if="{{canCreate}}" class="small-button" bindtap="goCreate">新增</button>
-  </view>
-
-  <view wx:if="{{projects.length}}" class="list">
-    <view wx:for="{{projects}}" wx:key="_id" class="card" data-id="{{item._id}}" bindtap="goDetail">
-      <view class="row">
-        <view class="sub-title">{{item.name}}</view>
-        <view class="tag">{{item.status || '施工中'}}</view>
-      </view>
-      <view class="muted">{{item.address || '未填写地址'}}</view>
-      <view class="progress">
-        <view class="progress-bar" style="width: {{item.progress || 0}}%;"></view>
-      </view>
-      <view class="muted">当前节点：{{item.currentStage || '未设置'}} · {{item.progress || 0}}%</view>
+<!-- ========== 业主端：品牌营销首页 ========== -->
+<view wx:if="{{isOwner}}" class="store-page">
+  <!-- 品牌 Banner -->
+  <view class="store-banner">
+    <view class="store-banner-brand">晟景装饰</view>
+    <view class="store-banner-slogan">交城 28 年本土硬核金牌老品牌</view>
+    <view class="store-banner-tags">
+      <text class="store-banner-tag">高定全案整装</text>
+      <text class="store-banner-tag">私宅空间定制</text>
+      <text class="store-banner-tag">全德系工程工艺</text>
     </view>
   </view>
 
-  <view wx:else class="card empty">
-    {{loading ? '正在加载工地...' : '暂无可查看工地'}}
+  <view class="brand-data-marquee">
+    <view class="data-cell">
+      <view class="data-num">28年</view>
+      <view class="data-label">交城本地服务</view>
+    </view>
+    <view class="data-cell">
+      <view class="data-num">100%</view>
+      <view class="data-label">透明工地标准</view>
+    </view>
+    <view class="data-cell">
+      <view class="data-num">5000+</view>
+      <view class="data-label">本土落地样板</view>
+    </view>
+  </view>
+
+  <view class="selling-points-card">
+    <view class="selling-title">为什么选择晟景透明工地？</view>
+    <view class="point-row">
+      <view class="point-icon">👁</view>
+      <view class="point-text">
+        <view class="point-title">0 距离云端监工</view>
+        <view class="point-desc">不用频繁跑工地，关键节点照片和日报集中沉淀。</view>
+      </view>
+    </view>
+    <view class="point-row">
+      <view class="point-icon">🛡</view>
+      <view class="point-text">
+        <view class="point-title">28 年本土实体闭环</view>
+        <view class="point-desc">交城本土实体老品牌，设计、施工、售后责任清晰。</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="store-conversion-card">
+    <view class="conversion-title">从了解晟景到开工交付</view>
+    <view class="conversion-steps">
+      <view class="conversion-step active">
+        <view class="conversion-dot">1</view>
+        <view class="conversion-text">预约咨询</view>
+      </view>
+      <view class="conversion-line"></view>
+      <view class="conversion-step">
+        <view class="conversion-dot">2</view>
+        <view class="conversion-text">到店量房</view>
+      </view>
+      <view class="conversion-line"></view>
+      <view class="conversion-step">
+        <view class="conversion-dot">3</view>
+        <view class="conversion-text">报价签约</view>
+      </view>
+      <view class="conversion-line"></view>
+      <view class="conversion-step">
+        <view class="conversion-dot">4</view>
+        <view class="conversion-text">透明工地</view>
+      </view>
+    </view>
+    <button class="conversion-main-btn" bindtap="showAppointment">预约免费量房设计</button>
+  </view>
+
+  <!-- 进度快捷入口 -->
+  <view class="store-progress-entry" bindtap="goOwnerProgress">
+    <view class="store-progress-left">
+      <view class="store-progress-label">我的施工进度</view>
+      <view class="store-progress-hint">{{hasOwnerProject ? '点击查看最新工地进展' : '点击绑定工地查看进度'}}</view>
+    </view>
+    <view class="store-progress-arrow">›</view>
+  </view>
+
+  <!-- 品牌优势 -->
+  <view class="store-advantage-grid">
+    <view class="store-advantage-item">
+      <view class="advantage-icon">🏗</view>
+      <view class="advantage-title">透明工地</view>
+      <view class="advantage-desc">每个节点照片留痕</view>
+    </view>
+    <view class="store-advantage-item">
+      <view class="advantage-icon">✓</view>
+      <view class="advantage-title">审核机制</view>
+      <view class="advantage-desc">审核后业主可见</view>
+    </view>
+    <view class="store-advantage-item">
+      <view class="advantage-icon">📅</view>
+      <view class="advantage-title">28年经验</view>
+      <view class="advantage-desc">交城本地老品牌</view>
+    </view>
+    <view class="store-advantage-item">
+      <view class="advantage-icon">🎨</view>
+      <view class="advantage-title">整装定制</view>
+      <view class="advantage-desc">设计施工一体化</view>
+    </view>
+  </view>
+
+  <!-- 抖音账号 -->
+  <view class="store-section">
+    <view class="store-section-head">
+      <view class="sub-title">关注我们</view>
+      <view class="muted">抖音看更多装修内容</view>
+    </view>
+    <view class="douyin-list">
+      <view
+        wx:for="{{douyinAccounts}}"
+        wx:key="douyinId"
+        class="douyin-card"
+        data-id="{{item.douyinId}}"
+        data-name="{{item.name}}"
+        bindtap="copyDouyinId">
+        <view class="douyin-avatar" style="background: {{item.avatarColor}};">
+          <text class="douyin-avatar-text">抖</text>
+        </view>
+        <view class="douyin-info">
+          <view class="douyin-name">{{item.name}}</view>
+          <view class="douyin-desc">{{item.desc}}</view>
+          <view class="douyin-id-row">
+            <text class="douyin-id-label">抖音号：</text>
+            <text class="douyin-id-value">{{item.douyinId}}</text>
+          </view>
+        </view>
+        <view class="douyin-copy">复制</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 完工案例 -->
+  <view class="store-section">
+    <view class="store-section-head">
+      <view class="sub-title">完工案例</view>
+      <view class="muted">真实完工 · 交城本地</view>
+    </view>
+    <view class="case-list">
+      <view
+        wx:for="{{showcaseCases}}"
+        wx:key="title"
+        class="case-card">
+        <view
+          wx:if="{{item.image}}"
+          class="case-image-wrap"
+          data-url="{{item.image}}"
+          bindtap="previewCaseImage">
+          <image class="case-image" src="{{item.image}}" mode="aspectFill" lazy-load></image>
+        </view>
+        <view wx:else class="case-image-placeholder">
+          <view class="case-image-ph-text">照片待上传</view>
+        </view>
+        <view class="case-info">
+          <view class="case-title">{{item.title}}</view>
+          <view class="case-meta">{{item.area}} · {{item.style}}</view>
+          <view class="case-budget">{{item.budget}}</view>
+          <view class="case-highlight">{{item.highlight}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 门店信息 -->
+  <view class="store-section">
+    <view class="store-section-head">
+      <view class="sub-title">门店信息</view>
+    </view>
+    <view class="store-info-card">
+      <view class="store-info-row" bindtap="openMap">
+        <view class="store-info-icon">📍</view>
+        <view class="store-info-body">
+          <view class="store-info-text">{{storeInfo.address}}</view>
+          <view class="store-info-action">点击导航</view>
+        </view>
+      </view>
+      <view class="store-info-row" bindtap="callStore">
+        <view class="store-info-icon">📞</view>
+        <view class="store-info-body">
+          <view class="store-info-text">{{storeInfo.phone}}</view>
+          <view class="store-info-action">点击拨打</view>
+        </view>
+      </view>
+      <view class="store-info-row">
+        <view class="store-info-icon">🕐</view>
+        <view class="store-info-body">
+          <view class="store-info-text">{{storeInfo.hours}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 联系专属顾问 -->
+  <view class="store-section">
+    <view class="store-contact-card">
+      <view class="store-contact-left">
+        <view class="store-contact-title">联系专属顾问</view>
+        <view class="store-contact-desc">{{contactInfo.name}} · 有装修问题随时咨询</view>
+      </view>
+      <view class="store-contact-actions">
+        <view class="store-contact-btn secondary" bindtap="contactAdvisor">电话</view>
+        <view class="store-contact-btn" bindtap="showAppointment">预约</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="store-footer">
+    <view class="store-footer-text">晟景装饰 · 交城透明工地</view>
+  </view>
+
+  <view class="store-bottom-bar">
+    <button class="store-bottom-btn secondary" bindtap="contactAdvisor">电话咨询</button>
+    <button class="store-bottom-btn primary" bindtap="showAppointment">预约量房设计</button>
+  </view>
+
+  <view wx:if="{{appointmentVisible}}" class="appointment-mask" bindtap="hideAppointment">
+    <view class="appointment-panel" catchtap="noop">
+      <view class="appointment-head">
+        <view>
+          <view class="appointment-title">预约免费量房设计</view>
+          <view class="appointment-desc">留下基本信息，顾问会联系确认时间。</view>
+        </view>
+        <view class="appointment-close" bindtap="hideAppointment">×</view>
+      </view>
+      <view class="appointment-form">
+        <input class="input appointment-input" placeholder="您的姓名" value="{{appointmentForm.name}}" data-key="name" bindinput="onAppointmentInput" />
+        <input class="input appointment-input" placeholder="手机号" type="number" maxlength="11" value="{{appointmentForm.phone}}" data-key="phone" bindinput="onAppointmentInput" />
+        <input class="input appointment-input" placeholder="小区/地址，可不填" value="{{appointmentForm.address}}" data-key="address" bindinput="onAppointmentInput" />
+        <textarea class="textarea appointment-textarea" placeholder="装修需求、户型面积、预算，可不填" value="{{appointmentForm.need}}" data-key="need" bindinput="onAppointmentInput"></textarea>
+      </view>
+      <button class="button-primary appointment-submit" loading="{{appointmentSubmitting}}" disabled="{{appointmentSubmitting}}" bindtap="submitAppointment">提交预约</button>
+    </view>
+  </view>
+</view>
+
+<!-- ========== 内部员工端：工地列表 ========== -->
+<view wx:else class="projects-page">
+  <view class="projects-header">
+    <view class="projects-title">工地</view>
+    <view class="projects-subtitle">内部人员按权限查看相关工地</view>
+  </view>
+
+  <view class="project-flow-panel">
+    <view class="project-flow-head">
+      <view>
+        <view class="project-flow-title">核心业务链路</view>
+        <view class="project-flow-desc">建工地 → 上传日报 → 审核发布 → 业主查看</view>
+      </view>
+      <view wx:if="{{canCreate}}" class="project-flow-action" bindtap="goCreate">新建工地</view>
+    </view>
+    <view class="project-stat-row">
+      <view class="project-stat-item">
+        <view class="project-stat-num">{{projectStats.total}}</view>
+        <view class="project-stat-label">全部工地</view>
+      </view>
+      <view class="project-stat-item">
+        <view class="project-stat-num">{{projectStats.active}}</view>
+        <view class="project-stat-label">施工中</view>
+      </view>
+      <view class="project-stat-item">
+        <view class="project-stat-num warn">{{projectStats.unbound}}</view>
+        <view class="project-stat-label">未绑业主</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-icon">🔍</view>
+    <input class="search-input" placeholder="搜索工地名称或地址" value="{{searchKeyword}}" bindinput="onSearch" confirm-type="search" />
+  </view>
+
+  <!-- 状态筛选 -->
+  <scroll-view class="status-filter" scroll-x enable-flex>
+    <view class="status-filter-inner">
+      <view class="filter-tab {{statusFilter === '' ? 'filter-tab-active' : ''}}" data-status="" bindtap="onStatusFilter">全部</view>
+      <view class="filter-tab {{statusFilter === '施工中' ? 'filter-tab-active' : ''}}" data-status="施工中" bindtap="onStatusFilter">施工中</view>
+      <view class="filter-tab {{statusFilter === '待审核' ? 'filter-tab-active' : ''}}" data-status="待审核" bindtap="onStatusFilter">待审核</view>
+      <view class="filter-tab {{statusFilter === '已完工' ? 'filter-tab-active' : ''}}" data-status="已完工" bindtap="onStatusFilter">已完工</view>
+    </view>
+  </scroll-view>
+
+  <!-- 工地列表 -->
+  <view wx:if="{{projects.length}}" class="project-list">
+    <view wx:for="{{projects}}" wx:key="_id" class="project-card" data-id="{{item._id}}" bindtap="goDetail">
+      <view class="project-card-head">
+        <view class="project-card-name">{{item.name}}</view>
+        <view class="tag {{item.status === '已完工' ? 'tag-info' : 'tag-success'}}">{{item.status || '施工中'}}</view>
+      </view>
+      <view class="project-card-address">{{item.address || '未填写地址'}}</view>
+      <view class="project-meta-grid">
+        <view class="project-meta-item">
+          <view class="meta-label">当前阶段</view>
+          <view class="meta-value">{{item.currentStage || '未设置'}}</view>
+        </view>
+        <view class="project-meta-item">
+          <view class="meta-label">进度</view>
+          <view class="meta-value emphasis">{{item.progress || 0}}%</view>
+        </view>
+        <view class="project-meta-item">
+          <view class="meta-label">状态</view>
+          <view class="meta-value">{{item.status || '施工中'}}</view>
+        </view>
+      </view>
+      <view class="project-progress">
+        <view class="project-progress-bar" style="width: {{item.progress || 0}}%;"></view>
+      </view>
+      <view class="project-card-footer">
+        <view class="project-stage">当前节点：{{item.currentStage || '未设置'}}</view>
+        <view class="project-percent">{{item.progress || 0}}%</view>
+      </view>
+      <view class="project-card-actions">
+        <view class="project-mini-btn primary" wx:if="{{canUpload}}" data-id="{{item._id}}" data-name="{{item.name}}" catchtap="goUploadFromProject">写日报</view>
+        <view class="project-mini-btn" data-id="{{item._id}}" catchtap="goDetail">看详情</view>
+        <view class="project-mini-btn" wx:if="{{canManageOwner && !item.ownerOpenid}}" data-id="{{item._id}}" catchtap="goBindFromProject">绑业主</view>
+        <view class="project-mini-badge" wx:elif="{{item.ownerOpenid}}">业主已绑定</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="project-empty">
+    <view class="empty-title">{{loading ? '正在加载' : '暂无工地'}}</view>
+    <view class="muted">{{loading ? '工地数据加载中...' : (searchKeyword ? '没有匹配的工地' : '点击右下角按钮新增工地')}}</view>
+  </view>
+
+  <!-- 悬浮新增按钮 -->
+  <view wx:if="{{canCreate}}" class="fab" bindtap="goCreate">
+    <view class="fab-icon">+</view>
+    <view class="fab-text">新增</view>
   </view>
 </view>

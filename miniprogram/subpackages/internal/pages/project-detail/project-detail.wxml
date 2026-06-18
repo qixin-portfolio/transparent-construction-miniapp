@@ -1,0 +1,243 @@
+<view class="manager-detail-page">
+  <block wx:if="{{project}}">
+    <!-- 管理端 Hero -->
+    <view wx:if="{{canViewManagementDetail}}" class="manager-hero">
+      <view class="manager-hero-top">
+        <view class="manager-copy">
+          <view class="manager-eyebrow">管理端透明工地</view>
+          <view class="manager-project-title">{{project.name}}</view>
+          <view class="manager-address">{{project.address || '未填写地址'}}</view>
+        </view>
+        <view class="manager-status">{{project.status || '施工中'}}</view>
+      </view>
+
+      <view class="manager-progress-row">
+        <view class="manager-progress-left">
+          <view class="manager-progress-number">{{project.progress || 0}}<text class="manager-progress-unit">%</text></view>
+          <view class="manager-progress-label">总体进度</view>
+        </view>
+        <view class="manager-stage-panel">
+          <view class="manager-stage-label">当前节点</view>
+          <view class="manager-stage-name">{{project.currentStage || stats.latestStage || '未设置'}}</view>
+        </view>
+      </view>
+
+      <view class="manager-progress">
+        <view class="manager-progress-bar" style="width: {{project.progress || 0}}%;"></view>
+      </view>
+
+      <view class="manager-metrics">
+        <view class="manager-metric">
+          <view class="metric-value">{{stats.logCount}}</view>
+          <view class="metric-label">日报记录</view>
+        </view>
+        <view class="manager-metric">
+          <view class="metric-value">{{stats.photoCount}}</view>
+          <view class="metric-label">现场照片</view>
+        </view>
+        <view class="manager-metric">
+          <view class="metric-value short">{{stats.latestDateText || '待更新'}}</view>
+          <view class="metric-label">最近更新</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 普通端简化卡 -->
+    <view wx:else class="card project-simple-card">
+      <view class="row">
+        <view class="sub-title">{{project.name}}</view>
+        <view class="tag tag-success">{{project.status || '施工中'}}</view>
+      </view>
+      <view class="muted">{{project.address || '未填写地址'}}</view>
+      <view class="progress">
+        <view class="progress-bar" style="width: {{project.progress || 0}}%;"></view>
+      </view>
+      <view class="muted">当前节点：{{project.currentStage || '未设置'}} · {{project.progress || 0}}%</view>
+    </view>
+  </block>
+
+  <!-- 快捷操作 -->
+  <view class="detail-action-grid">
+    <view wx:if="{{canUpload}}" class="detail-action-cell action-green" bindtap="goUpload">
+      <view class="detail-action-icon">📸</view>
+      <view class="detail-action-text">写施工日报</view>
+    </view>
+    <view class="detail-action-cell" bindtap="goDesignDrawings">
+      <view class="detail-action-icon">🗺</view>
+      <view class="detail-action-text">图纸管理</view>
+    </view>
+    <view wx:if="{{canManageOwner}}" class="detail-action-cell" bindtap="createBindCode">
+      <view class="detail-action-icon">🔗</view>
+      <view class="detail-action-text">绑定业主</view>
+    </view>
+    <view class="detail-action-cell" bindtap="toggleTimeline">
+      <view class="detail-action-icon">🧾</view>
+      <view class="detail-action-text">施工日志</view>
+    </view>
+  </view>
+
+  <view wx:if="{{project}}" class="detail-flow-card">
+    <view class="detail-flow-head">
+      <view>
+        <view class="detail-flow-title">当前工地闭环状态</view>
+        <view class="detail-flow-desc">通过审核后，日报和照片才会展示给业主。</view>
+      </view>
+      <view class="detail-flow-count">{{flowStatus.approvedCount}} 条已发布</view>
+    </view>
+    <view class="detail-flow-grid">
+      <view class="detail-flow-step done">
+        <view class="detail-flow-dot">1</view>
+        <view class="detail-flow-label">建工地</view>
+        <view class="detail-flow-value">{{flowStatus.created}}</view>
+      </view>
+      <view class="detail-flow-step {{flowStatus.uploadClass}}">
+        <view class="detail-flow-dot">2</view>
+        <view class="detail-flow-label">上传日报</view>
+        <view class="detail-flow-value">{{flowStatus.uploaded}}</view>
+      </view>
+      <view class="detail-flow-step {{flowStatus.reviewClass}}">
+        <view class="detail-flow-dot">3</view>
+        <view class="detail-flow-label">审核发布</view>
+        <view class="detail-flow-value">{{flowStatus.reviewed}}</view>
+      </view>
+      <view class="detail-flow-step {{flowStatus.ownerClass}}">
+        <view class="detail-flow-dot">4</view>
+        <view class="detail-flow-label">业主查看</view>
+        <view class="detail-flow-value">{{flowStatus.ownerBound}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 业主绑定 -->
+  <view wx:if="{{project && canManageOwner}}" class="card bind-section">
+    <view class="row">
+      <view class="sub-title">业主绑定</view>
+      <view class="tag {{project.ownerOpenid ? 'tag-success' : 'tag-info'}}">{{project.ownerOpenid ? '已绑定' : '未绑定'}}</view>
+    </view>
+    <view wx:if="{{bindCodeText}}" class="bind-code-wrap">
+      <view class="bind-code">{{bindCodeText}}</view>
+      <view wx:if="{{bindCodeExpiresAtText}}" class="muted">有效期至：{{bindCodeExpiresAtText}}</view>
+    </view>
+    <view class="bind-actions">
+      <button class="button-secondary" loading="{{bindCodeLoading}}" disabled="{{bindCodeLoading}}" bindtap="createBindCode">生成绑定码</button>
+      <button class="button-primary" disabled="{{!bindCodeText}}" bindtap="copyBindCode">复制文案</button>
+      <button class="button-share" open-type="share" disabled="{{!bindCodeText}}">分享给业主</button>
+    </view>
+  </view>
+
+  <!-- 管理端详细内容 -->
+  <block wx:if="{{canViewManagementDetail}}">
+    <!-- 现场照片 -->
+    <view class="section photo-section">
+      <view class="section-head">
+        <view class="sub-title">现场照片</view>
+        <view class="muted">{{stats.photoCount}} 张</view>
+      </view>
+
+      <view wx:if="{{photoStages.length > 1}}" class="stage-filter">
+        <view
+          class="filter-tab {{filterStage === '' ? 'filter-tab-active' : ''}}"
+          data-stage=""
+          bindtap="filterByStage">全部</view>
+        <view
+          wx:for="{{photoStages}}"
+          wx:key="*this"
+          class="filter-tab {{filterStage === item ? 'filter-tab-active' : ''}}"
+          data-stage="{{item}}"
+          bindtap="filterByStage">{{item}}</view>
+      </view>
+
+      <view wx:if="{{filteredPhotoWall.length}}" class="photo-wall">
+        <view
+          wx:for="{{filteredPhotoWall}}"
+          wx:key="url"
+          class="photo-tile"
+          data-url="{{item.url}}"
+          bindtap="previewPhoto">
+          <image class="photo" src="{{item.url}}" mode="aspectFill" lazy-load></image>
+          <view class="photo-caption">{{item.stage}}</view>
+        </view>
+      </view>
+
+      <view wx:else class="card empty">
+        <view class="empty-title">暂无现场照片</view>
+        <view class="muted">上传日报时添加现场照片</view>
+      </view>
+    </view>
+
+    <!-- 施工时间线 -->
+    <view wx:if="{{logs.length}}" class="section timeline-section">
+      <view class="section-head">
+        <view class="sub-title">施工时间线</view>
+        <view class="muted">全部日报</view>
+      </view>
+
+      <view class="timeline">
+        <view
+          wx:for="{{visibleLogs}}"
+          wx:key="_id"
+          class="card timeline-item">
+          <view class="timeline-dot"></view>
+          <view class="row">
+            <view>
+              <view class="sub-title">{{item.stage || '施工进度'}}</view>
+              <view class="muted">{{item.dateText || '已更新'}}</view>
+            </view>
+            <view class="status-tag {{item.statusClass}}">{{item.statusText}}</view>
+          </view>
+          <view class="log-content">{{item.workContent || '未填写今日完成'}}</view>
+          <view wx:if="{{item.issue}}" class="risk-box">⚠ 现场问题：{{item.issue}}</view>
+          <view wx:if="{{item.needConfirm}}" class="confirm-box">需确认：{{item.needConfirm}}</view>
+          <view wx:if="{{item.tomorrowPlan}}" class="muted plan-text">明日计划：{{item.tomorrowPlan}}</view>
+          <view wx:if="{{item.photos.length}}" class="inline-photos">
+            <image
+              wx:for="{{item.photos}}"
+              wx:for-item="photo"
+              wx:for-index="idx"
+              wx:key="*this"
+              class="inline-photo"
+              src="{{photo}}"
+              mode="aspectFill"
+              data-photos="{{item.photos}}"
+              data-index="{{idx}}"
+              bindtap="previewTimelinePhoto"
+              lazy-load></image>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{logs.length > timelineCollapsedCount}}" class="timeline-toggle" bindtap="toggleTimeline">
+        <view class="toggle-text">{{timelineExpanded ? '收起' : '查看全部 ' + logs.length + ' 条日报'}}</view>
+        <view class="toggle-arrow {{timelineExpanded ? 'arrow-up' : 'arrow-down'}}"></view>
+      </view>
+    </view>
+
+    <view wx:elif="{{!loading}}" class="card empty">
+      <view class="empty-title">暂无日报</view>
+      <view class="muted">上传第一条工序日报</view>
+    </view>
+  </block>
+
+  <!-- 普通端简化日报 -->
+  <block wx:else>
+    <view class="section">
+      <view class="sub-title">最近日报</view>
+    </view>
+
+    <view wx:if="{{logs.length}}" class="list">
+      <view wx:for="{{logs}}" wx:key="_id" class="card">
+        <view class="row">
+          <view class="sub-title">{{item.stage}}</view>
+          <view class="status-tag {{item.statusClass}}">{{item.statusText}}</view>
+        </view>
+        <view class="muted">{{item.workContent || '未填写今日完成'}}</view>
+        <view wx:if="{{item.issue}}" class="muted danger">问题：{{item.issue}}</view>
+        <view wx:if="{{item.tomorrowPlan}}" class="muted">明日计划：{{item.tomorrowPlan}}</view>
+      </view>
+    </view>
+
+    <view wx:else class="card empty">
+      {{loading ? '正在加载日报...' : '暂无日报'}}
+    </view>
+  </block>
+</view>

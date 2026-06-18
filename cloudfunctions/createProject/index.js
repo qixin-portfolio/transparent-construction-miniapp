@@ -3,7 +3,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
-const PROJECT_CREATE_ROLES = ['admin', 'boss_qi', 'boss_hu', 'designer']
+const PROJECT_CREATE_ROLES = ['admin', 'boss_qi', 'boss_hu', 'designer', 'sales']
 
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()

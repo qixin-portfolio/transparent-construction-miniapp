@@ -1,0 +1,9 @@
+{
+  "name": "getCustomer",
+  "version": "1.0.0",
+  "description": "查询单个客户详情",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

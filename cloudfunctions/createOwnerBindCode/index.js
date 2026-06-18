@@ -5,7 +5,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
 const FULL_PROJECT_ROLES = ['admin', 'boss_qi', 'boss_hu']
-const BIND_CODE_ROLES = FULL_PROJECT_ROLES.concat(['designer'])
+const BIND_CODE_ROLES = FULL_PROJECT_ROLES.concat(['designer', 'sales'])
 const CODE_EXPIRES_IN = 7 * 24 * 60 * 60 * 1000
 
 async function getCurrentUser() {

@@ -4,7 +4,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
 const _ = db.command
-const ALL_PROJECT_ROLES = ['admin', 'boss_qi', 'boss_hu']
+const ALL_PROJECT_ROLES = ['admin', 'boss_qi', 'boss_hu', 'sales', 'designer', 'worker']
 
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()

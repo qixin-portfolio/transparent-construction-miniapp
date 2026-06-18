@@ -11,6 +11,12 @@
       "timeout": 20
     },
     {
+      "name": "bindStaffRole",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
       "name": "createCustomer",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
@@ -18,6 +24,12 @@
     },
     {
       "name": "createOwnerBindCode",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "createStaffInviteCode",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
       "timeout": 20
@@ -38,7 +50,19 @@
       }
     },
     {
+      "name": "deleteDesignDrawing",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
       "name": "getOwnerProject",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "getCustomer",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
       "timeout": 20
@@ -56,6 +80,12 @@
       "timeout": 20
     },
     {
+      "name": "listDesignDrawings",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
       "name": "listMyProjects",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
@@ -68,6 +98,18 @@
       "timeout": 20
     },
     {
+      "name": "listStaffInviteCodes",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "listStaffMembers",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
       "name": "login",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
@@ -75,6 +117,12 @@
     },
     {
       "name": "reviewStageLog",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "sendOwnerNotice",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
       "timeout": 20
@@ -96,6 +144,24 @@
       "envVariables": {
         "WECOM_WEBHOOK_URL": "{{env.WECOM_WEBHOOK_URL}}"
       }
+    },
+    {
+      "name": "updateDesignDrawing",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "uploadDesignDrawing",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "updateCustomer",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
     }
   ]
 }

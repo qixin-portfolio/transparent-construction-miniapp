@@ -1,24 +1,88 @@
-<view class="page">
-  <view class="section row">
-    <view>
-      <view class="title">客户库</view>
-      <view class="muted">先沉淀咨询、报价、成交状态。</view>
-    </view>
-    <button wx:if="{{canCreate}}" class="small-button" bindtap="goCreate">新增</button>
+<view class="customers-page">
+  <view class="page-header">
+    <view class="page-title">客户库</view>
+    <view class="muted">门店咨询、预约量房和签约客户统一沉淀。</view>
   </view>
 
-  <view wx:if="{{customers.length}}" class="list">
-    <view wx:for="{{customers}}" wx:key="_id" class="card">
-      <view class="row">
-        <view class="sub-title">{{item.name}}</view>
-        <view class="tag">{{item.stage || '咨询'}}</view>
+  <view class="customer-flow-panel">
+    <view class="customer-flow-head">
+      <view>
+        <view class="customer-flow-title">客户转化闭环</view>
+        <view class="customer-flow-desc">门店展示 → 预约咨询 → 跟进报价 → 签约建工地</view>
       </view>
-      <view class="muted">{{item.phone || '未留电话'}} · {{item.source || '未知来源'}}</view>
-      <view class="muted">成交状态：{{item.dealStatus || '未成交'}}</view>
+      <view wx:if="{{canCreate}}" class="customer-flow-action" bindtap="goCreate">新增客户</view>
+    </view>
+    <view class="customer-stat-row">
+      <view class="customer-stat-item">
+        <view class="customer-stat-num">{{customerStats.total}}</view>
+        <view class="customer-stat-label">全部客户</view>
+      </view>
+      <view class="customer-stat-item">
+        <view class="customer-stat-num">{{customerStats.consulting}}</view>
+        <view class="customer-stat-label">咨询/量房</view>
+      </view>
+      <view class="customer-stat-item">
+        <view class="customer-stat-num warn">{{customerStats.quoting}}</view>
+        <view class="customer-stat-label">方案报价</view>
+      </view>
+      <view class="customer-stat-item">
+        <view class="customer-stat-num success">{{customerStats.signed}}</view>
+        <view class="customer-stat-label">已签单</view>
+      </view>
     </view>
   </view>
 
-  <view wx:else class="card empty">
-    {{loading ? '正在加载客户...' : '暂无客户'}}
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-icon">🔍</view>
+    <input class="search-input" placeholder="搜索姓名、电话、小区或来源" value="{{searchKeyword}}" bindinput="onSearch" confirm-type="search" />
+  </view>
+
+  <scroll-view class="stage-filter" scroll-x enable-flex>
+    <view class="stage-filter-inner">
+      <view
+        wx:for="{{stageOptions}}"
+        wx:key="*this"
+        class="filter-tab {{(item === '全部' && stageFilter === '') || stageFilter === item ? 'filter-tab-active' : ''}}"
+        data-stage="{{item === '全部' ? '' : item}}"
+        bindtap="onStageFilter">{{item}}</view>
+    </view>
+  </scroll-view>
+
+  <!-- 客户列表 -->
+  <view wx:if="{{customers.length}}" class="customer-list">
+    <view wx:for="{{customers}}" wx:key="_id" class="customer-card" data-id="{{item._id}}" bindtap="goDetail">
+      <view class="customer-card-head">
+        <view class="customer-name">{{item.name}}</view>
+        <view class="tag {{item.dealStatus === '已成交' ? 'tag-success' : (item.dealStatus === '已流失' ? 'tag-danger' : 'tag-warning')}}">{{item.stage || '咨询'}}</view>
+      </view>
+      <view class="customer-info-row">
+        <text class="customer-info-item">📱 {{item.phone || '未留电话'}}</text>
+        <text class="customer-info-divider">·</text>
+        <text class="customer-info-item">来源：{{item.source || '未知'}}</text>
+      </view>
+      <view class="customer-info-row">
+        <text class="customer-info-item">小区：{{item.address || '待补充'}}</text>
+      </view>
+      <view class="customer-next-box">
+        <view class="next-label">下一步</view>
+        <view class="next-text">{{item.nextAction}}</view>
+      </view>
+      <view class="customer-info-row">
+        <text class="customer-deal-status {{item.dealStatus === '已成交' ? 'deal-success' : (item.dealStatus === '已流失' ? 'deal-lost' : '')}}">{{item.dealStatus || '未成交'}}</text>
+      </view>
+      <view class="customer-card-arrow">›</view>
+    </view>
+  </view>
+
+  <view wx:else class="card empty customer-empty">
+    <view class="empty-title">{{loading ? '正在加载' : '暂无客户'}}</view>
+    <view class="muted">{{loading ? '客户数据加载中...' : '点击右下角按钮新增客户'}}</view>
+  </view>
+
+  <!-- 悬浮新增按钮 -->
+  <view wx:if="{{canCreate}}" class="fab" bindtap="goCreate">
+    <view class="fab-icon">+</view>
+    <view class="fab-text">新增</view>
   </view>
 </view>

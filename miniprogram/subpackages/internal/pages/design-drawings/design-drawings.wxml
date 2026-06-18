@@ -1,0 +1,195 @@
+<view class="drawings-page">
+  <!-- 标题区 -->
+  <view class="card header-card">
+    <view class="header-row">
+      <view class="header-icon">图</view>
+      <view class="header-copy">
+        <view class="sub-title">{{projectName || '工地'}} · 设计图纸</view>
+        <view class="muted">效果图供业主查看确认，施工图供设计师与工长对接</view>
+      </view>
+      <button wx:if="{{canUpload}}" class="button-primary header-upload-btn" bindtap="openUploadPanel">上传</button>
+    </view>
+
+    <view class="drawing-flow">
+      <view class="drawing-flow-step done">
+        <view class="drawing-flow-dot">1</view>
+        <view class="drawing-flow-text">设计上传</view>
+      </view>
+      <view class="drawing-flow-line"></view>
+      <view class="drawing-flow-step {{drawingStats.ownerVisibleCount ? 'done' : ''}}">
+        <view class="drawing-flow-dot">2</view>
+        <view class="drawing-flow-text">业主可见</view>
+      </view>
+      <view class="drawing-flow-line"></view>
+      <view class="drawing-flow-step {{drawingStats.constructionCount ? 'done' : ''}}">
+        <view class="drawing-flow-dot">3</view>
+        <view class="drawing-flow-text">施工交底</view>
+      </view>
+    </view>
+
+    <view class="drawing-stats">
+      <view class="drawing-stat">
+        <view class="drawing-stat-value">{{drawingStats.total}}</view>
+        <view class="drawing-stat-label">全部图纸</view>
+      </view>
+      <view class="drawing-stat">
+        <view class="drawing-stat-value">{{drawingStats.renderCount}}</view>
+        <view class="drawing-stat-label">效果图</view>
+      </view>
+      <view class="drawing-stat">
+        <view class="drawing-stat-value">{{drawingStats.constructionCount}}</view>
+        <view class="drawing-stat-label">施工图</view>
+      </view>
+      <view class="drawing-stat">
+        <view class="drawing-stat-value warning">{{drawingStats.unreadConstructionCount}}</view>
+        <view class="drawing-stat-label">未读施工图</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选 -->
+  <view class="card filter-section">
+    <view class="filter-row">
+      <view class="filter-label">类型</view>
+      <view class="filter-tabs">
+        <view class="filter-tab {{filterType === '' ? 'filter-tab-active' : ''}}" bindtap="onFilterType" data-type="">全部</view>
+        <view wx:for="{{types}}" wx:key="code" class="filter-tab {{filterType === item.code ? 'filter-tab-active' : ''}}" bindtap="onFilterType" data-type="{{item.code}}">{{item.name}}</view>
+      </view>
+    </view>
+    <view class="filter-row">
+      <view class="filter-label">空间</view>
+      <view class="filter-tabs scroll-x">
+        <view class="filter-tab {{filterSpace === '' ? 'filter-tab-active' : ''}}" bindtap="onFilterSpace" data-space="">全部</view>
+        <view wx:for="{{spaces}}" wx:key="code" class="filter-tab {{filterSpace === item.code ? 'filter-tab-active' : ''}}" bindtap="onFilterSpace" data-space="{{item.code}}">{{item.name}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 图纸列表 -->
+  <view wx:if="{{filteredDrawings.length}}" class="drawing-list">
+    <view wx:for="{{filteredDrawings}}" wx:key="_id" class="card drawing-card">
+      <!-- 图片 -->
+      <view class="drawing-image-wrap" bindtap="previewImage" data-url="{{item.tempFileURL}}">
+        <image wx:if="{{item.tempFileURL}}" class="drawing-image" src="{{item.tempFileURL}}" mode="aspectFill" lazy-load />
+        <view wx:else class="drawing-image-placeholder">图片加载中</view>
+        <view class="drawing-type-badge {{item.type}}">{{item.typeText}}</view>
+        <view wx:if="{{item.type === 'render' && item.ownerConfirmed}}" class="confirmed-badge">✓ 业主已确认</view>
+      </view>
+
+      <!-- 信息 -->
+      <view class="drawing-info">
+        <view class="drawing-title-row">
+          <text class="drawing-title">{{item.title}}</text>
+          <text class="drawing-space-tag">{{item.spaceText}}</text>
+        </view>
+        <view wx:if="{{item.remark}}" class="drawing-remark">{{item.remark}}</view>
+        <view class="drawing-status-row">
+          <view wx:if="{{item.type === 'render'}}" class="drawing-state-pill {{item.ownerVisible ? 'visible' : 'hidden'}}">{{item.ownerVisible ? '业主可见' : '仅内部可见'}}</view>
+          <view wx:if="{{item.type === 'render' && !item.ownerConfirmed}}" class="drawing-state-pill pending">待业主确认</view>
+          <view wx:if="{{item.type === 'construction'}}" class="drawing-state-pill handoff">施工交底</view>
+          <view wx:if="{{item.type === 'construction'}}" class="drawing-state-pill {{item.readCount ? 'visible' : 'pending'}}">{{item.readCount ? '已有已读' : '待工长查看'}}</view>
+        </view>
+        <view class="drawing-meta">
+          <text class="muted">上传：{{item.uploadedBy.name}}</text>
+          <text wx:if="{{item.type === 'construction' && item.readCount}}" class="muted">· 已读 {{item.readCount}} 人</text>
+          <text wx:if="{{item.type === 'construction' && !item.readCount}}" class="muted">· 工长未读</text>
+        </view>
+        <view wx:if="{{item.type === 'construction' && item.readByText}}" class="drawing-readby">已读：{{item.readByText}}</view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="drawing-actions">
+        <!-- 施工图：工长标记已读 -->
+        <button wx:if="{{item.type === 'construction' && !item.readByMe && canManage === false}}" class="button-secondary small" bindtap="markRead" data-id="{{item._id}}">标记已读</button>
+        <button wx:if="{{item.type === 'construction' && !item.readByMe && canManage}}" class="button-secondary small" bindtap="markRead" data-id="{{item._id}}">标记已读</button>
+        <view wx:if="{{item.type === 'construction' && item.readByMe}}" class="read-tag">✓ 已读</view>
+
+        <!-- 效果图：设计师切换业主可见 -->
+        <button wx:if="{{item.type === 'render' && canManage}}" class="button-secondary small" bindtap="toggleOwnerVisible" data-id="{{item._id}}" data-visible="{{item.ownerVisible}}">{{item.ownerVisible ? '对业主隐藏' : '对业主显示'}}</button>
+
+        <!-- 删除 -->
+        <button wx:if="{{canManage}}" class="button-danger small" bindtap="deleteDrawing" data-id="{{item._id}}" data-title="{{item.title}}">删除</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{!loading}}" class="card empty">
+    <view class="empty-title">暂无图纸</view>
+    <view class="muted">{{filterType || filterSpace ? '当前筛选下暂无图纸' : '暂无图纸记录'}}</view>
+  </view>
+
+  <!-- 上传面板 -->
+  <view wx:if="{{showUploadPanel}}" class="modal-mask">
+    <view class="modal-content" catchtap="noop">
+      <view class="modal-header">
+        <text class="modal-title">上传设计图纸</text>
+        <text class="modal-close" bindtap="closeUploadPanel">✕</text>
+      </view>
+
+      <view class="modal-body">
+        <!-- 类型选择 -->
+        <view class="form-row">
+          <text class="form-label">图纸类型</text>
+          <picker mode="selector" range="{{types}}" range-key="name" value="{{uploadForm.typeIndex}}" bindchange="onTypeChange">
+            <view class="picker-value">{{types[uploadForm.typeIndex].name}}</view>
+          </picker>
+        </view>
+
+        <!-- 空间选择 -->
+        <view class="form-row">
+          <text class="form-label">空间分类</text>
+          <picker mode="selector" range="{{spaces}}" range-key="name" value="{{uploadForm.spaceIndex}}" bindchange="onSpaceChange">
+            <view class="picker-value">{{spaces[uploadForm.spaceIndex].name}}</view>
+          </picker>
+        </view>
+
+        <!-- 标题 -->
+        <view class="form-row">
+          <text class="form-label">图纸标题</text>
+          <input
+            class="form-input"
+            placeholder="如：客厅效果图 v2"
+            value="{{uploadForm.title}}"
+            bindinput="onFormInput"
+            catchtap="noop"
+            data-key="title"
+          />
+        </view>
+
+        <!-- 备注 -->
+        <view class="form-row">
+          <text class="form-label">备注（选填）</text>
+          <textarea
+            class="form-textarea"
+            placeholder="设计说明、施工要点等"
+            value="{{uploadForm.remark}}"
+            bindinput="onFormInput"
+            catchtap="noop"
+            data-key="remark"
+          />
+        </view>
+
+        <!-- 业主可见（仅效果图） -->
+        <view wx:if="{{uploadForm.type === 'render'}}" class="form-row switch-row">
+          <text class="form-label">业主可见</text>
+          <switch checked="{{uploadForm.ownerVisible}}" bindchange="onOwnerVisibleChange" color="#0F6A4A" />
+        </view>
+
+        <!-- 选图 -->
+        <view class="form-row">
+          <text class="form-label">图纸图片</text>
+          <view wx:if="{{uploadForm.tempFilePath}}" class="temp-image-wrap">
+            <image class="temp-image" src="{{uploadForm.tempFilePath}}" mode="aspectFill" bindtap="previewTempImage" />
+            <view class="temp-image-remove" bindtap="removeTempImage">✕</view>
+          </view>
+          <button wx:else class="button-secondary choose-btn" bindtap="chooseImage">选择图片</button>
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="button-secondary" bindtap="closeUploadPanel" disabled="{{uploading}}">取消</button>
+        <button class="button-primary" loading="{{uploading}}" disabled="{{uploading}}" bindtap="submitUpload">上传</button>
+      </view>
+    </view>
+  </view>
+</view>

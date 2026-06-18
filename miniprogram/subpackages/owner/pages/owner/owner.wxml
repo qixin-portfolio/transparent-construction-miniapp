@@ -1,0 +1,239 @@
+<view class="owner-page">
+  <view wx:if="{{authLoading || loading}}" class="owner-loading">
+    <view class="owner-loading-icon">⏳</view>
+    <view class="owner-loading-text">正在确认业主进度...</view>
+  </view>
+
+  <!-- ========== 绑定流程 ========== -->
+  <view wx:elif="{{!project}}" class="bind-state">
+    <view class="bind-hero">
+      <view class="bind-hero-icon">🏠</view>
+      <view class="bind-eyebrow">晟景透明工地</view>
+      <view class="bind-title">绑定后查看专属进度</view>
+      <view class="bind-desc">输入晟景提供的 6 位绑定码，只展示属于您的工地内容。</view>
+    </view>
+
+    <view class="bind-panel">
+      <view class="sub-title">绑定工地</view>
+      <view wx:if="{{autoFilled}}" class="bind-hint">已自动填入绑定码，点击按钮完成绑定</view>
+      <view wx:else class="muted">绑定码由晟景工作人员生成，可在邀请文案中查看。</view>
+      <view class="bind-flow-row">
+        <view class="bind-flow-step active">输入绑定码</view>
+        <view class="bind-flow-line"></view>
+        <view class="bind-flow-step">查看审核进度</view>
+      </view>
+      <input class="input bind-input" type="number" maxlength="6" placeholder="输入 6 位绑定码" value="{{bindCode}}" bindinput="onBindCodeInput" />
+      <button class="button-primary" loading="{{binding}}" disabled="{{binding || !bindCode}}" bindtap="bindProject">绑定并查看进度</button>
+    </view>
+  </view>
+
+  <!-- ========== 业主进度展示 ========== -->
+  <block wx:else>
+    <view class="owner-header-card">
+      <view class="project-identity">
+        <view class="owner-header-name">{{project.name}}</view>
+        <view class="brand-badge-pill">交城28年老品牌</view>
+      </view>
+      <view class="crew-box">
+        <view class="crew-txt">当前节点：{{project.currentStage || stats.latestStage || '施工中'}}</view>
+        <view class="phone-ring-btn">透明工地</view>
+      </view>
+    </view>
+
+    <!-- 项目封面卡 -->
+    <view class="owner-hero">
+      <view class="owner-hero-top">
+        <view class="owner-copy">
+          <view class="owner-eyebrow">透明工地进度</view>
+          <view class="owner-project-title">{{project.name}}</view>
+          <view class="owner-address">{{project.address || '晟景装饰工地'}}</view>
+        </view>
+        <view class="owner-status">{{project.status || '施工中'}}</view>
+      </view>
+
+      <view class="progress-hero-row">
+        <view class="progress-hero-left">
+          <view class="progress-number">{{project.progress || 0}}<text class="progress-unit">%</text></view>
+          <view class="progress-label">总体进度</view>
+        </view>
+        <view class="stage-panel">
+          <view class="stage-label">当前节点</view>
+          <view class="stage-name">{{project.currentStage || stats.latestStage || '施工中'}}</view>
+        </view>
+      </view>
+
+      <view class="hero-progress">
+        <view class="hero-progress-bar" style="width: {{project.progress || 0}}%;"></view>
+      </view>
+
+      <view class="owner-metrics">
+        <view class="owner-metric">
+          <view class="metric-value">{{stats.logCount}}</view>
+          <view class="metric-label">进度更新</view>
+        </view>
+        <view class="owner-metric">
+          <view class="metric-value">{{stats.photoCount}}</view>
+          <view class="metric-label">现场照片</view>
+        </view>
+        <view class="owner-metric">
+          <view class="metric-value short">{{stats.latestDateText || '待更新'}}</view>
+          <view class="metric-label">最近更新</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{visibleLogs.length}}" class="section-lux-white today-bulletin">
+      <view class="section-title-row">
+        <view class="section-title-text">今日施工现场速递</view>
+        <view class="tag tag-success">持续更新中</view>
+      </view>
+      <view class="bulletin-bubble">
+        <view class="bulletin-p">【今日完成】{{visibleLogs[0].workContent || '现场进度已更新，请查看下方施工时间线。'}}</view>
+      </view>
+      <view wx:if="{{visibleLogs[0].photos.length}}" class="owner-bulletin-photos">
+        <image
+          wx:for="{{visibleLogs[0].photos}}"
+          wx:for-index="idx"
+          wx:key="*this"
+          wx:if="{{idx < 2}}"
+          class="bulletin-photo"
+          src="{{item}}"
+          mode="aspectFill"
+          data-photos="{{visibleLogs[0].photos}}"
+          data-index="{{idx}}"
+          bindtap="previewTimelinePhoto"
+          lazy-load></image>
+      </view>
+    </view>
+
+    <view class="dual-gateways-row">
+      <view class="gate-card" bindtap="goRenderSection">
+        <view class="gate-icon">📐</view>
+        <view class="gate-title">全案设计方案图纸</view>
+      </view>
+      <view class="gate-card" bindtap="goTimelineSection">
+        <view class="gate-icon">📑</view>
+        <view class="gate-title">全量历史施工日报</view>
+      </view>
+    </view>
+
+    <!-- 订阅通知 -->
+    <view wx:if="{{!subscribed}}" class="subscribe-banner" bindtap="requestSubscribe">
+      <view class="subscribe-icon">🔔</view>
+      <view class="subscribe-text">
+        <text class="subscribe-title">开启进度通知</text>
+        <text class="subscribe-desc">审核通过后微信即时提醒</text>
+      </view>
+      <view class="subscribe-arrow">›</view>
+    </view>
+
+    <!-- 设计效果图 -->
+    <view wx:if="{{renderDrawings.length}}" id="render-section" class="section render-section">
+      <view class="section-head">
+        <view class="sub-title">设计方案</view>
+        <view class="muted">效果图确认</view>
+      </view>
+      <view class="render-list">
+        <view wx:for="{{renderDrawings}}" wx:key="_id" class="render-card">
+          <view class="render-image-wrap" data-url="{{item.tempFileURL}}" bindtap="previewDrawing">
+            <image wx:if="{{item.tempFileURL}}" class="render-image" src="{{item.tempFileURL}}" mode="aspectFill" lazy-load />
+            <view wx:else class="render-image-ph">图片加载中</view>
+            <view wx:if="{{item.ownerConfirmed}}" class="render-confirmed">✓ 已确认</view>
+          </view>
+          <view class="render-info">
+            <view class="render-title-row">
+              <text class="render-title">{{item.title}}</text>
+              <text class="render-space">{{item.spaceText}}</text>
+            </view>
+            <view wx:if="{{item.remark}}" class="render-remark">{{item.remark}}</view>
+            <button wx:if="{{!item.ownerConfirmed}}" class="button-primary render-confirm-btn" data-id="{{item._id}}" data-title="{{item.title}}" bindtap="confirmDrawing">确认效果图</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 现场照片 -->
+    <view wx:if="{{photoWall.length}}" class="section photo-section">
+      <view class="section-head">
+        <view class="sub-title">现场照片</view>
+        <view class="muted">{{stats.latestDateText}}</view>
+      </view>
+
+      <view wx:if="{{photoStages.length > 1}}" class="stage-filter">
+        <view
+          class="filter-tab {{filterStage === '' ? 'filter-tab-active' : ''}}"
+          data-stage=""
+          bindtap="filterByStage">全部</view>
+        <view
+          wx:for="{{photoStages}}"
+          wx:key="*this"
+          class="filter-tab {{filterStage === item ? 'filter-tab-active' : ''}}"
+          data-stage="{{item}}"
+          bindtap="filterByStage">{{item}}</view>
+      </view>
+
+      <view class="photo-wall">
+        <view
+          wx:for="{{filteredPhotoWall}}"
+          wx:key="url"
+          class="photo-tile"
+          data-url="{{item.url}}"
+          bindtap="previewPhoto">
+          <image class="photo" src="{{item.url}}" mode="aspectFill" lazy-load></image>
+          <view class="photo-caption">{{item.stage}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 施工时间线 -->
+    <view wx:if="{{logs.length}}" id="timeline-section" class="section timeline-section">
+      <view class="section-head">
+        <view class="sub-title">施工时间线</view>
+        <view class="muted">已审核内容</view>
+      </view>
+
+      <view class="timeline">
+        <view
+          wx:for="{{visibleLogs}}"
+          wx:key="_id"
+          class="card timeline-item">
+          <view class="timeline-dot"></view>
+          <view class="row">
+            <view>
+              <view class="sub-title">{{item.stage}}</view>
+              <view class="muted">{{item.dateText || '已更新'}}</view>
+            </view>
+            <view class="tag tag-success">已审核</view>
+          </view>
+          <view class="log-content">{{item.workContent}}</view>
+          <view wx:if="{{item.needConfirm}}" class="muted">需确认：{{item.needConfirm}}</view>
+          <view wx:if="{{item.tomorrowPlan}}" class="muted plan-text">明日计划：{{item.tomorrowPlan}}</view>
+          <view wx:if="{{item.photos.length}}" class="inline-photos">
+            <image
+              wx:for="{{item.photos}}"
+              wx:for-item="photo"
+              wx:for-index="idx"
+              wx:key="*this"
+              class="inline-photo"
+              src="{{photo}}"
+              mode="aspectFill"
+              data-photos="{{item.photos}}"
+              data-index="{{idx}}"
+              bindtap="previewTimelinePhoto"
+              lazy-load></image>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{logs.length > timelineCollapsedCount}}" class="timeline-toggle" bindtap="toggleTimeline">
+        <view class="toggle-text">{{timelineExpanded ? '收起' : '查看全部 ' + logs.length + ' 条进度'}}</view>
+        <view class="toggle-arrow {{timelineExpanded ? 'arrow-up' : 'arrow-down'}}"></view>
+      </view>
+    </view>
+
+    <view wx:else class="card empty">
+      <view class="empty-title">已绑定工地</view>
+      <view class="muted">暂无已审核进度，请耐心等待</view>
+    </view>
+  </block>
+</view>

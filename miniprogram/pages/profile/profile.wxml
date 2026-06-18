@@ -1,17 +1,134 @@
-<view class="page">
-  <view class="section">
-    <view class="title">我的</view>
-    <view class="muted">登录后根据角色查看对应工地和客户。</view>
-  </view>
-
-  <view class="section card">
-    <view wx:if="{{user}}">
-      <view class="sub-title">{{user.name || '微信用户'}}</view>
-      <view class="muted">角色：{{user.role}}</view>
-      <view class="muted">状态：{{user.status}}</view>
+<view class="profile-page">
+  <!-- 用户信息大卡 -->
+  <view class="profile-hero">
+    <view wx:if="{{user}}" class="profile-user">
+      <view class="profile-avatar">{{user.name ? user.name[0] : '微'}}</view>
+      <view class="profile-user-info">
+        <view class="profile-user-name">{{user.name || '微信用户'}}</view>
+        <view class="profile-user-role">{{user.role || '未激活'}}</view>
+      </view>
+      <view class="profile-user-status tag {{user.status === 'active' ? 'tag-success' : 'tag-info'}}">{{user.status || '未登录'}}</view>
     </view>
-    <view wx:else class="muted">尚未登录</view>
+    <view wx:else class="profile-guest">
+      <view class="profile-avatar profile-avatar-guest">👤</view>
+      <view class="profile-user-info">
+        <view class="profile-user-name">尚未登录</view>
+        <view class="profile-user-role">登录后展示角色和工具入口</view>
+      </view>
+    </view>
   </view>
 
-  <button class="button-primary" loading="{{loading}}" disabled="{{loading}}" bindtap="login">微信登录</button>
+  <view wx:if="{{user && !isOwner}}" class="profile-workflow-card">
+    <view class="profile-workflow-head">
+      <view>
+        <view class="profile-workflow-title">内部效率闭环</view>
+        <view class="profile-workflow-desc">工地、日报、图纸、团队从这里进入。</view>
+      </view>
+      <view class="profile-workflow-tag">第三阶段</view>
+    </view>
+    <view class="profile-workflow-steps">
+      <view class="profile-workflow-step done">
+        <view class="profile-workflow-dot">1</view>
+        <view class="profile-workflow-text">工地管理</view>
+      </view>
+      <view class="profile-workflow-line"></view>
+      <view class="profile-workflow-step {{canReview ? 'done' : ''}}">
+        <view class="profile-workflow-dot">2</view>
+        <view class="profile-workflow-text">日报管理</view>
+      </view>
+      <view class="profile-workflow-line"></view>
+      <view class="profile-workflow-step done">
+        <view class="profile-workflow-dot">3</view>
+        <view class="profile-workflow-text">图纸管理</view>
+      </view>
+      <view class="profile-workflow-line"></view>
+      <view class="profile-workflow-step {{canManageStaff ? 'done' : ''}}">
+        <view class="profile-workflow-dot">4</view>
+        <view class="profile-workflow-text">团队管理</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 工作管理 -->
+  <view wx:if="{{user && !isOwner}}" class="profile-section">
+    <view class="profile-section-title">工作管理</view>
+    <view class="profile-menu">
+      <view class="menu-item" bindtap="goProjects">
+        <view class="menu-icon menu-icon-site">🏗</view>
+        <view class="menu-copy">
+          <view class="menu-text">工地管理</view>
+          <view class="menu-desc">查看工地、进入图纸和日报</view>
+        </view>
+        <view class="menu-arrow">›</view>
+      </view>
+      <view wx:if="{{canReview}}" class="menu-item" bindtap="goReview">
+        <view class="menu-icon menu-icon-review">📋</view>
+        <view class="menu-copy">
+          <view class="menu-text">审核日报</view>
+          <view class="menu-desc">审核后同步给业主查看</view>
+        </view>
+        <view class="menu-arrow">›</view>
+      </view>
+      <view wx:if="{{canViewCustomers}}" class="menu-item" bindtap="goCustomers">
+        <view class="menu-icon menu-icon-customer">👥</view>
+        <view class="menu-copy">
+          <view class="menu-text">客户库</view>
+          <view class="menu-desc">跟进预约线索和签单客户</view>
+        </view>
+        <view class="menu-arrow">›</view>
+      </view>
+      <view wx:if="{{canManageStaff}}" class="menu-item" bindtap="goStaffManage">
+        <view class="menu-icon menu-icon-staff">🔑</view>
+        <view class="menu-copy">
+          <view class="menu-text">团队管理</view>
+          <view class="menu-desc">生成邀请码和查看已激活员工</view>
+        </view>
+        <view class="menu-arrow">›</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 智能工具 -->
+  <view wx:if="{{user && canUseAiAssistant}}" class="profile-section">
+    <view class="profile-section-title">效率工具</view>
+    <view class="profile-menu">
+      <view class="menu-item" bindtap="goAiAssistant">
+        <view class="menu-icon menu-icon-ai">✨</view>
+        <view class="menu-copy">
+          <view class="menu-text">晟景AI助理</view>
+          <view class="menu-desc">客户话术、报价解释、施工交底</view>
+        </view>
+        <view class="menu-arrow">›</view>
+      </view>
+      <view wx:if="{{isOwner || !user}}" class="menu-item" bindtap="goOwnerProject">
+        <view class="menu-icon menu-icon-owner">📱</view>
+        <view class="menu-copy">
+          <view class="menu-text">业主进度页</view>
+          <view class="menu-desc">绑定后查看专属施工进度</view>
+        </view>
+        <view class="menu-arrow">›</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 业主入口 -->
+  <view wx:if="{{user && isOwner}}" class="profile-section">
+    <view class="profile-section-title">我的服务</view>
+    <view class="profile-menu">
+      <view class="menu-item" bindtap="goOwnerProject">
+        <view class="menu-icon menu-icon-owner">📱</view>
+        <view class="menu-copy">
+          <view class="menu-text">我的施工进度</view>
+          <view class="menu-desc">查看已审核的日报和现场照片</view>
+        </view>
+        <view class="menu-arrow">›</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 登录/刷新按钮 -->
+  <view class="profile-login-area">
+    <button wx:if="{{!user}}" class="button-primary" loading="{{loading}}" disabled="{{loading}}" bindtap="login">微信登录</button>
+    <button wx:else class="button-secondary" loading="{{loading}}" disabled="{{loading}}" bindtap="login">刷新登录状态</button>
+  </view>
 </view>

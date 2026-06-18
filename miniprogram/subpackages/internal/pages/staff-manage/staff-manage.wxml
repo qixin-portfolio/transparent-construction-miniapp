@@ -1,0 +1,148 @@
+<view class="staff-page">
+  <view wx:if="{{!authReady}}" class="card empty">
+    <view class="empty-title">加载中...</view>
+  </view>
+
+  <block wx:elif="{{!canManage}}">
+    <view class="card empty">
+      <view class="empty-icon">🔒</view>
+      <view class="empty-title">无权限</view>
+      <view class="muted">仅管理员可管理内部员工邀请码。</view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="team-hero">
+      <view class="team-hero-icon">队</view>
+      <view class="team-hero-copy">
+        <view class="team-hero-title">团队管理</view>
+        <view class="team-hero-desc">管理员生成邀请码，员工激活后进入对应工作台。</view>
+      </view>
+    </view>
+
+    <view class="team-flow-card">
+      <view class="team-flow">
+        <view class="team-flow-step done">
+          <view class="team-flow-dot">1</view>
+          <view class="team-flow-text">选择角色</view>
+        </view>
+        <view class="team-flow-line"></view>
+        <view class="team-flow-step {{latestCode || teamStats.activeCodes ? 'done' : ''}}">
+          <view class="team-flow-dot">2</view>
+          <view class="team-flow-text">生成邀请码</view>
+        </view>
+        <view class="team-flow-line"></view>
+        <view class="team-flow-step {{teamStats.usedCodes ? 'done' : ''}}">
+          <view class="team-flow-dot">3</view>
+          <view class="team-flow-text">员工激活</view>
+        </view>
+        <view class="team-flow-line"></view>
+        <view class="team-flow-step {{teamStats.memberCount ? 'done' : ''}}">
+          <view class="team-flow-dot">4</view>
+          <view class="team-flow-text">进入工作台</view>
+        </view>
+      </view>
+
+      <view class="team-stats">
+        <view class="team-stat">
+          <view class="team-stat-value">{{teamStats.activeCodes}}</view>
+          <view class="team-stat-label">有效邀请码</view>
+        </view>
+        <view class="team-stat">
+          <view class="team-stat-value">{{teamStats.usedCodes}}</view>
+          <view class="team-stat-label">已使用</view>
+        </view>
+        <view class="team-stat">
+          <view class="team-stat-value">{{teamStats.memberCount}}</view>
+          <view class="team-stat-label">内部员工</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 生成邀请码 -->
+    <view class="section">
+      <view class="section-title">生成邀请码</view>
+      <view class="role-options">
+        <view
+          wx:for="{{roleOptions}}"
+          wx:key="code"
+          class="role-chip {{selectedRole === item.code ? 'role-chip-active' : ''}}"
+          data-role="{{item.code}}"
+          bindtap="selectRole"
+        >{{item.label}}</view>
+      </view>
+
+      <input
+        class="remark-input"
+        placeholder="备注（可选，如：张工长）"
+        value="{{remark}}"
+        bindinput="onRemarkInput"
+        maxlength="50"
+      />
+
+      <button class="button-primary generate-btn" bindtap="generateCode" loading="{{generating}}" disabled="{{generating}}">生成邀请码</button>
+    </view>
+
+    <!-- 最新邀请码大卡 -->
+    <view wx:if="{{latestCode}}" class="section latest-code-card">
+      <view class="latest-code-label">最新邀请码 · {{latestCode.roleLabel}}</view>
+      <view class="latest-code-number" bindtap="copyCode" data-code="{{latestCode.code}}">{{latestCode.code}}</view>
+      <view class="latest-code-tip">6 位邀请码 · 7 天有效 · 激活后进入对应角色</view>
+      <view class="latest-code-actions">
+        <button class="latest-code-btn" bindtap="copyCode" data-code="{{latestCode.code}}">复制</button>
+      </view>
+    </view>
+
+    <!-- 邀请码列表 -->
+    <view class="section">
+      <view class="section-title">邀请码列表</view>
+      <view wx:if="{{loadingCodes}}" class="muted">加载中...</view>
+      <view wx:elif="{{inviteCodes.length === 0}}" class="card empty">
+        <view class="muted">暂无邀请码</view>
+      </view>
+      <view wx:else class="code-list">
+        <view wx:for="{{inviteCodes}}" wx:key="_id" class="code-item">
+          <view class="code-item-head">
+            <view class="code-item-role">{{item.roleLabel || item.role}}</view>
+            <view class="code-item-status code-status-{{item.status}}">{{statusLabels[item.status] || item.status}}</view>
+          </view>
+          <view class="code-item-number" bindtap="copyCode" data-code="{{item.code}}">{{item.code}}</view>
+          <view wx:if="{{item.remark}}" class="code-item-remark">备注：{{item.remark}}</view>
+          <view class="code-item-meta">
+            <text>创建：{{item.createdByName || '管理员'}}</text>
+            <text wx:if="{{item.usedByName}}">使用：{{item.usedByName}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 已激活员工 -->
+    <view class="section">
+      <view class="section-title">已激活内部员工</view>
+      <view wx:if="{{loadingMembers}}" class="muted">加载中...</view>
+      <view wx:elif="{{members.length === 0}}" class="card empty">
+        <view class="muted">暂无内部员工</view>
+      </view>
+      <view wx:else class="member-list">
+        <view wx:for="{{members}}" wx:key="_id" class="member-item">
+          <view class="member-avatar">{{item.name ? item.name[0] : '员'}}</view>
+          <view class="member-info">
+            <view class="member-name">{{item.name || '未命名'}}</view>
+            <view class="member-role">{{item.roleLabel}}</view>
+          </view>
+          <view class="member-status {{item.status === 'active' ? 'active' : 'inactive'}}">{{item.status === 'active' ? '在职' : '停用'}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 激活规则 -->
+    <view class="tip-block">
+      <view class="tip-title">激活规则</view>
+      <view class="tip-text">1. 选择角色后生成 6 位邀请码，有效期 7 天</view>
+      <view class="tip-text">2. 把邀请码发给对应员工（微信/电话均可）</view>
+      <view class="tip-text">3. 员工进小程序首页，点「我是内部员工」输入邀请码</view>
+      <view class="tip-text">4. 激活后自动进入对应角色工作台，无需手动改数据库</view>
+      <view class="tip-text">5. 同一角色有效邀请码未过期时会复用，不会重复生成</view>
+    </view>
+  </block>
+</view>

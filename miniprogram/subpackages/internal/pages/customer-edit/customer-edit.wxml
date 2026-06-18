@@ -1,0 +1,93 @@
+<view class="customer-edit-page">
+  <view class="page-header">
+    <view class="page-title">{{isEdit ? '客户详情' : '新增客户'}}</view>
+    <view class="muted">沉淀来源、需求、跟进阶段，签单后创建透明工地。</view>
+  </view>
+
+  <view class="customer-lifecycle-card">
+    <view class="lifecycle-title">客户转化进度</view>
+    <view class="lifecycle-flow">
+      <view wx:for="{{flowSteps}}" wx:key="name" class="lifecycle-step {{item.active ? 'active' : ''}}">
+        <view class="lifecycle-dot">{{index + 1}}</view>
+        <view class="lifecycle-label">{{item.name}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{isEdit}}" class="customer-action-row">
+    <button class="customer-action-btn secondary" bindtap="callCustomer">电话跟进</button>
+    <button class="customer-action-btn primary" bindtap="goCreateProject">签单建工地</button>
+  </view>
+
+  <!-- 客户基本信息 -->
+  <view class="card form-section">
+    <view class="form-section-title">客户信息</view>
+
+    <view class="form-group">
+      <view class="form-label">客户姓名</view>
+      <input class="input" placeholder="请输入客户姓名" value="{{form.name}}" data-key="name" bindinput="onInput" />
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">手机号</view>
+      <input class="input" placeholder="请输入手机号" type="number" value="{{form.phone}}" data-key="phone" bindinput="onInput" />
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">客户来源</view>
+      <input class="input" placeholder="如抖音、老客户介绍" value="{{form.source}}" data-key="source" bindinput="onInput" />
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">小区/地址</view>
+      <input class="input" placeholder="请输入小区或地址" value="{{form.address}}" data-key="address" bindinput="onInput" />
+    </view>
+  </view>
+
+  <!-- 需求信息 -->
+  <view class="card form-section">
+    <view class="form-section-title">需求信息</view>
+    <view class="form-group">
+      <view class="form-label">客户需求</view>
+      <textarea class="textarea" placeholder="客户需求、预算、风格偏好..." value="{{form.need}}" data-key="need" bindinput="onInput"></textarea>
+    </view>
+  </view>
+
+  <!-- 跟进状态 -->
+  <view class="card form-section">
+    <view class="form-section-title">跟进状态</view>
+
+    <view class="form-group">
+      <view class="form-label">跟进阶段</view>
+      <picker
+        range="{{stageOptions}}"
+        value="{{stageIndex}}"
+        bindchange="onStageChange">
+        <view class="picker">
+          <text>{{form.stage}}</text>
+          <text class="picker-arrow">选择</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">成交状态</view>
+      <picker
+        range="{{dealStatusOptions}}"
+        value="{{dealStatusIndex}}"
+        bindchange="onDealChange">
+        <view class="picker">
+          <text>{{form.dealStatus}}</text>
+          <text class="picker-arrow">选择</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-area">
+    <button class="button-primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">
+      {{isEdit ? '保存修改' : '保存客户'}}
+    </button>
+  </view>
+</view>

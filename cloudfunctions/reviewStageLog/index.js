@@ -59,6 +59,19 @@ exports.main = async (event) => {
         projectData.progress = Number(log.progress)
       }
       await db.collection('projects').doc(log.projectId).update({ data: projectData })
+
+      // 发送订阅消息通知业主（不阻断审核流程）
+      try {
+        await cloud.callFunction({
+          name: 'sendOwnerNotice',
+          data: {
+            projectId: log.projectId,
+            stageLogId
+          }
+        })
+      } catch (_) {
+        // 通知发送失败不影响审核结果
+      }
     }
 
     return {

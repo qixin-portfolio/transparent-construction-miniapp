@@ -1,16 +1,1024 @@
-.grid {
+/* ================================================================
+   工作台 · 员工端 + 业主端
+   ================================================================ */
+.workbench-page {
+  padding: 0 32rpx 48rpx;
+}
+
+/* ---------- 业主端 Hero ---------- */
+.owner-hero {
+  padding: 40rpx 36rpx;
+  margin: 24rpx 0 0;
+  border-radius: 40rpx;
+  background: linear-gradient(135deg, #0F6A4A 0%, #1F8B61 100%);
+  color: #FFFFFF;
+}
+
+.owner-hero-eyebrow {
+  font-size: 24rpx;
+  line-height: 1.3;
+  opacity: 0.8;
+}
+
+.owner-hero-title {
+  margin-top: 16rpx;
+  font-size: 44rpx;
+  line-height: 1.22;
+  font-weight: 600;
+}
+
+.owner-hero-desc {
+  max-width: 560rpx;
+  margin-top: 14rpx;
+  font-size: 26rpx;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ---------- 业主项目卡 ---------- */
+.owner-project-card {
+  margin-top: -36rpx;
+  padding: 32rpx;
+  border-radius: 32rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 32rpx rgba(15, 106, 74, 0.1);
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+}
+
+.owner-project-card:active {
+  opacity: 0.94;
+}
+
+.owner-project-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.owner-project-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.owner-project-name {
+  color: #111827;
+  font-size: 34rpx;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.owner-project-address {
+  margin-top: 8rpx;
+  color: #6B7280;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.owner-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-top: 32rpx;
+}
+
+.owner-progress-left {
+  flex: 1;
+}
+
+.owner-progress-number {
+  color: #0F6A4A;
+  font-size: 72rpx;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.owner-progress-unit {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.owner-progress-stage {
+  margin-top: 10rpx;
+  color: #6B7280;
+  font-size: 26rpx;
+  line-height: 1.4;
+}
+
+.owner-photo-preview {
+  width: 180rpx;
+  height: 130rpx;
+  overflow: hidden;
+  border-radius: 24rpx;
+  background: #F3F4F6;
+  flex-shrink: 0;
+}
+
+.owner-photo,
+.owner-photo-empty {
+  width: 100%;
+  height: 100%;
+}
+
+.owner-photo-empty {
+  color: #9CA3AF;
+  font-size: 24rpx;
+  line-height: 130rpx;
+  text-align: center;
+}
+
+.owner-progress {
+  height: 16rpx;
+  margin: 28rpx 0 24rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #E5E7EB;
+}
+
+.owner-progress-bar {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #0F6A4A 0%, #1F8B61 100%);
+}
+
+.owner-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+
+.owner-summary-item {
+  min-height: 112rpx;
+  padding: 20rpx 16rpx;
+  border-radius: 24rpx;
+  background: #F7FAF8;
+  box-sizing: border-box;
+}
+
+.owner-summary-value {
+  color: #111827;
+  font-size: 36rpx;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.owner-summary-text {
+  min-height: 44rpx;
+  font-size: 24rpx;
+  line-height: 1.25;
+}
+
+.owner-summary-label {
+  margin-top: 8rpx;
+  color: #9CA3AF;
+  font-size: 22rpx;
+  line-height: 1.3;
+}
+
+/* ---------- 业主未绑定卡 ---------- */
+.owner-bind-card {
+  margin-top: -36rpx;
+  padding: 48rpx 32rpx;
+  border-radius: 32rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 32rpx rgba(15, 106, 74, 0.1);
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.owner-bind-icon {
+  font-size: 64rpx;
+  line-height: 1;
+  margin-bottom: 20rpx;
+}
+
+.owner-bind-title {
+  color: #111827;
+  font-size: 34rpx;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.owner-bind-desc {
+  margin-top: 12rpx;
+  color: #6B7280;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
+.owner-bind-action {
+  margin-top: 32rpx;
+}
+
+/* ---------- 业主信任列表 ---------- */
+.owner-trust-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18rpx;
+  gap: 20rpx;
+  margin-top: 24rpx;
 }
 
-.metric {
-  min-height: 168rpx;
+.owner-trust-item {
+  display: flex;
+  gap: 16rpx;
+  padding: 24rpx;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+  box-shadow: 0 4rpx 20rpx rgba(17, 24, 39, 0.03);
+  box-sizing: border-box;
 }
 
-.metric-number {
-  font-size: 56rpx;
+.trust-mark {
+  flex-shrink: 0;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 18rpx;
+  background: #EAF7F1;
+  color: #0F6A4A;
+  font-size: 26rpx;
+  line-height: 56rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.trust-title {
+  color: #111827;
+  font-size: 26rpx;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.trust-desc {
+  margin-top: 6rpx;
+  color: #9CA3AF;
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
+/* ---------- 员工激活入口 ---------- */
+.staff-activate-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24rpx;
+  padding: 26rpx 32rpx;
+  border: 2rpx dashed #9CA3AF;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+}
+
+.staff-activate-entry-text {
+  color: #6B7280;
+  font-size: 26rpx;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.staff-activate-entry-arrow {
+  color: #9CA3AF;
+  font-size: 36rpx;
+  line-height: 1;
+}
+
+/* ---------- 员工端 Hero ---------- */
+.staff-hero {
+  padding: 40rpx 36rpx;
+  margin: 24rpx 0 0;
+  border-radius: 40rpx;
+  background: linear-gradient(135deg, #0F6A4A 0%, #1F8B61 100%);
+  color: #FFFFFF;
+}
+
+.staff-hero-eyebrow {
+  font-size: 24rpx;
+  line-height: 1.3;
+  opacity: 0.8;
+}
+
+.staff-hero-title {
+  margin-top: 16rpx;
+  font-size: 44rpx;
+  line-height: 1.22;
+  font-weight: 600;
+}
+
+.staff-hero-desc {
+  max-width: 560rpx;
+  margin-top: 14rpx;
+  font-size: 26rpx;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ---------- 数据概览 2x2 ---------- */
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+  margin-top: -32rpx;
+  position: relative;
+  z-index: 2;
+}
+
+.overview-card {
+  padding: 32rpx;
+  border-radius: 32rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 32rpx rgba(15, 106, 74, 0.08);
+  box-sizing: border-box;
+}
+
+.overview-card:active {
+  opacity: 0.94;
+}
+
+.overview-number {
+  font-size: 64rpx;
   line-height: 1.1;
+  font-weight: 700;
+  color: #0F6A4A;
+}
+
+.overview-label {
+  margin-top: 10rpx;
+  color: #6B7280;
+  font-size: 26rpx;
+  line-height: 1.3;
+}
+
+/* ---------- 快捷操作 ---------- */
+.quick-section {
+  margin-top: 32rpx;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+
+.quick-card {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 28rpx;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+  box-shadow: 0 4rpx 20rpx rgba(17, 24, 39, 0.03);
+  box-sizing: border-box;
+}
+
+.quick-card:active {
+  opacity: 0.92;
+}
+
+.quick-icon {
+  flex-shrink: 0;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  line-height: 1;
+}
+
+.quick-icon-site { background: #EAF7F1; }
+.quick-icon-review { background: #FEF3C7; }
+.quick-icon-customer { background: #DBEAFE; }
+.quick-icon-staff { background: #EDE9FE; }
+.quick-icon-ai { background: #FCE7F3; }
+.quick-icon-owner { background: #E0F2FE; }
+
+.quick-name {
+  color: #111827;
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ---------- 员工激活弹窗 ---------- */
+.staff-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  background: rgba(17, 24, 39, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.staff-dialog {
+  width: 600rpx;
+  padding: 40rpx 36rpx 32rpx;
+  border-radius: 40rpx;
+  background: #FFFFFF;
+  box-sizing: border-box;
+}
+
+.staff-dialog-title {
+  color: #111827;
+  font-size: 34rpx;
+  line-height: 1.3;
+  font-weight: 600;
+  text-align: center;
+}
+
+.staff-dialog-desc {
+  margin-top: 14rpx;
+  color: #6B7280;
+  font-size: 26rpx;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.staff-code-input {
+  margin: 32rpx 0 28rpx;
+  height: 104rpx;
+  padding: 0 24rpx;
+  border: 2rpx solid #E5E7EB;
+  border-radius: 24rpx;
+  background: #F9FAFB;
+  color: #111827;
+  font-size: 48rpx;
+  letter-spacing: 20rpx;
+  font-weight: 700;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.staff-dialog-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.staff-dialog-btn {
+  flex: 1;
+  margin: 0;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 28rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  text-align: center;
+  padding: 0;
+  border: none;
+}
+
+.staff-dialog-btn::after {
+  border: none;
+}
+
+.staff-dialog-cancel {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+.staff-dialog-confirm {
+  background: #0F6A4A;
+  color: #FFFFFF;
+  box-shadow: 0 8rpx 24rpx rgba(15, 106, 74, 0.24);
+}
+
+.staff-dialog-confirm[disabled] {
+  background: #C8DBD2;
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: none;
+}
+
+/* UI 1.1 · 工作台贴合全页面总览图 */
+.workbench-page {
+  min-height: 100vh;
+  padding: 24rpx 28rpx calc(136rpx + env(safe-area-inset-bottom));
+  background: #F8F4EA;
+  box-sizing: border-box;
+}
+
+.workbench-page .card {
+  border-radius: 18rpx;
+}
+
+.staff-hero {
+  margin: 0 0 22rpx;
+  padding: 12rpx 4rpx 8rpx;
+  border-radius: 0;
+  background: transparent;
+  color: #173E33;
+}
+
+.staff-hero-eyebrow {
+  color: #147657;
+  font-size: 24rpx;
+  font-weight: 700;
+  opacity: 1;
+}
+
+.staff-hero-title {
+  margin-top: 8rpx;
+  color: #173E33;
+  font-size: 38rpx;
   font-weight: 800;
-  color: #1f6f54;
+}
+
+.staff-hero-desc {
+  max-width: none;
+  margin-top: 8rpx;
+  color: #6C776F;
+  font-size: 24rpx;
+}
+
+.overview-grid {
+  gap: 18rpx;
+  margin-top: 0;
+}
+
+.overview-card {
+  min-height: 144rpx;
+  padding: 24rpx 18rpx;
+  border: 1rpx solid #E9DDC8;
+  border-radius: 14rpx;
+  background: #FFFDF7;
+  box-shadow: 0 8rpx 22rpx rgba(24, 57, 45, 0.05);
+  text-align: center;
+}
+
+.overview-number {
+  color: #147657;
+  font-size: 58rpx;
+}
+
+.overview-label {
+  margin-top: 6rpx;
+  color: #6C776F;
+  font-size: 24rpx;
+}
+
+.quick-section {
+  margin-top: 26rpx;
+}
+
+.quick-section .section-head {
+  display: none;
+}
+
+.quick-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.quick-card {
+  justify-content: center;
+  min-height: 82rpx;
+  padding: 0 28rpx;
+  border: 1rpx solid #E9DDC8;
+  border-radius: 12rpx;
+  background: #F1E7D4;
+  box-shadow: none;
+}
+
+.quick-card:first-child {
+  background: #147657;
+}
+
+.quick-card:first-child .quick-name {
+  color: #FFFFFF;
+}
+
+.quick-icon {
+  display: none;
+}
+
+.quick-name {
+  color: #173E33;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.owner-hero {
+  margin: 0;
+  padding: 32rpx 30rpx;
+  border-radius: 16rpx;
+  background: #147657;
+  box-shadow: none;
+}
+
+.owner-hero-eyebrow {
+  font-weight: 700;
+  opacity: 0.78;
+}
+
+.owner-hero-title {
+  font-size: 42rpx;
+  font-weight: 800;
+}
+
+.owner-hero-desc {
+  font-size: 24rpx;
+}
+
+.owner-project-card,
+.owner-bind-card {
+  margin-top: 18rpx;
+  border: 1rpx solid #E9DDC8;
+  border-radius: 16rpx;
+  background: #FFFDF7;
+  box-shadow: 0 8rpx 22rpx rgba(24, 57, 45, 0.06);
+}
+
+.owner-project-name,
+.owner-bind-title,
+.trust-title {
+  color: #173E33;
+}
+
+.owner-project-address,
+.owner-progress-stage,
+.owner-bind-desc,
+.trust-desc {
+  color: #6C776F;
+}
+
+.owner-progress-number {
+  color: #147657;
+  font-size: 64rpx;
+}
+
+.owner-photo-preview {
+  border-radius: 14rpx;
+  background: #D7CDB8;
+}
+
+.owner-summary-item,
+.owner-trust-item {
+  border: 1rpx solid #E9DDC8;
+  border-radius: 14rpx;
+  background: #FFFDF7;
+  box-shadow: none;
+}
+
+.trust-mark {
+  border-radius: 12rpx;
+  background: #DDF1E9;
+  color: #147657;
+}
+
+.staff-activate-entry {
+  border: 1rpx solid #E9DDC8;
+  border-radius: 12rpx;
+  background: #FFFDF7;
+}
+
+.staff-dialog {
+  border: 1rpx solid #E9DDC8;
+  border-radius: 20rpx;
+  background: #FFFDF7;
+}
+
+.staff-code-input {
+  border: 1rpx solid #E9DDC8;
+  border-radius: 12rpx;
+  background: #FFFFFF;
+  color: #173E33;
+}
+
+.staff-dialog-btn {
+  border-radius: 12rpx;
+}
+
+.staff-dialog-confirm {
+  background: #147657;
+  box-shadow: none;
+}
+
+/* UI 1.2 · 对齐 figma-import/pages/01-workbench.html */
+.workbench-page {
+  min-height: 100vh;
+  padding: 32rpx 32rpx calc(148rpx + env(safe-area-inset-bottom));
+  background: #F8FAF9;
+  box-sizing: border-box;
+}
+
+.welcome-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.user-meta {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.staff-avatar {
+  flex-shrink: 0;
+  width: 88rpx;
+  height: 88rpx;
+  margin-right: 24rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #EAF7F1, #C7E8DC);
+  color: #0F6A4A;
+  font-size: 34rpx;
+  font-weight: 800;
+  line-height: 88rpx;
+  text-align: center;
+}
+
+.text-group {
+  min-width: 0;
+}
+
+.staff-name {
+  color: #111827;
+  font-size: 32rpx;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.staff-role {
+  margin-top: 4rpx;
+  color: #0F6A4A;
+  font-size: 24rpx;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.date-today {
+  flex-shrink: 0;
+  color: #9CA3AF;
+  font-size: 24rpx;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24rpx;
+  margin: 0 0 48rpx;
+}
+
+.overview-card {
+  min-height: 160rpx;
+  padding: 28rpx;
+  border: none;
+  border-radius: 32rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
+  text-align: left;
+}
+
+.overview-number {
+  color: #111827;
+  font-size: 64rpx;
+  line-height: 1.05;
+  font-weight: 800;
+}
+
+.overview-number.highlight {
+  color: #F59E0B;
+}
+
+.overview-label {
+  margin-top: 10rpx;
+  color: #6B7280;
+  font-size: 24rpx;
+}
+
+.quick-section,
+.todo-section {
+  margin-bottom: 48rpx;
+}
+
+.quick-section .section-head,
+.todo-section .section-head {
+  display: flex;
+  margin-bottom: 24rpx;
+}
+
+.quick-section .sub-title,
+.todo-section .sub-title {
+  color: #111827;
+  font-size: 36rpx;
+  font-weight: 800;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20rpx;
+}
+
+.quick-card {
+  min-height: 136rpx;
+  padding: 22rpx 8rpx;
+  border: none;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-card:first-child {
+  background: #EAF7F1;
+}
+
+.quick-card:first-child .quick-name {
+  color: #0F6A4A;
+}
+
+.quick-icon {
+  display: flex;
+  width: auto;
+  height: auto;
+  margin-bottom: 12rpx;
+  border-radius: 0;
+  background: transparent;
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.quick-name {
+  color: #111827;
+  font-size: 22rpx;
+  line-height: 1.25;
+  font-weight: 700;
+  text-align: center;
+}
+
+.quick-icon-ai + .quick-name {
+  color: #4F46E5;
+}
+
+.todo-list {
+  overflow: hidden;
+  border-radius: 32rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 104rpx;
+  padding: 0 32rpx;
+  border-bottom: 1rpx solid #E5E7EB;
+}
+
+.todo-item:last-child {
+  border-bottom: none;
+}
+
+.todo-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+}
+
+.todo-dot {
+  flex-shrink: 0;
+  width: 16rpx;
+  height: 16rpx;
+  margin-right: 20rpx;
+  border-radius: 50%;
+}
+
+.dot-alert {
+  background: #D9534F;
+}
+
+.dot-pending {
+  background: #F59E0B;
+}
+
+.dot-create {
+  background: #0F6A4A;
+}
+
+.todo-text {
+  color: #111827;
+  font-size: 26rpx;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.todo-arrow {
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  color: #9CA3AF;
+  font-size: 30rpx;
+}
+
+.owner-hero {
+  margin-bottom: 32rpx;
+  border-radius: 40rpx;
+  background: linear-gradient(135deg, #0F6A4A 0%, #1F8B61 100%);
+}
+
+.owner-project-card,
+.owner-bind-card,
+.owner-summary-item,
+.owner-trust-item,
+.staff-activate-entry,
+.staff-dialog {
+  border: none;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
+}
+
+/* Stage 1 · 核心业务闭环 */
+.workflow-card {
+  margin: 0 0 48rpx;
+  padding: 32rpx;
+  border-radius: 32rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
+}
+
+.workflow-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 28rpx;
+}
+
+.workflow-title {
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.workflow-badge {
+  flex-shrink: 0;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  background: #EAF7F1;
+  color: #0F6A4A;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.workflow-steps {
+  display: flex;
+  align-items: flex-start;
+}
+
+.workflow-step {
+  width: 112rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.step-dot {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: #E5E7EB;
+  color: #6B7280;
+  font-size: 22rpx;
+  line-height: 44rpx;
+  font-weight: 800;
+  text-align: center;
+}
+
+.step-dot.active {
+  background: #0F6A4A;
+  color: #FFFFFF;
+}
+
+.step-dot.warning {
+  background: #F59E0B;
+  color: #FFFFFF;
+}
+
+.step-text {
+  margin-top: 12rpx;
+  color: #6B7280;
+  font-size: 22rpx;
+  line-height: 1.25;
+  font-weight: 700;
+  text-align: center;
+}
+
+.workflow-line {
+  flex: 1;
+  height: 4rpx;
+  margin-top: 20rpx;
+  background: #E5E7EB;
 }

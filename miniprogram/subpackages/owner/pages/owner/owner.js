@@ -1,0 +1,371 @@
+const { call, showError } = require('../../../../services/cloud')
+const { DEMO_MODE, demoProjects, demoLogs } = require('../../../../utils/demo')
+
+// ⚠️ 替换为你在 mp 后台创建的订阅消息模板 ID
+const SUBSCRIBE_TMPL_IDS = ['CSnZXzPW_Qe9Nor3NR7__Z0dHlQaItFPpb6X1-Sd4bY']
+
+const SPACE_NAMES = {
+  whole_house: '全屋', living_room: '客厅', master_bedroom: '主卧',
+  second_bedroom: '次卧', kitchen: '厨房', bathroom: '卫生间',
+  entrance: '玄关', balcony: '阳台', study: '书房'
+}
+
+Page({
+  data: {
+    loading: false,
+    authLoading: false,
+    binding: false,
+    bindCode: '',
+    project: null,
+    logs: [],
+    visibleLogs: [],
+    stats: {
+      logCount: 0,
+      photoCount: 0,
+      latestDateText: '',
+      latestStage: ''
+    },
+    photoWall: [],
+    filteredPhotoWall: [],
+    photoStages: [],
+    filterStage: '',
+    timelineExpanded: false,
+    timelineCollapsedCount: 3,
+    autoFilled: false,
+    subscribed: false,
+    renderDrawings: []
+  },
+
+  onLoad(options) {
+    const bindCode = String(options.bindCode || '').replace(/\s/g, '')
+    if (bindCode && /^\d{6}$/.test(bindCode)) {
+      this.setData({
+        bindCode,
+        autoFilled: true
+      })
+      wx.showToast({
+        title: '已自动填入绑定码',
+        icon: 'none',
+        duration: 2000
+      })
+    }
+  },
+
+  onShow() {
+    this.setData({
+      authLoading: true,
+      subscribed: !!wx.getStorageSync('ownerSubscribed')
+    })
+    getApp().ensureLogin()
+      .then(() => {
+        this.loadOwnerProject()
+      })
+      .catch((error) => {
+        this.setData({
+          project: null, logs: [], visibleLogs: [], photoWall: [],
+          filteredPhotoWall: [], photoStages: [], renderDrawings: []
+        })
+        showError('登录失败', error)
+      })
+      .finally(() => {
+        this.setData({ authLoading: false })
+      })
+  },
+
+  loadOwnerProject() {
+    this.setData({ loading: true })
+    call('getOwnerProject')
+      .then((res) => {
+        const logs = this.prepareLogs(res.logs || [])
+        const photoWall = this.makePhotoWall(logs)
+        const stages = this.buildStageList(photoWall)
+        this.setData({
+          project: res.project || null,
+          logs,
+          visibleLogs: logs.slice(0, this.data.timelineCollapsedCount),
+          stats: this.makeStats(logs),
+          photoWall,
+          filteredPhotoWall: photoWall,
+          photoStages: stages,
+          filterStage: '',
+          timelineExpanded: false,
+          renderDrawings: []
+        })
+        // 加载设计效果图
+        if (res.project) {
+          this.loadRenderDrawings(res.project._id)
+        }
+      })
+      .catch((error) => {
+        if (DEMO_MODE) {
+          const logs = this.prepareLogs(demoLogs)
+          const photoWall = this.makePhotoWall(logs)
+          this.setData({
+            project: demoProjects[0],
+            logs,
+            visibleLogs: logs.slice(0, this.data.timelineCollapsedCount),
+            stats: this.makeStats(logs),
+            photoWall,
+            filteredPhotoWall: photoWall,
+            photoStages: this.buildStageList(photoWall),
+            filterStage: '',
+            timelineExpanded: false,
+            renderDrawings: []
+          })
+          return
+        }
+        this.setData({
+          project: null, logs: [], visibleLogs: [], photoWall: [],
+          filteredPhotoWall: [], photoStages: [], renderDrawings: []
+        })
+        showError('业主进度加载失败', error)
+      })
+      .finally(() => {
+        this.setData({ loading: false })
+      })
+  },
+
+  /* ========================
+     照片大图预览
+     ======================== */
+  previewPhoto(event) {
+    const urls = this.data.photoWall.map((item) => item.url)
+    const current = event.currentTarget.dataset.url || ''
+    wx.previewImage({
+      urls,
+      current
+    })
+  },
+
+  previewTimelinePhoto(event) {
+    const { photos, index } = event.currentTarget.dataset
+    wx.previewImage({
+      urls: photos || [],
+      current: (photos || [])[index || 0] || ''
+    })
+  },
+
+  /* ========================
+     照片按阶段筛选
+     ======================== */
+  buildStageList(photoWall) {
+    const seen = new Set()
+    const stages = []
+    photoWall.forEach((item) => {
+      const s = item.stage || '施工中'
+      if (!seen.has(s)) {
+        seen.add(s)
+        stages.push(s)
+      }
+    })
+    return stages
+  },
+
+  filterByStage(event) {
+    const stage = event.currentTarget.dataset.stage || ''
+    this.setData({
+      filterStage: stage,
+      filteredPhotoWall: stage
+        ? this.data.photoWall.filter((p) => p.stage === stage)
+        : this.data.photoWall
+    })
+  },
+
+  /* ========================
+     时间线展开/收起
+     ======================== */
+  toggleTimeline() {
+    const expanded = !this.data.timelineExpanded
+    this.setData({
+      timelineExpanded: expanded,
+      visibleLogs: expanded ? this.data.logs : this.data.logs.slice(0, this.data.timelineCollapsedCount)
+    })
+  },
+
+  /* ========================
+     工具方法
+     ======================== */
+  onBindCodeInput(event) {
+    this.setData({
+      bindCode: String(event.detail.value || '').replace(/\D/g, '').slice(0, 6)
+    })
+  },
+
+  formatDate(value) {
+    if (!value) return ''
+    let raw = value
+    if (value.$date && value.$date.$numberLong) raw = Number(value.$date.$numberLong)
+    if (value.$numberLong) raw = Number(value.$numberLong)
+
+    const date = new Date(raw)
+    if (Number.isNaN(date.getTime())) return ''
+
+    const month = `${date.getMonth() + 1}`.padStart(2, '0')
+    const day = `${date.getDate()}`.padStart(2, '0')
+    const hour = `${date.getHours()}`.padStart(2, '0')
+    const minute = `${date.getMinutes()}`.padStart(2, '0')
+    return `${month}月${day}日 ${hour}:${minute}`
+  },
+
+  prepareLogs(logs) {
+    return logs.map((item) => Object.assign({}, item, {
+      dateText: this.formatDate(item.createdAt || item.updatedAt || item.reviewedAt),
+      photos: item.photos || []
+    }))
+  },
+
+  makePhotoWall(logs) {
+    return logs.reduce((items, log) => {
+      ;(log.photos || []).forEach((photo) => {
+        items.push({
+          url: photo,
+          stage: log.stage || '施工进度',
+          dateText: log.dateText || ''
+        })
+      })
+      return items
+    }, [])
+  },
+
+  makeStats(logs) {
+    const latest = logs[0] || {}
+    const photoCount = logs.reduce((total, log) => total + ((log.photos || []).length), 0)
+    return {
+      logCount: logs.length,
+      photoCount,
+      latestDateText: latest.dateText || '',
+      latestStage: latest.stage || ''
+    }
+  },
+
+  bindProject() {
+    const code = String(this.data.bindCode || '').replace(/\s/g, '')
+    if (!code) {
+      showError('请输入绑定码')
+      return
+    }
+
+    this.setData({ binding: true })
+    getApp().ensureLogin()
+      .then(() => call('bindOwnerProject', { code }))
+      .then(() => {
+        wx.showToast({
+          title: '已绑定',
+          icon: 'success'
+        })
+        this.setData({ bindCode: '' })
+        this.loadOwnerProject()
+        // 绑定成功后，请求订阅消息授权
+        setTimeout(() => this.requestSubscribe(), 800)
+      })
+      .catch((error) => {
+        showError('绑定失败', error)
+      })
+      .finally(() => {
+        this.setData({ binding: false })
+      })
+  },
+
+  goRenderSection() {
+    if (!this.data.renderDrawings.length) {
+      wx.showToast({ title: '暂无已开放图纸', icon: 'none' })
+      return
+    }
+    wx.pageScrollTo({
+      selector: '#render-section',
+      duration: 260
+    })
+  },
+
+  goTimelineSection() {
+    if (!this.data.logs.length) {
+      wx.showToast({ title: '暂无已审核日报', icon: 'none' })
+      return
+    }
+    this.setData({
+      timelineExpanded: true,
+      visibleLogs: this.data.logs
+    })
+    wx.pageScrollTo({
+      selector: '#timeline-section',
+      duration: 260
+    })
+  },
+
+  /* ========================
+     订阅消息授权
+     ======================== */
+  requestSubscribe() {
+    if (!SUBSCRIBE_TMPL_IDS.length || SUBSCRIBE_TMPL_IDS[0] === 'YOUR_TEMPLATE_ID_HERE') {
+      return // 模板 ID 未配置，跳过
+    }
+    wx.requestSubscribeMessage({
+      tmplIds: SUBSCRIBE_TMPL_IDS,
+      success: (res) => {
+        const accepted = SUBSCRIBE_TMPL_IDS.some((id) => res[id] === 'accept')
+        if (accepted) {
+          wx.setStorageSync('ownerSubscribed', true)
+          this.setData({ subscribed: true })
+        }
+      },
+      fail: () => {
+        // 用户拒绝或出错，静默处理
+      }
+    })
+  },
+
+  /* ========================
+     设计效果图
+     ======================== */
+  loadRenderDrawings(projectId) {
+    call('listDesignDrawings', { projectId })
+      .then((res) => {
+        const drawings = (res.drawings || []).map((d) => ({
+          ...d,
+          spaceText: SPACE_NAMES[d.space] || d.space
+        }))
+        this.setData({ renderDrawings: drawings })
+      })
+      .catch(() => {
+        // 图纸加载失败不影响主流程
+      })
+  },
+
+  previewDrawing(event) {
+    const url = event.currentTarget.dataset.url
+    if (!url) return
+    const urls = this.data.renderDrawings
+      .map((d) => d.tempFileURL)
+      .filter(Boolean)
+    wx.previewImage({ current: url, urls })
+  },
+
+  confirmDrawing(event) {
+    const id = event.currentTarget.dataset.id
+    const title = event.currentTarget.dataset.title
+    wx.showModal({
+      title: '确认效果图',
+      content: `确认「${title}」这张效果图符合预期？确认后设计师会收到通知。`,
+      success: (res) => {
+        if (res.confirm) {
+          call('updateDesignDrawing', { drawingId: id, action: 'ownerConfirm' })
+            .then(() => {
+              wx.showToast({ title: '已确认', icon: 'success' })
+              if (this.data.project) {
+                this.loadRenderDrawings(this.data.project._id)
+              }
+            })
+            .catch((error) => showError('确认失败', error))
+        }
+      }
+    })
+  },
+
+  onShareAppMessage() {
+    const project = this.data.project
+    return {
+      title: project ? `${project.name}施工进度更新` : '晟景透明工地',
+      path: '/subpackages/owner/pages/owner/owner'
+    }
+  }
+})

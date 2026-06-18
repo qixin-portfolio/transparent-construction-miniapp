@@ -1,0 +1,46 @@
+<view class="project-edit-page">
+  <view class="page-header">
+    <view class="page-title">新增工地</view>
+    <view class="muted">新建后进入工地详情，可继续上传日报或生成业主绑定码。</view>
+  </view>
+
+  <!-- 项目信息 -->
+  <view class="card form-section">
+    <view class="form-section-title">项目信息</view>
+    <view class="form-group">
+      <view class="form-label">工地名称</view>
+      <input class="input" placeholder="如 万硕花园 128㎡" value="{{form.name}}" data-key="name" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <view class="form-label">小区/地址</view>
+      <input class="input" placeholder="请输入小区或地址" value="{{form.address}}" data-key="address" bindinput="onInput" />
+    </view>
+  </view>
+
+  <!-- 客户信息 -->
+  <view class="card form-section">
+    <view class="form-section-title">客户信息</view>
+    <view class="form-group">
+      <view class="form-label">客户姓名</view>
+      <input class="input" placeholder="请输入客户姓名" value="{{form.customerName}}" data-key="customerName" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <view class="form-label">客户 ID <text class="form-label-hint">（可不填）</text></view>
+      <input class="input" placeholder="客户 ID" value="{{form.customerId}}" data-key="customerId" bindinput="onInput" />
+    </view>
+  </view>
+
+  <!-- 人员配置 -->
+  <view class="card form-section">
+    <view class="form-section-title">人员配置</view>
+    <view class="form-group">
+      <view class="form-label">业主 OpenID <text class="form-label-hint">（可不填）</text></view>
+      <input class="input" placeholder="业主 OpenID" value="{{form.ownerOpenid}}" data-key="ownerOpenid" bindinput="onInput" />
+    </view>
+  </view>
+
+  <!-- 底部固定按钮 -->
+  <view class="bottom-bar">
+    <button class="button-primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">新建工地</button>
+  </view>
+</view>

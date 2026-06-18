@@ -1,6 +1,0 @@
-.review-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16rpx;
-  margin-top: 22rpx;
-}

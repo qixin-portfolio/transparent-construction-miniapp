@@ -1,0 +1,173 @@
+<view wx:if="{{loading}}" class="ai-loading">
+  <view class="ai-loading-icon">⏳</view>
+  <view class="ai-loading-text">正在打开晟景AI助理...</view>
+</view>
+
+<view wx:elif="{{authorized}}" class="ai-page">
+  <!-- 顶部介绍卡 -->
+  <view class="ai-hero">
+    <view class="ai-hero-icon">AI</view>
+    <view class="ai-kicker">内部工具</view>
+    <view class="ai-title">{{title}}</view>
+    <view class="ai-desc">客户跟进、报价解释、施工交底、透明工地日报都放在这里。</view>
+  </view>
+
+  <view class="ai-loop-card">
+    <view class="ai-loop-steps">
+      <view class="ai-loop-step {{toolStats.filled ? 'done' : ''}}">
+        <view class="ai-loop-dot">1</view>
+        <view class="ai-loop-text">录入资料</view>
+      </view>
+      <view class="ai-loop-line"></view>
+      <view class="ai-loop-step {{hasOutput ? 'done' : ''}}">
+        <view class="ai-loop-dot">2</view>
+        <view class="ai-loop-text">生成内容</view>
+      </view>
+      <view class="ai-loop-line"></view>
+      <view class="ai-loop-step {{history.length ? 'done' : ''}}">
+        <view class="ai-loop-dot">3</view>
+        <view class="ai-loop-text">保存复用</view>
+      </view>
+      <view class="ai-loop-line"></view>
+      <view class="ai-loop-step {{currentFlowKey == 'customer' ? 'done' : ''}}">
+        <view class="ai-loop-dot">4</view>
+        <view class="ai-loop-text">同步客户</view>
+      </view>
+    </view>
+
+    <view class="ai-stats">
+      <view class="ai-stat">
+        <view class="ai-stat-value">{{toolStats.filled}}/{{toolStats.total}}</view>
+        <view class="ai-stat-label">已填资料</view>
+      </view>
+      <view class="ai-stat">
+        <view class="ai-stat-value">{{toolStats.photos}}</view>
+        <view class="ai-stat-label">现场照片</view>
+      </view>
+      <view class="ai-stat">
+        <view class="ai-stat-value">{{history.length}}</view>
+        <view class="ai-stat-label">本机记录</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 模式切换 -->
+  <scroll-view class="flow-tabs" scroll-x enable-flex>
+    <view class="flow-tabs-inner">
+      <button
+        wx:for="{{flowTabs}}"
+        wx:key="key"
+        class="flow-tab {{item.key == currentFlowKey ? 'active' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="switchFlow"
+      >
+        {{item.title}}
+      </button>
+    </view>
+  </scroll-view>
+
+  <!-- 工具卡片 -->
+  <view class="card flow-card">
+    <view class="flow-head">
+      <view class="flow-head-info">
+        <view class="sub-title">{{currentFlow.title}}</view>
+        <view class="muted flow-desc">{{currentFlow.desc}}</view>
+      </view>
+      <button class="text-action" bindtap="copyLocalPath">{{sourceName}}</button>
+    </view>
+
+    <view class="field-list">
+      <view wx:for="{{fields}}" wx:key="key" class="field">
+        <view class="field-label">{{item.label}}</view>
+
+        <input
+          wx:if="{{item.type == 'input'}}"
+          class="input"
+          value="{{item.value}}"
+          placeholder="{{item.placeholder}}"
+          data-index="{{index}}"
+          bindinput="updateField"
+        />
+
+        <textarea
+          wx:elif="{{item.type == 'textarea'}}"
+          class="textarea ai-textarea"
+          value="{{item.value}}"
+          placeholder="{{item.placeholder}}"
+          data-index="{{index}}"
+          bindinput="updateField"
+        ></textarea>
+
+        <picker
+          wx:elif="{{item.type == 'select'}}"
+          range="{{item.options}}"
+          value="{{item.selectedIndex}}"
+          data-index="{{index}}"
+          bindchange="updatePicker"
+        >
+          <view class="picker ai-picker">
+            <text>{{item.value}}</text>
+            <text class="picker-arrow">选择</text>
+          </view>
+        </picker>
+
+        <view wx:elif="{{item.type == 'photos'}}" class="photo-field">
+          <button class="button-secondary photo-button" bindtap="choosePhotos">选择现场照片</button>
+          <view wx:if="{{photos.length}}" class="photo-grid">
+            <view wx:for="{{photos}}" wx:key="path" class="photo-cell" data-index="{{index}}" bindtap="removePhoto">
+              <image class="photo-thumb" src="{{item.path}}" mode="aspectFill"></image>
+              <view class="photo-name">{{item.name}}</view>
+            </view>
+          </view>
+          <view wx:else class="muted photo-hint">{{item.placeholder}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="tool-actions">
+    <button class="button-primary" bindtap="generate">生成</button>
+    <button class="button-secondary" bindtap="fillSample">填示例</button>
+    <button class="button-secondary" bindtap="clearForm">清空</button>
+  </view>
+
+  <!-- 生成结果 -->
+  <view class="card output-card">
+    <view class="output-head">
+      <view>
+        <view class="sub-title">生成结果</view>
+        <view class="output-state {{hasOutput ? 'ready' : ''}}">{{hasOutput ? '已生成' : '待生成'}}</view>
+      </view>
+      <view class="output-actions">
+        <button class="text-action" bindtap="copyOutput">复制</button>
+        <button class="text-action" bindtap="saveRecord">保存</button>
+      </view>
+    </view>
+    <text class="output-text" selectable>{{output}}</text>
+    <view wx:if="{{currentFlowKey == 'customer'}}" class="sync-actions">
+      <view class="sync-hint">客户需求整理可直接沉淀到客户库，后续在客户详情里推进阶段。</view>
+      <button class="button-primary" loading="{{syncing}}" disabled="{{syncing}}" bindtap="syncToCustomer">同步到客户库</button>
+    </view>
+  </view>
+
+  <!-- 本机记录 -->
+  <view wx:if="{{history.length}}" class="card history-card">
+    <view class="sub-title">本机记录</view>
+    <view class="history-list">
+      <view
+        wx:for="{{history}}"
+        wx:key="id"
+        class="history-item"
+        data-id="{{item.id}}"
+        bindtap="openHistory"
+      >
+        <view class="history-info">
+          <view class="history-flow">{{item.flow}}</view>
+          <view class="muted">{{item.date}}</view>
+        </view>
+        <view class="history-open">查看</view>
+      </view>
+    </view>
+  </view>
+</view>

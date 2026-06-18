@@ -2,39 +2,63 @@
   "pages": [
     "pages/workbench/workbench",
     "pages/projects/projects",
-    "pages/project-edit/project-edit",
-    "pages/project-detail/project-detail",
-    "pages/upload-log/upload-log",
-    "pages/review-log/review-log",
     "pages/customers/customers",
-    "pages/customer-edit/customer-edit",
-    "pages/owner/owner",
     "pages/profile/profile"
   ],
+  "subpackages": [
+    {
+      "root": "subpackages/owner",
+      "name": "owner",
+      "pages": [
+        "pages/owner/owner"
+      ]
+    },
+    {
+      "root": "subpackages/internal",
+      "name": "internal",
+      "pages": [
+        "pages/project-detail/project-detail",
+        "pages/project-edit/project-edit",
+        "pages/upload-log/upload-log",
+        "pages/review-log/review-log",
+        "pages/customer-edit/customer-edit",
+        "pages/ai-assistant/ai-assistant",
+        "pages/design-drawings/design-drawings",
+        "pages/staff-manage/staff-manage"
+      ]
+    }
+  ],
+  "preloadRule": {
+    "pages/workbench/workbench": {
+      "network": "all",
+      "packages": ["owner"]
+    },
+    "pages/projects/projects": {
+      "network": "all",
+      "packages": ["internal"]
+    }
+  },
   "window": {
     "navigationBarTitleText": "晟景透明工地",
-    "navigationBarBackgroundColor": "#1f6f54",
+    "navigationBarBackgroundColor": "#0F6A4A",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#f6f3ed",
+    "backgroundColor": "#F8FAF9",
     "backgroundTextStyle": "dark"
   },
   "tabBar": {
-    "color": "#6f756f",
-    "selectedColor": "#1f6f54",
-    "backgroundColor": "#fffaf2",
-    "borderStyle": "black",
+    "custom": true,
+    "color": "#9CA3AF",
+    "selectedColor": "#0F6A4A",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/workbench/workbench",
-        "text": "工作台"
+        "text": "首页"
       },
       {
         "pagePath": "pages/projects/projects",
         "text": "工地"
-      },
-      {
-        "pagePath": "pages/customers/customers",
-        "text": "客户"
       },
       {
         "pagePath": "pages/profile/profile",

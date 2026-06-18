@@ -1,10 +1,375 @@
-.small-button {
-  width: 128rpx;
-  height: 68rpx;
-  line-height: 68rpx;
-  border-radius: 8rpx;
-  background: #1f6f54;
-  color: #fff;
-  font-size: 27rpx;
-  margin: 0;
+/* ================================================================
+   客户库 · CRM 卡片列表
+   ================================================================ */
+.customers-page {
+  padding: 32rpx;
+  padding-bottom: 200rpx;
+}
+
+.page-header {
+  margin-bottom: 24rpx;
+}
+
+.page-title {
+  font-size: 44rpx;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.3;
+}
+
+/* 搜索栏 */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 0 28rpx;
+  height: 88rpx;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+  box-shadow: 0 4rpx 20rpx rgba(17, 24, 39, 0.04);
+  margin-bottom: 24rpx;
+}
+
+.search-icon {
+  font-size: 28rpx;
+  color: #9CA3AF;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #111827;
+  height: 100%;
+}
+
+/* 客户列表 */
+.customer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.customer-card {
+  position: relative;
+  padding: 28rpx;
+  border-radius: 32rpx;
+  background: #FFFFFF;
+  box-shadow: 0 4rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-sizing: border-box;
+}
+
+.customer-card:active {
+  opacity: 0.94;
+}
+
+.customer-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.customer-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.customer-info-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #6B7280;
+  line-height: 1.4;
+}
+
+.customer-info-divider {
+  color: #D1D5DB;
+}
+
+.customer-deal-status {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #9CA3AF;
+}
+
+.customer-deal-status.deal-success {
+  color: #16A34A;
+}
+
+.customer-deal-status.deal-lost {
+  color: #D9534F;
+}
+
+.customer-card-arrow {
+  position: absolute;
+  right: 28rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 40rpx;
+  color: #D1D5DB;
+  line-height: 1;
+}
+
+/* 空状态 */
+.customer-empty {
+  margin-top: 40rpx;
+}
+
+/* 悬浮新增按钮 */
+.fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: 60rpx;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: #0F6A4A;
+  box-shadow: 0 12rpx 32rpx rgba(15, 106, 74, 0.35);
+}
+
+.fab:active {
+  opacity: 0.88;
+  transform: scale(0.96);
+}
+
+.fab-icon {
+  font-size: 44rpx;
+  line-height: 1;
+  color: #FFFFFF;
+  font-weight: 300;
+}
+
+.fab-text {
+  font-size: 20rpx;
+  color: #FFFFFF;
+  margin-top: 2rpx;
+}
+
+/* UI 1.1 · 客户库 */
+.customers-page {
+  min-height: 100vh;
+  padding: 24rpx 28rpx calc(136rpx + env(safe-area-inset-bottom));
+  background: #F8F4EA;
+  box-sizing: border-box;
+}
+
+.page-header {
+  margin-bottom: 22rpx;
+}
+
+.page-title {
+  color: #173E33;
+  font-size: 40rpx;
+  font-weight: 800;
+}
+
+.search-bar {
+  border: 1rpx solid #E9DDC8;
+  border-radius: 10rpx;
+  background: #FFFDF7;
+  box-shadow: none;
+}
+
+.customer-list {
+  gap: 16rpx;
+}
+
+.customer-card,
+.customer-empty {
+  border: 1rpx solid #E9DDC8;
+  border-radius: 12rpx;
+  background: #FFFDF7;
+  box-shadow: none;
+}
+
+.customer-name {
+  color: #173E33;
+  font-weight: 800;
+}
+
+.customer-info-row,
+.customer-info-item {
+  color: #6C776F;
+}
+
+.customer-card-arrow {
+  color: #147657;
+}
+
+.fab {
+  right: 34rpx;
+  bottom: calc(132rpx + env(safe-area-inset-bottom));
+  width: 106rpx;
+  height: 106rpx;
+  border-radius: 28rpx;
+  background: #147657;
+  box-shadow: 0 10rpx 24rpx rgba(20, 118, 87, 0.22);
+}
+
+/* UI 1.2 · 客户库对齐 Figma 白卡 CRM */
+.customers-page {
+  min-height: 100vh;
+  padding: 32rpx 32rpx calc(148rpx + env(safe-area-inset-bottom));
+  background: #F8FAF9;
+}
+
+.page-title {
+  color: #111827;
+  font-size: 44rpx;
+  font-weight: 800;
+}
+
+.search-bar,
+.customer-card,
+.customer-empty {
+  border: none;
+  border-radius: 32rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
+}
+
+.customer-card {
+  padding: 32rpx 72rpx 32rpx 32rpx;
+}
+
+.customer-name {
+  color: #111827;
+  font-weight: 800;
+}
+
+.customer-card-arrow {
+  color: #9CA3AF;
+}
+
+.fab {
+  border-radius: 50%;
+  background: #0F6A4A;
+}
+
+/* Stage 2 · 客户转化闭环 */
+.customer-flow-panel {
+  margin-bottom: 24rpx;
+  padding: 32rpx;
+  border-radius: 32rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
+}
+
+.customer-flow-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+  margin-bottom: 28rpx;
+}
+
+.customer-flow-title {
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.customer-flow-desc {
+  margin-top: 8rpx;
+  color: #6B7280;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.customer-flow-action {
+  flex-shrink: 0;
+  padding: 12rpx 22rpx;
+  border-radius: 18rpx;
+  background: #0F6A4A;
+  color: #FFFFFF;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.customer-stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14rpx;
+}
+
+.customer-stat-item {
+  min-width: 0;
+  padding: 20rpx 8rpx;
+  border-radius: 24rpx;
+  background: #F8FAF9;
+  text-align: center;
+}
+
+.customer-stat-num {
+  color: #0F6A4A;
+  font-size: 36rpx;
+  line-height: 1.1;
+  font-weight: 800;
+}
+
+.customer-stat-num.warn {
+  color: #F59E0B;
+}
+
+.customer-stat-num.success {
+  color: #16A34A;
+}
+
+.customer-stat-label {
+  margin-top: 8rpx;
+  color: #6B7280;
+  font-size: 20rpx;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.stage-filter {
+  white-space: nowrap;
+  margin-bottom: 24rpx;
+}
+
+.stage-filter-inner {
+  display: flex;
+  gap: 16rpx;
+  width: max-content;
+  padding-bottom: 4rpx;
+}
+
+.customer-next-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-top: 18rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 22rpx;
+  background: #F8FAF9;
+}
+
+.next-label {
+  flex-shrink: 0;
+  color: #9CA3AF;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.next-text {
+  min-width: 0;
+  flex: 1;
+  color: #0F6A4A;
+  font-size: 24rpx;
+  line-height: 1.35;
+  font-weight: 800;
+  text-align: right;
 }

@@ -1,0 +1,76 @@
+<view class="upload-page">
+  <!-- 标题区 -->
+  <view class="page-header">
+    <view class="page-title">上传工序日报</view>
+    <view class="muted">{{projectName || '当前工地'}}</view>
+  </view>
+
+  <view class="report-flow-card">
+    <view class="report-flow-title">提交后进入审核</view>
+    <view class="report-flow-desc">工长上传现场内容，管理员审核通过后，业主端才会展示。</view>
+    <view class="report-flow-steps">
+      <view class="report-flow-step active">上传</view>
+      <view class="report-flow-line"></view>
+      <view class="report-flow-step">审核</view>
+      <view class="report-flow-line"></view>
+      <view class="report-flow-step">业主可见</view>
+    </view>
+  </view>
+
+  <!-- 工地信息卡 + 阶段选择 -->
+  <view class="card form-card">
+    <view class="form-label">工序节点</view>
+    <picker mode="selector" range="{{stages}}" range-key="name" value="{{stageIndex}}" bindchange="onStageChange">
+      <view class="picker">
+        <text>{{stages[stageIndex].name}}</text>
+        <text class="picker-arrow">进度 {{stages[stageIndex].progress}}%</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 表单内容 -->
+  <view class="card form-card">
+    <view class="form-label">今日完成</view>
+    <textarea class="textarea" placeholder="今天完成了哪些工序..." value="{{form.workContent}}" data-key="workContent" bindinput="onInput"></textarea>
+  </view>
+
+  <view class="card form-card">
+    <view class="form-label">现场问题 <text class="form-label-hint">（没有可不填）</text></view>
+    <textarea class="textarea" placeholder="现场遇到的问题..." value="{{form.issue}}" data-key="issue" bindinput="onInput"></textarea>
+  </view>
+
+  <view class="card form-card">
+    <view class="form-label">需要确认 <text class="form-label-hint">（业主或内部确认）</text></view>
+    <textarea class="textarea" placeholder="需要业主或内部确认的事项..." value="{{form.needConfirm}}" data-key="needConfirm" bindinput="onInput"></textarea>
+  </view>
+
+  <view class="card form-card">
+    <view class="form-label">明日计划</view>
+    <textarea class="textarea" placeholder="明天计划施工内容..." value="{{form.tomorrowPlan}}" data-key="tomorrowPlan" bindinput="onInput"></textarea>
+  </view>
+
+  <!-- 现场照片 -->
+  <view class="card form-card">
+    <view class="row">
+      <view class="sub-title">现场照片</view>
+      <view class="tag tag-info">{{images.length}}/9</view>
+    </view>
+    <view class="photo-tip">建议上传关键工艺和现场全景，方便审核后给业主建立信任。</view>
+    <view class="photo-grid">
+      <view wx:for="{{images}}" wx:key="*this" class="photo-wrap" data-index="{{index}}" bindtap="removeImage">
+        <image class="photo" src="{{item}}" mode="aspectFill"></image>
+        <view class="photo-remove">✕</view>
+      </view>
+      <view wx:if="{{images.length < 9}}" class="photo-add" bindtap="chooseImages">
+        <view class="photo-add-icon">+</view>
+        <view class="photo-add-text">添加照片</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-area">
+    <view class="submit-note">提交后状态为“待审核”，不会直接展示给业主。</view>
+    <button class="button-primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">提交给老齐审核</button>
+  </view>
+</view>

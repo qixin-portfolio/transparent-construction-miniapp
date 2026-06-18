@@ -1,0 +1,139 @@
+/* ================================================================
+   新增工地 · 表单分组 + 底部固定按钮
+   ================================================================ */
+.project-edit-page {
+  padding: 0 32rpx;
+  padding-bottom: 200rpx;
+}
+
+.page-header {
+  margin: 24rpx 0 24rpx;
+}
+
+.page-title {
+  font-size: 44rpx;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.3;
+}
+
+/* 表单分组 */
+.form-section {
+  margin-bottom: 20rpx;
+}
+
+.form-section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 24rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #F3F4F6;
+}
+
+.form-group {
+  margin-bottom: 24rpx;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #6B7280;
+  margin-bottom: 12rpx;
+  line-height: 1.4;
+}
+
+.form-label-hint {
+  font-size: 22rpx;
+  font-weight: 400;
+  color: #9CA3AF;
+}
+
+/* 底部固定按钮 */
+.bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #FFFFFF;
+  box-shadow: 0 -4rpx 24rpx rgba(17, 24, 39, 0.06);
+  z-index: 100;
+}
+
+.bottom-bar button {
+  width: 100%;
+}
+
+/* UI 1.1 · 新增工地 */
+.page {
+  min-height: 100vh;
+  padding: 24rpx 28rpx calc(48rpx + env(safe-area-inset-bottom));
+  background: #F8F4EA;
+  box-sizing: border-box;
+}
+
+.title {
+  color: #173E33;
+  font-size: 40rpx;
+  font-weight: 800;
+}
+
+.section.list {
+  padding: 24rpx;
+  border: 1rpx solid #E9DDC8;
+  border-radius: 12rpx;
+  background: #FFFDF7;
+}
+
+.section.list .input {
+  margin-bottom: 16rpx;
+}
+
+.section.list .input:last-child {
+  margin-bottom: 0;
+}
+
+.page > .button-primary {
+  margin-top: 24rpx;
+  border-radius: 12rpx;
+  background: #147657;
+}
+
+/* UI 1.2 · 新增工地表单 */
+.page {
+  min-height: 100vh;
+  padding: 32rpx;
+  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
+  background: #F8FAF9;
+}
+
+.title {
+  color: #111827;
+  font-size: 44rpx;
+  font-weight: 800;
+}
+
+.section.list {
+  padding: 32rpx;
+  border: none;
+  border-radius: 40rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
+}
+
+.section.list .input {
+  border-radius: 24rpx;
+}
+
+.page > .button-primary {
+  height: 96rpx;
+  line-height: 96rpx;
+  border-radius: 28rpx;
+  background: #0F6A4A;
+}
