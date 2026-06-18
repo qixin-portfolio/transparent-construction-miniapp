@@ -1,0 +1,23 @@
+.progress {
+  height: 14rpx;
+  margin: 22rpx 0 12rpx;
+  overflow: hidden;
+  border-radius: 8rpx;
+  background: #e5ded0;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #1f6f54;
+}
+
+.small-button {
+  width: 128rpx;
+  height: 68rpx;
+  line-height: 68rpx;
+  border-radius: 8rpx;
+  background: #1f6f54;
+  color: #fff;
+  font-size: 27rpx;
+  margin: 0;
+}

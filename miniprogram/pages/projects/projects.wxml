@@ -1,0 +1,27 @@
+<view class="page">
+  <view class="section row">
+    <view>
+      <view class="title">工地</view>
+      <view class="muted">内部人员按权限查看相关工地。</view>
+    </view>
+    <button wx:if="{{canCreate}}" class="small-button" bindtap="goCreate">新增</button>
+  </view>
+
+  <view wx:if="{{projects.length}}" class="list">
+    <view wx:for="{{projects}}" wx:key="_id" class="card" data-id="{{item._id}}" bindtap="goDetail">
+      <view class="row">
+        <view class="sub-title">{{item.name}}</view>
+        <view class="tag">{{item.status || '施工中'}}</view>
+      </view>
+      <view class="muted">{{item.address || '未填写地址'}}</view>
+      <view class="progress">
+        <view class="progress-bar" style="width: {{item.progress || 0}}%;"></view>
+      </view>
+      <view class="muted">当前节点：{{item.currentStage || '未设置'}} · {{item.progress || 0}}%</view>
+    </view>
+  </view>
+
+  <view wx:else class="card empty">
+    {{loading ? '正在加载工地...' : '暂无可查看工地'}}
+  </view>
+</view>

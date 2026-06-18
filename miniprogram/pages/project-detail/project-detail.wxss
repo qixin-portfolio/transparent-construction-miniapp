@@ -1,0 +1,28 @@
+.progress {
+  height: 14rpx;
+  margin: 22rpx 0 12rpx;
+  overflow: hidden;
+  border-radius: 8rpx;
+  background: #e5ded0;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #1f6f54;
+}
+
+.bind-code {
+  margin: 24rpx 0 10rpx;
+  color: #1f3f34;
+  font-size: 56rpx;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.bind-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin-top: 22rpx;
+}

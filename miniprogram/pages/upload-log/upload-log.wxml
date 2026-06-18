@@ -1,0 +1,35 @@
+<view class="page">
+  <view class="section">
+    <view class="title">上传工序日报</view>
+    <view class="muted">{{projectName || '当前工地'}}</view>
+  </view>
+
+  <view class="section card">
+    <view class="muted">工序节点</view>
+    <picker mode="selector" range="{{stages}}" range-key="name" value="{{stageIndex}}" bindchange="onStageChange">
+      <view class="picker">{{stages[stageIndex].name}}</view>
+    </picker>
+  </view>
+
+  <view class="section list">
+    <textarea class="textarea" placeholder="今日完成了什么" value="{{form.workContent}}" data-key="workContent" bindinput="onInput"></textarea>
+    <textarea class="textarea" placeholder="现场问题，没有可不填" value="{{form.issue}}" data-key="issue" bindinput="onInput"></textarea>
+    <textarea class="textarea" placeholder="需要业主或内部确认的事" value="{{form.needConfirm}}" data-key="needConfirm" bindinput="onInput"></textarea>
+    <textarea class="textarea" placeholder="明天计划" value="{{form.tomorrowPlan}}" data-key="tomorrowPlan" bindinput="onInput"></textarea>
+  </view>
+
+  <view class="section card">
+    <view class="row">
+      <view class="sub-title">现场照片</view>
+      <view class="tag">{{images.length}}/9</view>
+    </view>
+    <view class="photo-grid">
+      <view wx:for="{{images}}" wx:key="*this" class="photo-wrap" data-index="{{index}}" bindtap="removeImage">
+        <image class="photo" src="{{item}}" mode="aspectFill"></image>
+      </view>
+      <button wx:if="{{images.length < 9}}" class="photo-add" bindtap="chooseImages">+</button>
+    </view>
+  </view>
+
+  <button class="button-primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">提交给老齐审核</button>
+</view>

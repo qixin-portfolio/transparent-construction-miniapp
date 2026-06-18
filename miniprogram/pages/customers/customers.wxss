@@ -1,0 +1,10 @@
+.small-button {
+  width: 128rpx;
+  height: 68rpx;
+  line-height: 68rpx;
+  border-radius: 8rpx;
+  background: #1f6f54;
+  color: #fff;
+  font-size: 27rpx;
+  margin: 0;
+}

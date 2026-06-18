@@ -1,0 +1,17 @@
+<view class="page">
+  <view class="section">
+    <view class="title">我的</view>
+    <view class="muted">登录后根据角色查看对应工地和客户。</view>
+  </view>
+
+  <view class="section card">
+    <view wx:if="{{user}}">
+      <view class="sub-title">{{user.name || '微信用户'}}</view>
+      <view class="muted">角色：{{user.role}}</view>
+      <view class="muted">状态：{{user.status}}</view>
+    </view>
+    <view wx:else class="muted">尚未登录</view>
+  </view>
+
+  <button class="button-primary" loading="{{loading}}" disabled="{{loading}}" bindtap="login">微信登录</button>
+</view>

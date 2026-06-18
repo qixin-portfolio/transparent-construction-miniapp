@@ -1,0 +1,24 @@
+<view class="page">
+  <view class="section row">
+    <view>
+      <view class="title">客户库</view>
+      <view class="muted">先沉淀咨询、报价、成交状态。</view>
+    </view>
+    <button wx:if="{{canCreate}}" class="small-button" bindtap="goCreate">新增</button>
+  </view>
+
+  <view wx:if="{{customers.length}}" class="list">
+    <view wx:for="{{customers}}" wx:key="_id" class="card">
+      <view class="row">
+        <view class="sub-title">{{item.name}}</view>
+        <view class="tag">{{item.stage || '咨询'}}</view>
+      </view>
+      <view class="muted">{{item.phone || '未留电话'}} · {{item.source || '未知来源'}}</view>
+      <view class="muted">成交状态：{{item.dealStatus || '未成交'}}</view>
+    </view>
+  </view>
+
+  <view wx:else class="card empty">
+    {{loading ? '正在加载客户...' : '暂无客户'}}
+  </view>
+</view>

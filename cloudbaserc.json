@@ -1,0 +1,101 @@
+{
+  "$schema": "https://static.cloudbase.net/cli/cloudbaserc.schema.json",
+  "version": "2.0",
+  "envId": "cloud1-d4g7zh8kpca0e26d5",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "bindOwnerProject",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "createCustomer",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "createOwnerBindCode",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "createProject",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "dailySummary",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20,
+      "envVariables": {
+        "WECOM_WEBHOOK_URL": "{{env.WECOM_WEBHOOK_URL}}"
+      }
+    },
+    {
+      "name": "getOwnerProject",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "getProjectDetail",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "listCustomers",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "listMyProjects",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "listPendingStageLogs",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "login",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "reviewStageLog",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "sendWecomNotice",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20,
+      "envVariables": {
+        "WECOM_WEBHOOK_URL": "{{env.WECOM_WEBHOOK_URL}}"
+      }
+    },
+    {
+      "name": "submitStageLog",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20,
+      "envVariables": {
+        "WECOM_WEBHOOK_URL": "{{env.WECOM_WEBHOOK_URL}}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+<view class="page">
+  <view class="section">
+    <view class="title">晟景透明工地</view>
+    <view class="muted">把每天工地进展沉淀下来，审核后再给业主看。</view>
+  </view>
+
+  <view class="section grid">
+    <view class="card metric" bindtap="goReview">
+      <view class="metric-number">{{pendingCount}}</view>
+      <view class="muted">待审核日报</view>
+    </view>
+    <view class="card metric" bindtap="goProjects">
+      <view class="metric-number">10</view>
+      <view class="muted">标准工序节点</view>
+    </view>
+  </view>
+
+  <view class="section list">
+    <button class="button-primary" bindtap="goProjects">查看工地</button>
+    <button wx:if="{{canReview}}" class="button-secondary" bindtap="goReview">审核日报</button>
+    <button wx:if="{{canViewCustomers}}" class="button-secondary" bindtap="goCustomers">客户库</button>
+    <button class="button-secondary" bindtap="goOwnerProject">业主进度页</button>
+  </view>
+</view>
