@@ -18,10 +18,13 @@ Page({
       stage: '咨询',
       dealStatus: '未成交'
     },
-    submitting: false
+    submitting: false,
+    deleting: false,
+    canDelete: false
   },
 
   onLoad(options) {
+    this.initAccess()
     this.syncDerivedState()
     if (options.id) {
       this.setData({ isEdit: true, customerId: options.id })
@@ -33,6 +36,16 @@ Page({
       this.setData({ 'form.source': decodeURIComponent(options.source) })
     }
     this.syncDerivedState()
+  },
+
+  initAccess() {
+    getApp().ensureLogin()
+      .then((user) => {
+        this.setData({ canDelete: user && user.role === 'admin' })
+      })
+      .catch(() => {
+        this.setData({ canDelete: false })
+      })
   },
 
   loadCustomer(id) {
@@ -175,5 +188,40 @@ Page({
       .finally(() => {
         this.setData({ submitting: false })
       })
+  },
+
+  deleteCustomer() {
+    if (!this.data.canDelete) {
+      showError('仅管理员可删除客户')
+      return
+    }
+    if (!this.data.isEdit || !this.data.customerId) {
+      showError('请先保存客户')
+      return
+    }
+    const name = this.data.form.name || '该客户'
+    wx.showModal({
+      title: '删除客户',
+      content: `确认删除「${name}」？删除后客户库列表将不再显示该资料。`,
+      confirmText: '删除',
+      confirmColor: '#D9534F',
+      success: (res) => {
+        if (!res.confirm) return
+        this.setData({ deleting: true })
+        wx.showLoading({ title: '删除中...' })
+        call('deleteCustomer', { customerId: this.data.customerId })
+          .then(() => {
+            wx.showToast({ title: '已删除', icon: 'success' })
+            setTimeout(() => wx.navigateBack(), 700)
+          })
+          .catch((error) => {
+            showError('删除失败', error)
+          })
+          .finally(() => {
+            this.setData({ deleting: false })
+            wx.hideLoading()
+          })
+      }
+    })
   }
 })

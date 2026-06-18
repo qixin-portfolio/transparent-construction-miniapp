@@ -1087,6 +1087,11 @@
   color: #0F6A4A;
 }
 
+.project-mini-btn.danger {
+  background: #FEE2E2;
+  color: #D9534F;
+}
+
 .project-mini-badge {
   background: #EAF7F1;
   color: #0F6A4A;

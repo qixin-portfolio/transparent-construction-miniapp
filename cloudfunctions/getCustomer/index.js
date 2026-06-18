@@ -27,6 +27,9 @@ exports.main = async (event) => {
 
     const res = await db.collection('customers').doc(customerId).get()
     const customer = res.data
+    if (!customer || customer.deleted === true) {
+      throw new Error('客户不存在或已删除')
+    }
 
     // 非管理员只能看自己创建的客户
     const ALL_CUSTOMER_ROLES = ['admin', 'boss_qi', 'boss_hu']

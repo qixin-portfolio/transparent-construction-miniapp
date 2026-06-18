@@ -16,7 +16,8 @@ Page({
       signed: 0
     },
     user: null,
-    canCreate: false
+    canCreate: false,
+    canDelete: false
   },
 
   onShow() {
@@ -25,7 +26,8 @@ Page({
         const canUseCustomers = user && ['admin', 'boss_qi', 'boss_hu', 'designer', 'sales'].indexOf(user.role) !== -1
         this.setData({
           user,
-          canCreate: canUseCustomers
+          canCreate: canUseCustomers,
+          canDelete: user && user.role === 'admin'
         })
         if (!user || ['owner', 'worker'].indexOf(user.role) !== -1) {
           this.setData({ customers: [] })
@@ -35,7 +37,7 @@ Page({
         this.loadCustomers()
       })
       .catch((error) => {
-        this.setData({ customers: [], user: null, canCreate: false })
+        this.setData({ customers: [], user: null, canCreate: false, canDelete: false })
         showError('登录失败', error)
       })
   },
@@ -135,5 +137,39 @@ Page({
   goDetail(event) {
     const id = event.currentTarget.dataset.id
     wx.navigateTo({ url: `/subpackages/internal/pages/customer-edit/customer-edit?id=${id}` })
+  },
+
+  deleteCustomer(event) {
+    if (!this.data.canDelete) {
+      showError('仅管理员可删除客户')
+      return
+    }
+    const id = event.currentTarget.dataset.id || ''
+    const name = event.currentTarget.dataset.name || '该客户'
+    if (!id) {
+      showError('缺少客户 ID')
+      return
+    }
+    wx.showModal({
+      title: '删除客户',
+      content: `确认删除「${name}」？删除后客户库列表将不再显示该资料。`,
+      confirmText: '删除',
+      confirmColor: '#D9534F',
+      success: (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '删除中...' })
+        call('deleteCustomer', { customerId: id })
+          .then(() => {
+            wx.showToast({ title: '已删除', icon: 'success' })
+            this.loadCustomers()
+          })
+          .catch((error) => {
+            showError('删除失败', error)
+          })
+          .finally(() => {
+            wx.hideLoading()
+          })
+      }
+    })
   }
 })

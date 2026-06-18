@@ -74,6 +74,10 @@
       <view class="detail-action-icon">🧾</view>
       <view class="detail-action-text">施工日志</view>
     </view>
+    <view wx:if="{{canDelete}}" class="detail-action-cell action-danger" bindtap="deleteProject">
+      <view class="detail-action-icon">删</view>
+      <view class="detail-action-text">删除工地</view>
+    </view>
   </view>
 
   <view wx:if="{{project}}" class="detail-flow-card">

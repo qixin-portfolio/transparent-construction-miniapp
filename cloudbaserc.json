@@ -56,6 +56,18 @@
       "timeout": 20
     },
     {
+      "name": "deleteCustomer",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "deleteProject",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
       "name": "getOwnerProject",
       "handler": "index.main",
       "runtime": "Nodejs16.13",

@@ -633,6 +633,10 @@
   color: #0F6A4A;
 }
 
+.detail-action-cell.action-danger {
+  background: #FEE2E2;
+}
+
 .detail-action-icon {
   margin-bottom: 10rpx;
   font-size: 38rpx;
@@ -649,6 +653,11 @@
 
 .action-green .detail-action-text {
   color: #0F6A4A;
+}
+
+.action-danger .detail-action-text,
+.action-danger .detail-action-icon {
+  color: #D9534F;
 }
 
 .bind-section,

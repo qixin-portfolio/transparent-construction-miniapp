@@ -71,6 +71,7 @@
       <view class="customer-info-row">
         <text class="customer-deal-status {{item.dealStatus === '已成交' ? 'deal-success' : (item.dealStatus === '已流失' ? 'deal-lost' : '')}}">{{item.dealStatus || '未成交'}}</text>
       </view>
+      <view wx:if="{{canDelete}}" class="customer-delete-btn" data-id="{{item._id}}" data-name="{{item.name}}" catchtap="deleteCustomer">删除</view>
       <view class="customer-card-arrow">›</view>
     </view>
   </view>

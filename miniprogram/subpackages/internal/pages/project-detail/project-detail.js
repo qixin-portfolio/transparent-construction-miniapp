@@ -15,6 +15,7 @@ Page({
     canUpload: false,
     canManageOwner: false,
     canViewManagementDetail: false,
+    canDelete: false,
     stats: {
       logCount: 0,
       photoCount: 0,
@@ -60,7 +61,8 @@ Page({
       user: user || null,
       canUpload: ['admin', 'boss_qi', 'boss_hu', 'designer', 'worker'].indexOf(role) !== -1,
       canManageOwner: ['admin', 'boss_qi', 'boss_hu', 'designer', 'sales'].indexOf(role) !== -1,
-      canViewManagementDetail: ['admin', 'boss_qi', 'boss_hu'].indexOf(role) !== -1
+      canViewManagementDetail: ['admin', 'boss_qi', 'boss_hu'].indexOf(role) !== -1,
+      canDelete: role === 'admin'
     })
   },
 
@@ -141,6 +143,38 @@ Page({
     const name = encodeURIComponent((this.data.project || {}).name || '')
     wx.navigateTo({
       url: `/subpackages/internal/pages/design-drawings/design-drawings?projectId=${this.data.projectId}&projectName=${name}`
+    })
+  },
+
+  deleteProject() {
+    if (!this.data.canDelete) {
+      showError('仅管理员可删除工地')
+      return
+    }
+    const project = this.data.project || {}
+    const name = project.name || '该工地'
+    wx.showModal({
+      title: '删除工地',
+      content: `确认删除「${name}」？该工地的日报、照片、绑定码、成员和图纸也会一并清理。`,
+      confirmText: '删除',
+      confirmColor: '#D9534F',
+      success: (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '删除中...' })
+        call('deleteProject', { projectId: this.data.projectId })
+          .then(() => {
+            wx.showToast({ title: '已删除', icon: 'success' })
+            setTimeout(() => {
+              wx.navigateBack()
+            }, 700)
+          })
+          .catch((error) => {
+            showError('删除失败', error)
+          })
+          .finally(() => {
+            wx.hideLoading()
+          })
+      }
     })
   },
 

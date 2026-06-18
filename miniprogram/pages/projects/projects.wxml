@@ -316,7 +316,8 @@
         <view class="project-mini-btn primary" wx:if="{{canUpload}}" data-id="{{item._id}}" data-name="{{item.name}}" catchtap="goUploadFromProject">写日报</view>
         <view class="project-mini-btn" data-id="{{item._id}}" catchtap="goDetail">看详情</view>
         <view class="project-mini-btn" wx:if="{{canManageOwner && !item.ownerOpenid}}" data-id="{{item._id}}" catchtap="goBindFromProject">绑业主</view>
-        <view class="project-mini-badge" wx:elif="{{item.ownerOpenid}}">业主已绑定</view>
+        <view class="project-mini-badge" wx:if="{{item.ownerOpenid}}">业主已绑定</view>
+        <view class="project-mini-btn danger" wx:if="{{canDelete}}" data-id="{{item._id}}" data-name="{{item.name}}" catchtap="deleteProject">删除</view>
       </view>
     </view>
   </view>

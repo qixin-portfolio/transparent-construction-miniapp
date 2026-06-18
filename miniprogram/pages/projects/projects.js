@@ -13,6 +13,7 @@ Page({
     canCreate: false,
     canUpload: false,
     canManageOwner: false,
+    canDelete: false,
     projectStats: {
       total: 0,
       active: 0,
@@ -44,6 +45,7 @@ Page({
           canCreate: user && ['admin', 'boss_qi', 'boss_hu', 'designer', 'sales'].indexOf(user.role) !== -1,
           canUpload: user && ['admin', 'boss_qi', 'boss_hu', 'designer', 'worker'].indexOf(user.role) !== -1,
           canManageOwner: user && ['admin', 'boss_qi', 'boss_hu', 'designer', 'sales'].indexOf(user.role) !== -1,
+          canDelete: user && user.role === 'admin',
           isOwner
         })
         if (isOwner) {
@@ -54,7 +56,7 @@ Page({
         this.loadProjects()
       })
       .catch((error) => {
-        this.setData({ projects: [], user: null, canCreate: false, canUpload: false, canManageOwner: false, isOwner: false })
+        this.setData({ projects: [], user: null, canCreate: false, canUpload: false, canManageOwner: false, canDelete: false, isOwner: false })
         showError('登录失败', error)
       })
   },
@@ -174,6 +176,40 @@ Page({
     }
     wx.navigateTo({
       url: `/subpackages/internal/pages/project-detail/project-detail?id=${id}`
+    })
+  },
+
+  deleteProject(event) {
+    if (!this.data.canDelete) {
+      showError('仅管理员可删除工地')
+      return
+    }
+    const id = event.currentTarget.dataset.id || ''
+    const name = event.currentTarget.dataset.name || '该工地'
+    if (!id) {
+      showError('缺少工地 ID')
+      return
+    }
+    wx.showModal({
+      title: '删除工地',
+      content: `确认删除「${name}」？该工地的日报、照片、绑定码、成员和图纸也会一并清理。`,
+      confirmText: '删除',
+      confirmColor: '#D9534F',
+      success: (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '删除中...' })
+        call('deleteProject', { projectId: id })
+          .then(() => {
+            wx.showToast({ title: '已删除', icon: 'success' })
+            this.loadProjects()
+          })
+          .catch((error) => {
+            showError('删除失败', error)
+          })
+          .finally(() => {
+            wx.hideLoading()
+          })
+      }
     })
   },
 

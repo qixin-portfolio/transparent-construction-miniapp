@@ -17,6 +17,7 @@
   <view wx:if="{{isEdit}}" class="customer-action-row">
     <button class="customer-action-btn secondary" bindtap="callCustomer">电话跟进</button>
     <button class="customer-action-btn primary" bindtap="goCreateProject">签单建工地</button>
+    <button wx:if="{{canDelete}}" class="customer-action-btn danger" loading="{{deleting}}" disabled="{{deleting}}" bindtap="deleteCustomer">删除客户</button>
   </view>
 
   <!-- 客户基本信息 -->
