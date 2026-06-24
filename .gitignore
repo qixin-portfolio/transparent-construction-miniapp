@@ -29,3 +29,6 @@ cloudbaserc.json
 # Temp
 *.tmp
 temp/
+
+# Delivery artifacts (managed separately)
+交付文档/
