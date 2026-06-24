@@ -31,7 +31,7 @@
   padding: 40rpx 36rpx;
   margin: 24rpx 0 0;
   border-radius: 40rpx;
-  background: linear-gradient(135deg, #0F6A4A 0%, #1F8B61 100%);
+  background: linear-gradient(135deg, #1B7A56 0%, #2AA876 100%);
   color: #FFFFFF;
   text-align: center;
 }
@@ -96,7 +96,7 @@
 }
 
 .ai-loop-step.done .ai-loop-dot {
-  background: #0F6A4A;
+  background: #1B7A56;
   color: #FFFFFF;
 }
 
@@ -108,7 +108,7 @@
 }
 
 .ai-loop-step.done .ai-loop-text {
-  color: #0F6A4A;
+  color: #1B7A56;
   font-weight: 700;
 }
 
@@ -129,12 +129,12 @@
 .ai-stat {
   padding: 20rpx 10rpx;
   border-radius: 24rpx;
-  background: #F8FAF9;
+  background: #FAFBFC;
   text-align: center;
 }
 
 .ai-stat-value {
-  color: #0F6A4A;
+  color: #1B7A56;
   font-size: 34rpx;
   font-weight: 800;
   line-height: 1.15;
@@ -182,7 +182,7 @@
 }
 
 .flow-tab.active {
-  background: #0F6A4A;
+  background: #1B7A56;
   color: #FFFFFF;
   font-weight: 600;
   box-shadow: 0 8rpx 24rpx rgba(15, 106, 74, 0.24);
@@ -324,8 +324,8 @@
 }
 
 .output-state.ready {
-  background: #EAF7F1;
-  color: #0F6A4A;
+  background: #E8F5EE;
+  color: #1B7A56;
 }
 
 .output-text {
@@ -371,7 +371,7 @@
 
 .history-open {
   flex-shrink: 0;
-  color: #0F6A4A;
+  color: #1B7A56;
   font-size: 26rpx;
   line-height: 1.3;
   font-weight: 500;
@@ -397,13 +397,13 @@
 .ai-loading {
   min-height: 100vh;
   padding: 24rpx 28rpx calc(48rpx + env(safe-area-inset-bottom));
-  background: #F8F4EA;
+  background: #FAFBFC;
   box-sizing: border-box;
 }
 
 .ai-hero {
   border-radius: 14rpx;
-  background: #147657;
+  background: #1B7A56;
   box-shadow: none;
 }
 
@@ -413,12 +413,12 @@
 
 .flow-tab {
   border-radius: 10rpx;
-  background: #F1E7D4;
-  color: #6C776F;
+  background: #F3F4F6;
+  color: #5C5C5C;
 }
 
 .flow-tab.active {
-  background: #147657;
+  background: #1B7A56;
   color: #FFFFFF;
 }
 
@@ -427,21 +427,21 @@
 .output-card,
 .history-card,
 .ai-loading {
-  border: 1rpx solid #E9DDC8;
+  border: 1rpx solid #E8ECF0;
   border-radius: 12rpx;
-  background: #FFFDF7;
+  background: #FFFFFF;
   box-shadow: none;
 }
 
 .field-label,
 .history-flow {
-  color: #173E33;
+  color: #1A1A1A;
   font-weight: 800;
 }
 
 .photo-cell,
 .output-text {
-  border: 1rpx solid #E9DDC8;
+  border: 1rpx solid #E8ECF0;
   border-radius: 10rpx;
   background: #FFFFFF;
 }
@@ -451,7 +451,7 @@
 }
 
 .history-open {
-  color: #147657;
+  color: #1B7A56;
   font-weight: 800;
 }
 
@@ -461,12 +461,12 @@
   min-height: 100vh;
   padding: 32rpx;
   padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
-  background: #F8FAF9;
+  background: #FAFBFC;
 }
 
 .ai-hero {
   border-radius: 40rpx;
-  background: linear-gradient(135deg, #0F6A4A 0%, #1F8B61 100%);
+  background: linear-gradient(135deg, #1B7A56 0%, #2AA876 100%);
 }
 
 .flow-card,
@@ -485,12 +485,266 @@
 }
 
 .flow-tab.active {
-  background: #0F6A4A;
+  background: #1B7A56;
 }
 
 .output-text,
 .photo-cell {
   border: none;
   border-radius: 24rpx;
-  background: #F8FAF9;
+  background: #FAFBFC;
+}
+
+/* UI 4.2 · P3 AI 助手场景化入口 */
+.ai-page,
+.ai-loading {
+  background: #F7F8F4;
+}
+
+.ai-hero {
+  position: relative;
+  margin-top: 0;
+  padding: 38rpx 34rpx;
+  overflow: hidden;
+  border-radius: 30rpx;
+  background: linear-gradient(150deg, #0B573D 0%, #127A55 58%, #23966C 100%);
+  text-align: left;
+  box-shadow: 0 18rpx 48rpx rgba(12, 87, 61, 0.14);
+}
+
+.ai-hero-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 70rpx;
+  height: 48rpx;
+  margin-bottom: 20rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+  font-size: 24rpx;
+  font-weight: 900;
+  line-height: 48rpx;
+}
+
+.ai-kicker {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.ai-title {
+  margin-top: 10rpx;
+  font-size: 46rpx;
+  line-height: 1.14;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.ai-desc {
+  max-width: 580rpx;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 24rpx;
+}
+
+.ai-scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+  margin-top: 22rpx;
+}
+
+.ai-scenario-card {
+  min-height: 132rpx;
+  padding: 24rpx;
+  border-radius: 26rpx;
+  background: #FFFFFF;
+  box-shadow: 0 10rpx 34rpx rgba(15, 55, 39, 0.045);
+  box-sizing: border-box;
+}
+
+.ai-scenario-card:active {
+  opacity: 0.9;
+  transform: scale(0.985);
+}
+
+.ai-scenario-card.active {
+  background: #127A55;
+}
+
+.ai-scenario-title {
+  color: #111827;
+  font-size: 28rpx;
+  line-height: 1.28;
+  font-weight: 900;
+}
+
+.ai-scenario-desc {
+  margin-top: 10rpx;
+  color: #6B7280;
+  font-size: 22rpx;
+  line-height: 1.35;
+}
+
+.ai-scenario-card.active .ai-scenario-title,
+.ai-scenario-card.active .ai-scenario-desc {
+  color: #FFFFFF;
+}
+
+.ai-loop-card,
+.flow-card,
+.output-card,
+.history-card,
+.ai-loading {
+  border-radius: 28rpx;
+  box-shadow: 0 10rpx 34rpx rgba(15, 55, 39, 0.045);
+}
+
+.ai-loop-card {
+  margin-top: 22rpx;
+}
+
+.flow-tab {
+  min-width: 152rpx;
+  height: 68rpx;
+  padding: 0 24rpx;
+  line-height: 68rpx;
+  box-shadow: 0 8rpx 28rpx rgba(15, 55, 39, 0.035);
+}
+
+.flow-tab.active {
+  background: #127A55;
+  box-shadow: 0 10rpx 26rpx rgba(18, 122, 85, 0.18);
+}
+
+.flow-head {
+  gap: 16rpx;
+}
+
+.flow-head .text-action,
+.output-actions .text-action {
+  min-width: 96rpx;
+  height: 66rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  line-height: 66rpx;
+  white-space: nowrap;
+}
+
+.field-label {
+  font-size: 25rpx;
+}
+
+.ai-textarea {
+  min-height: 190rpx;
+}
+
+.tool-actions {
+  gap: 14rpx;
+}
+
+.tool-actions .button-primary,
+.tool-actions .button-secondary {
+  height: 84rpx;
+  line-height: 84rpx;
+  border-radius: 24rpx;
+  font-size: 26rpx;
+}
+
+.output-text {
+  background: #F7F8F4;
+  line-height: 1.68;
+}
+
+/* 真机 BUG 修复 · 防止按钮和横向 tab 撑出屏幕 */
+.ai-page,
+.ai-loading {
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.flow-tabs {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.flow-tabs-inner {
+  max-width: none;
+}
+
+.flow-card,
+.output-card,
+.history-card,
+.ai-loop-card,
+.ai-hero,
+.ai-scenario-grid {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.tool-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+}
+
+.tool-actions button,
+.output-actions button,
+.sync-actions button {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding-left: 10rpx;
+  padding-right: 10rpx;
+  box-sizing: border-box;
+}
+
+/* 修复竖排：flow-head 中的按钮不能用 width:100%，否则文字区被挤到0px */
+.flow-head .text-action {
+  width: auto;
+  flex-shrink: 0;
+}
+
+/* 防止文字容器被挤压到0导致竖排 */
+.flow-head-info {
+  overflow: hidden;
+}
+
+.flow-head-info .sub-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* output-head 左侧文字保护 */
+.output-head-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.output-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 240rpx;
+}
+
+.output-actions .text-action {
+  min-width: 104rpx;
+}
+
+.input,
+.textarea,
+.picker,
+.ai-textarea,
+.ai-picker {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 360px) {
+  .tool-actions {
+    grid-template-columns: 1fr;
+  }
 }

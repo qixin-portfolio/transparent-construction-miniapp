@@ -1,0 +1,185 @@
+<view class="album-page">
+
+  <!-- 空状态 -->
+  <view wx:if="{{loading}}" class="loading-block">
+    <view class="loading-text">正在生成纪念册...</view>
+  </view>
+
+  <view wx:elif="{{!hasData}}" class="empty-block">
+    <view class="empty-icon">📖</view>
+    <view class="empty-title">纪念册待生成</view>
+    <view class="empty-desc">完工资料整理后，会在这里生成您家的完工纪念册。</view>
+    <button class="btn-warm" bindtap="callService">联系晟景客服</button>
+  </view>
+
+  <!-- 纪念册内容 -->
+  <block wx:else>
+    <!-- 模块1：封面区（完工实景照片轮播） -->
+    <view class="cover-section">
+      <swiper wx:if="{{coverPhotos.length}}" class="cover-swiper"
+              autoplay="{{coverPhotos.length > 1}}"
+              interval="4000"
+              duration="600"
+              circular="{{coverPhotos.length > 1}}"
+              indicator-dots="{{coverPhotos.length > 1}}"
+              indicator-color="rgba(255,255,255,0.4)"
+              indicator-active-color="#FFFFFF">
+        <swiper-item wx:for="{{coverPhotos}}" wx:key="*this">
+          <image class="cover-image" src="{{item}}" mode="aspectFill" data-current="{{item}}" data-urls="{{coverPhotos}}" bindtap="previewPhoto"></image>
+        </swiper-item>
+      </swiper>
+      <view class="cover-overlay"></view>
+      <view class="cover-content">
+        <view class="cover-badge">完工纪念册</view>
+        <view class="cover-title">我的新家完工啦</view>
+        <view class="cover-meta">
+          <view wx:if="{{archive.houseInfo.community}}" class="cover-meta-item">{{archive.houseInfo.community}}</view>
+          <view wx:if="{{decorateDays}}" class="cover-meta-divider">·</view>
+          <view wx:if="{{decorateDays}}" class="cover-meta-item">{{decorateDays}} 天</view>
+        </view>
+        <view wx:if="{{archive.houseInfo.deliveredAt}}" class="cover-date">交付于 {{archive.houseInfo.deliveredAt}}</view>
+      </view>
+      <view class="cover-brand">晟景装饰</view>
+    </view>
+
+    <!-- 照片不足提示 -->
+    <view wx:if="{{albumStatus === 'needs_photos'}}" class="notice-card">
+      <view class="notice-title">还差几张完工照片</view>
+      <view class="notice-desc">当前可以查看装修历程，完工实景照片整理后会自动展示。</view>
+    </view>
+
+    <!-- 模块2：新家信息卡 -->
+    <view class="section-card">
+      <view class="section-title">新家信息</view>
+      <view class="info-grid">
+        <view class="info-cell">
+          <view class="info-label">小区</view>
+          <view class="info-value">{{archive.houseInfo.community || '暂未填写'}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-label">房号</view>
+          <view class="info-value">{{archive.houseInfo.building ? archive.houseInfo.building + '栋' : ''}}{{archive.houseInfo.room ? archive.houseInfo.room + '室' : (archive.houseInfo.building ? '' : '暂未填写')}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-label">户型</view>
+          <view class="info-value">{{archive.houseInfo.layout || '暂未填写'}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-label">面积</view>
+          <view class="info-value">{{archive.houseInfo.area ? archive.houseInfo.area + '㎡' : '暂未填写'}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-label">风格</view>
+          <view class="info-value">{{archive.houseInfo.style || '暂未填写'}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-label">周期</view>
+          <view class="info-value">{{decorateDays ? decorateDays + ' 天' : '暂未填写'}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-label">开工</view>
+          <view class="info-value">{{archive.houseInfo.startDate || '暂未填写'}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-label">交付</view>
+          <view class="info-value">{{archive.houseInfo.deliveredAt || '暂未填写'}}</view>
+        </view>
+      </view>
+      <view wx:if="{{decorateDays}}" class="info-story">这套新家从开工到交付，共记录了 {{decorateDays}} 天的装修过程。</view>
+    </view>
+
+    <!-- 模块3：装修历程时间轴 -->
+    <view wx:if="{{archive.milestones.length}}" class="section-card">
+      <view class="section-title">装修历程</view>
+      <view class="section-subtitle">这一段装修旅程，晟景陪您一起走过。</view>
+      <view class="timeline">
+        <view wx:for="{{archive.milestones}}" wx:key="_id" class="timeline-item">
+          <view class="timeline-dot {{index === 0 ? 'dot-active' : ''}}"></view>
+          <view wx:if="{{index < archive.milestones.length - 1}}" class="timeline-line"></view>
+          <view class="timeline-content">
+            <view class="timeline-head">
+              <view class="timeline-name">{{item.title}}</view>
+              <view class="timeline-status">{{item.status}}</view>
+            </view>
+            <view class="timeline-date">{{item.date}}</view>
+            <view wx:if="{{item.description}}" class="timeline-desc">{{item.description}}</view>
+            <view wx:if="{{item.photos.length}}" class="timeline-photos">
+              <image wx:for="{{item.photos}}" wx:for-item="photo" wx:key="*this" class="timeline-photo" src="{{photo}}" mode="aspectFill" lazy-load data-current="{{photo}}" data-urls="{{item.photos}}" bindtap="previewPhoto"></image>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 模块4：过程精选 -->
+    <view wx:if="{{processPhotos.length}}" class="section-card">
+      <view class="section-title">过程回顾</view>
+      <view class="section-subtitle">每一个阶段，都是新家慢慢成型的过程。</view>
+      <view wx:for="{{processPhotos}}" wx:key="name" class="process-group">
+        <view class="process-name">{{item.name}}</view>
+        <view wx:if="{{item.desc}}" class="process-desc">{{item.desc}}</view>
+        <view class="process-photos">
+          <image wx:for="{{item.photos}}" wx:for-item="photo" wx:key="*this" class="process-photo" src="{{photo}}" mode="aspectFill" lazy-load data-current="{{photo}}" data-urls="{{item.photos}}" bindtap="previewPhoto"></image>
+        </view>
+      </view>
+    </view>
+
+    <!-- 模块5：完工实景 -->
+    <view class="section-card">
+      <view class="section-title">完工实景</view>
+      <view wx:if="{{archive.completionPhotos.length}}" class="section-subtitle">家的样子，终于清晰呈现。</view>
+      <view wx:if="{{archive.completionPhotos.length}}" class="completion-wall">
+        <view wx:for="{{archive.completionPhotos}}" wx:key="*this" class="completion-item {{index === 0 ? 'item-large' : ''}}">
+          <image src="{{item}}" mode="aspectFill" lazy-load data-current="{{item}}" data-urls="{{archive.completionPhotos}}" bindtap="previewPhoto"></image>
+        </view>
+      </view>
+      <view wx:else class="empty-inline">
+        <view class="empty-inline-text">完工照片待补充</view>
+        <view class="empty-inline-desc">晟景整理后，会在这里展示您家的完工实景。</view>
+        <button class="btn-warm-small" bindtap="callService">联系晟景客服</button>
+      </view>
+    </view>
+
+    <!-- 模块7：祝福语 -->
+    <view class="blessing-card">
+      <view class="blessing-icon">🏡</view>
+      <view class="blessing-title">写给您的新家</view>
+      <view class="blessing-text">感谢您选择晟景装饰。\n从开工到交付，我们一起见证了家的变化。\n愿这个新家，装得放心，住得舒心，也承载更多美好的日子。</view>
+      <view class="blessing-brand">— 晟景装饰</view>
+    </view>
+
+    <!-- 模块8：分享操作区 -->
+    <view class="action-section">
+      <button class="btn-share" open-type="share">
+        <view class="btn-icon">📤</view>
+        <view>分享我的新家</view>
+      </button>
+      <view class="action-tips">分享给朋友，让更多人看到家的变化</view>
+    </view>
+
+    <!-- 模块9：相关推荐 -->
+    <view class="recommend-section">
+      <view class="recommend-card" bindtap="goArchive">
+        <view class="recommend-icon">📋</view>
+        <view class="recommend-info">
+          <view class="recommend-title">查看我的家装档案</view>
+          <view class="recommend-desc">房屋资料、图纸、验收记录</view>
+        </view>
+        <view class="recommend-arrow">›</view>
+      </view>
+      <view class="recommend-card" bindtap="goReferral">
+        <view class="recommend-icon">🎁</view>
+        <view class="recommend-info">
+          <view class="recommend-title">推荐朋友装修</view>
+          <view class="recommend-desc">邀友即得20元话费券</view>
+        </view>
+        <view class="recommend-arrow">›</view>
+      </view>
+    </view>
+
+    <view class="footer-brand">
+      <view class="footer-text">晟景装饰 · 透明工地</view>
+      <view class="footer-subtext">让装修看得见，让信任留得住</view>
+    </view>
+  </block>
+</view>

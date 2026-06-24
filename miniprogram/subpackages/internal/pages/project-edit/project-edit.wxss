@@ -74,21 +74,21 @@
 .page {
   min-height: 100vh;
   padding: 24rpx 28rpx calc(48rpx + env(safe-area-inset-bottom));
-  background: #F8F4EA;
+  background: #FAFBFC;
   box-sizing: border-box;
 }
 
 .title {
-  color: #173E33;
+  color: #1A1A1A;
   font-size: 40rpx;
   font-weight: 800;
 }
 
 .section.list {
   padding: 24rpx;
-  border: 1rpx solid #E9DDC8;
+  border: 1rpx solid #E8ECF0;
   border-radius: 12rpx;
-  background: #FFFDF7;
+  background: #FFFFFF;
 }
 
 .section.list .input {
@@ -102,7 +102,7 @@
 .page > .button-primary {
   margin-top: 24rpx;
   border-radius: 12rpx;
-  background: #147657;
+  background: #1B7A56;
 }
 
 /* UI 1.2 · 新增工地表单 */
@@ -110,7 +110,7 @@
   min-height: 100vh;
   padding: 32rpx;
   padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
-  background: #F8FAF9;
+  background: #FAFBFC;
 }
 
 .title {
@@ -135,5 +135,5 @@
   height: 96rpx;
   line-height: 96rpx;
   border-radius: 28rpx;
-  background: #0F6A4A;
+  background: #1B7A56;
 }

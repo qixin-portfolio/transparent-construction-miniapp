@@ -12,6 +12,25 @@
     <view class="ai-desc">客户跟进、报价解释、施工交底、透明工地日报都放在这里。</view>
   </view>
 
+  <view class="ai-scenario-grid">
+    <view class="ai-scenario-card {{currentFlowKey == 'customer' ? 'active' : ''}}" data-key="customer" bindtap="switchFlow">
+      <view class="ai-scenario-title">客户跟进</view>
+      <view class="ai-scenario-desc">嫌贵、犹豫、到店后跟进</view>
+    </view>
+    <view class="ai-scenario-card {{currentFlowKey == 'quote' ? 'active' : ''}}" data-key="quote" bindtap="switchFlow">
+      <view class="ai-scenario-title">报价解释</view>
+      <view class="ai-scenario-desc">把钱花在哪讲清楚</view>
+    </view>
+    <view class="ai-scenario-card {{currentFlowKey == 'transparentSite' ? 'active' : ''}}" data-key="transparentSite" bindtap="switchFlow">
+      <view class="ai-scenario-title">透明日报</view>
+      <view class="ai-scenario-desc">现场照片变业主文案</view>
+    </view>
+    <view class="ai-scenario-card {{currentFlowKey == 'content' ? 'active' : ''}}" data-key="content" bindtap="switchFlow">
+      <view class="ai-scenario-title">案例内容</view>
+      <view class="ai-scenario-desc">朋友圈、抖音、小红书</view>
+    </view>
+  </view>
+
   <view class="ai-loop-card">
     <view class="ai-loop-steps">
       <view class="ai-loop-step {{toolStats.filled ? 'done' : ''}}">
@@ -66,6 +85,25 @@
     </view>
   </scroll-view>
 
+  <!-- 生成结果 -->
+  <view class="card output-card">
+    <view class="output-head">
+      <view class="output-head-info">
+        <view class="sub-title">生成结果</view>
+        <view class="output-state {{hasOutput ? 'ready' : ''}}">{{hasOutput ? '已生成' : '待生成'}}</view>
+      </view>
+      <view class="output-actions">
+        <button class="text-action" bindtap="copyOutput">复制</button>
+        <button class="text-action" bindtap="saveRecord">保存</button>
+      </view>
+    </view>
+    <text class="output-text" selectable>{{output}}</text>
+    <view wx:if="{{currentFlowKey == 'customer'}}" class="sync-actions">
+      <view class="sync-hint">客户需求整理可直接沉淀到客户库，后续在客户详情里推进阶段。</view>
+      <button class="button-primary" loading="{{syncing}}" disabled="{{syncing}}" bindtap="syncToCustomer">同步到客户库</button>
+    </view>
+  </view>
+
   <!-- 工具卡片 -->
   <view class="card flow-card">
     <view class="flow-head">
@@ -107,7 +145,7 @@
         >
           <view class="picker ai-picker">
             <text>{{item.value}}</text>
-            <text class="picker-arrow">选择</text>
+            <text class="picker-arrow">更换 ›</text>
           </view>
         </picker>
 
@@ -130,25 +168,6 @@
     <button class="button-primary" bindtap="generate">生成</button>
     <button class="button-secondary" bindtap="fillSample">填示例</button>
     <button class="button-secondary" bindtap="clearForm">清空</button>
-  </view>
-
-  <!-- 生成结果 -->
-  <view class="card output-card">
-    <view class="output-head">
-      <view>
-        <view class="sub-title">生成结果</view>
-        <view class="output-state {{hasOutput ? 'ready' : ''}}">{{hasOutput ? '已生成' : '待生成'}}</view>
-      </view>
-      <view class="output-actions">
-        <button class="text-action" bindtap="copyOutput">复制</button>
-        <button class="text-action" bindtap="saveRecord">保存</button>
-      </view>
-    </view>
-    <text class="output-text" selectable>{{output}}</text>
-    <view wx:if="{{currentFlowKey == 'customer'}}" class="sync-actions">
-      <view class="sync-hint">客户需求整理可直接沉淀到客户库，后续在客户详情里推进阶段。</view>
-      <button class="button-primary" loading="{{syncing}}" disabled="{{syncing}}" bindtap="syncToCustomer">同步到客户库</button>
-    </view>
   </view>
 
   <!-- 本机记录 -->

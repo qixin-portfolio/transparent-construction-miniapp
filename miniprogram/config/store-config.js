@@ -5,6 +5,24 @@
 // 修改以下信息后点「编译」即可生效，无需部署云函数
 // ========================================
 
+// 顾问信息（显示在顶部门店区）
+const advisors = [
+  {
+    name: '维意定制',
+    subtitle: '交城晟景装饰',
+    role: '官方账号 · 完工案例',
+    avatar: '/images/advisor-weiyi.jpg',
+    douyinId: '2183898177'
+  },
+  {
+    name: '胡秀芬',
+    subtitle: '晟景装饰',
+    role: '老板娘 · 装修避坑',
+    avatar: '/images/advisor-huxiufen.jpg',
+    douyinId: '2048934208'
+  }
+]
+
 // 抖音账号（点击复制抖音号，引导搜索关注）
 const douyinAccounts = [
   {
@@ -71,6 +89,7 @@ const contactInfo = {
 }
 
 module.exports = {
+  advisors,
   douyinAccounts,
   storeInfo,
   showcaseCases,

@@ -1,0 +1,40 @@
+<view class="lifecycle-page">
+  <view class="lifecycle-hero">
+    <view class="lifecycle-eyebrow">我的售后工单</view>
+    <view class="lifecycle-title">售后进度有记录</view>
+    <view class="lifecycle-desc">所有报修会形成工单，后续处理过程统一沉淀。</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="lifecycle-card empty-block">
+    <view class="empty-title">正在加载工单...</view>
+  </view>
+
+  <view wx:elif="{{!items.length}}" class="lifecycle-card empty-block">
+    <view class="empty-title">暂无售后工单</view>
+    <view class="empty-desc">如果完工后有问题，可以随时提交售后报修。</view>
+    <button class="button-primary" bindtap="goCreate">提交售后报修</button>
+  </view>
+
+  <view wx:else class="lifecycle-list">
+    <view wx:for="{{items}}" wx:key="_id" class="lifecycle-card" data-id="{{item._id}}" bindtap="goDetail">
+      <view class="row">
+        <view class="lifecycle-card-title">{{item.projectName || '晟景装饰项目'}}</view>
+        <view class="status-pill">{{item.statusText}}</view>
+      </view>
+      <view class="lifecycle-card-desc">{{item.issueType || item.category || '售后报修'}} · {{item.issueDescription || item.description || '未填写描述'}}</view>
+      <view class="info-row">
+        <view class="info-label">工单编号</view>
+        <view class="info-value">{{item.ticketNo || item._id}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">提交时间</view>
+        <view class="info-value">{{item.createdAtText || '-'}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">最近更新</view>
+        <view class="info-value">{{item.updatedAtText || '-'}}</view>
+      </view>
+    </view>
+    <button class="button-primary" bindtap="goCreate">继续报修</button>
+  </view>
+</view>

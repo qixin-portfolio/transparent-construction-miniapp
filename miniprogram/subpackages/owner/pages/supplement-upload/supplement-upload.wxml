@@ -1,0 +1,63 @@
+<view class="supplement-page">
+  <!-- 顶部说明 -->
+  <view class="info-hero">
+    <view class="info-eyebrow">补充资料</view>
+    <view class="info-title">{{categoryInfo.title}}</view>
+    <view class="info-desc">{{categoryInfo.desc}}</view>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="info-card empty-block">
+    <view class="empty-title">正在加载...</view>
+  </view>
+
+  <block wx:else>
+    <!-- 已上传的资料 -->
+    <view wx:if="{{supplements.length}}" class="info-card">
+      <view class="card-title">已上传资料（{{supplements.length}}）</view>
+      <view wx:for="{{supplements}}" wx:key="_id" class="supplement-item">
+        <view class="supplement-head">
+          <view class="supplement-date">{{item.createdAt}}</view>
+          <view class="supplement-del" data-id="{{item._id}}" bindtap="deleteSupplement">删除</view>
+        </view>
+        <view wx:if="{{item.remark}}" class="supplement-remark">{{item.remark}}</view>
+        <view class="supplement-photos">
+          <image wx:for="{{item.fileUrls}}" wx:for-item="url" wx:key="*this" class="supplement-photo" src="{{url}}" mode="aspectFill" lazy-load data-current="{{url}}" data-urls="{{item.fileUrls}}" bindtap="previewExisting"></image>
+        </view>
+      </view>
+    </view>
+
+    <!-- 上传新资料 -->
+    <view class="info-card">
+      <view class="card-title">上传新资料</view>
+      <view class="upload-area">
+        <view wx:for="{{newPhotos}}" wx:key="*this" class="upload-thumb">
+          <image src="{{item}}" mode="aspectFill" data-current="{{item}}" bindtap="previewNewPhoto"></image>
+          <view class="thumb-del" data-index="{{index}}" catchtap="removeNewPhoto">×</view>
+        </view>
+        <view wx:if="{{newPhotos.length < 9}}" class="upload-add" bindtap="choosePhoto">
+          <view class="add-icon">+</view>
+          <view class="add-text">添加照片</view>
+        </view>
+      </view>
+      <view class="upload-tips">单次最多上传 9 张，可多次上传</view>
+
+      <view class="remark-area">
+        <view class="remark-label">备注（选填）</view>
+        <textarea class="remark-input" placeholder="例如：客厅水电走向" maxlength="200" value="{{remark}}" bindinput="onRemarkInput"></textarea>
+      </view>
+
+      <button class="btn-submit" bindtap="submit" disabled="{{submitting || !newPhotos.length}}">
+        {{submitting ? '上传中...' : '保存资料'}}
+      </button>
+    </view>
+
+    <!-- 底部说明 -->
+    <view class="footer-tips">
+      <view class="tips-title">温馨提示</view>
+      <view class="tips-text">· 您上传的资料会自动归入家装档案，方便日后查询</view>
+      <view class="tips-text">· 如需修改已上传的资料，可先删除再重新上传</view>
+      <view class="tips-text">· 资料仅您自己和晟景工作人员可见</view>
+    </view>
+  </block>
+</view>

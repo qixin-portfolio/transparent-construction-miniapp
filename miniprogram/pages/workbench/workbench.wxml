@@ -7,6 +7,7 @@
       <view class="owner-hero-eyebrow">晟景透明工地</view>
       <view class="owner-hero-title">我的施工进度</view>
       <view class="owner-hero-desc">只展示已审核的工地进展、现场照片和当前节点。</view>
+      <view wx:if="{{user && !user.hasWechatProfile}}" class="owner-profile-tip" bindtap="goProfile">完善微信头像昵称</view>
     </view>
 
     <view wx:if="{{ownerProject}}" class="owner-project-card" bindtap="goOwnerProject">
@@ -49,6 +50,30 @@
       </view>
     </view>
 
+    <view wx:elif="{{completedProject}}" class="owner-project-card" bindtap="goCompletedHome">
+      <view class="owner-project-head">
+        <view class="owner-project-info">
+          <view class="owner-project-name">{{completedProject.name}}</view>
+          <view class="owner-project-address">{{completedProject.address || '晟景装饰完工项目'}}</view>
+        </view>
+        <view class="tag tag-success">已完工</view>
+      </view>
+
+      <view class="completed-service-body">
+        <view class="completed-service-title">完工后服务已开放</view>
+        <view class="completed-service-desc">查看装修档案、电子质保卡、提交售后报修、推荐朋友装修。</view>
+      </view>
+
+      <button class="button-primary owner-bind-action">进入完工服务</button>
+    </view>
+
+    <view wx:elif="{{historicalCustomer}}" class="owner-bind-card">
+      <view class="owner-bind-icon">询</view>
+      <view class="owner-bind-title">欢迎继续了解晟景装饰</view>
+      <view class="owner-bind-desc">已记录您的咨询信息，如需查看施工进度，请在签约后绑定专属工地。</view>
+      <button class="button-primary owner-bind-action" bindtap="goProjects">查看门店与预约</button>
+    </view>
+
     <view wx:else class="owner-bind-card">
       <view class="owner-bind-icon">🏠</view>
       <view class="owner-bind-title">还未绑定工地</view>
@@ -81,19 +106,117 @@
 
   <!-- ========== 内部员工端：今日工作总览 ========== -->
   <block wx:else>
-    <view class="welcome-header">
-      <view class="user-meta">
-        <view class="staff-avatar">{{user && user.name ? user.name[0] : '晟'}}</view>
-        <view class="text-group">
-          <view class="staff-name">{{user && user.name ? user.name : '晟景员工'}}</view>
-          <view class="staff-role">{{user && user.role ? user.role : '透明工地团队'}}</view>
+    <view class="staff-hero-wrap">
+      <view class="welcome-header">
+        <view class="user-meta">
+          <image wx:if="{{user && user.avatarUrl}}" class="staff-avatar staff-avatar-image" src="{{user.avatarUrl}}" mode="aspectFill"></image>
+          <view wx:else class="staff-avatar">{{user && user.avatarText ? user.avatarText : '晟'}}</view>
+          <view class="text-group">
+            <view class="staff-name">{{user && user.displayName ? user.displayName : '晟景员工'}}</view>
+            <view class="staff-role">{{user && user.roleLabel ? user.roleLabel : '透明工地团队'}}</view>
+          </view>
         </view>
+        <view class="date-today">今日</view>
       </view>
-      <view class="date-today">今日</view>
+      <view class="staff-hero-tagline-wrap">
+        <view class="staff-hero-tagline">交城 28 年老品牌</view>
+        <view class="staff-hero-dot"></view>
+        <view class="staff-hero-tagline">每个工地都留痕</view>
+      </view>
+      <view wx:if="{{user && !user.hasWechatProfile}}" class="staff-profile-tip" bindtap="goProfile">完善微信头像昵称</view>
     </view>
 
+    <block wx:if="{{isWorker}}">
+      <view wx:if="{{workerProject}}" class="worker-home">
+        <view class="worker-project-card">
+          <view class="worker-project-top">
+            <view>
+              <view class="worker-eyebrow">我的绑定工地</view>
+              <view class="worker-project-name">{{workerProject.name}}</view>
+              <view class="worker-project-address">{{workerProject.address || '未填写地址'}}</view>
+            </view>
+            <view class="tag tag-success">{{workerProject.status || '施工中'}}</view>
+          </view>
+          <view wx:if="{{projectCount > 1}}" class="worker-project-count" bindtap="goProjects">已绑定 {{projectCount}} 个工地，点击切换</view>
+
+          <view class="worker-progress-row">
+            <view>
+              <view class="worker-progress-num">{{workerProject.progress || 0}}%</view>
+              <view class="worker-progress-label">{{workerProject.currentStage || '当前节点待确认'}}</view>
+            </view>
+            <view class="worker-progress-pill">今日到场</view>
+          </view>
+          <view class="worker-progress">
+            <view class="worker-progress-bar" style="width: {{workerProject.progress || 0}}%;"></view>
+          </view>
+
+          <view class="worker-action-row">
+            <button class="worker-action primary" bindtap="goWorkerUpload">上传日报</button>
+            <button class="worker-action" bindtap="recordWorkerCheckin" loading="{{workerCheckingIn}}" disabled="{{workerCheckingIn}}">到场打卡</button>
+          </view>
+          <button class="worker-bind-more-action" bindtap="showWorkerProjectBind">绑定新工地</button>
+        </view>
+
+        <view class="worker-simple-grid">
+          <view class="worker-simple-card" bindtap="goWorkerUpload">
+            <view class="worker-simple-num">{{workerRecentLogs.length}}</view>
+            <view class="worker-simple-label">最近日报</view>
+          </view>
+          <view class="worker-simple-card">
+            <view class="worker-simple-num">{{workerCheckins.length}}</view>
+            <view class="worker-simple-label">打卡记录</view>
+          </view>
+          <view class="worker-simple-card" bindtap="goWorkerProject">
+            <view class="worker-simple-num">{{workerProject.progress || 0}}%</view>
+            <view class="worker-simple-label">工地进度</view>
+          </view>
+        </view>
+
+        <view class="worker-record-card">
+          <view class="worker-section-head">
+            <view class="sub-title">打卡记录</view>
+            <view class="muted">只显示本人记录</view>
+          </view>
+          <view wx:if="{{workerCheckins.length}}" class="worker-record-list">
+            <view wx:for="{{workerCheckins}}" wx:key="_id" class="worker-record-item">
+              <view class="worker-record-dot"></view>
+              <view class="worker-record-body">
+                <view class="worker-record-title">{{item.title || '到场打卡'}}</view>
+                <view class="worker-record-meta">{{item.dateText || '刚刚'}} · {{item.projectName || workerProject.name}}</view>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="worker-empty">今天还没有打卡</view>
+        </view>
+
+        <view class="worker-record-card">
+          <view class="worker-section-head">
+            <view class="sub-title">日报记录</view>
+            <view class="muted">提交后等待管理员审核</view>
+          </view>
+          <view wx:if="{{workerRecentLogs.length}}" class="worker-record-list">
+            <view wx:for="{{workerRecentLogs}}" wx:key="_id" class="worker-record-item">
+              <view class="worker-record-dot log"></view>
+              <view class="worker-record-body">
+                <view class="worker-record-title">{{item.stage || '工地日报'}} · {{item.statusText}}</view>
+                <view class="worker-record-meta">{{item.dateText || '时间待同步'}} · {{item.workContent}}</view>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="worker-empty">还没有日报，先上传今天现场情况</view>
+        </view>
+      </view>
+
+      <view wx:else class="worker-unbound-card">
+        <view class="worker-unbound-title">还未绑定工地</view>
+        <view class="worker-unbound-desc">当前账号只显示已绑定工地。输入管理端发放的 6 位工地绑定码后，即可上传日报和打卡。</view>
+        <button class="worker-unbound-action" bindtap="showWorkerProjectBind">输入工地绑定码</button>
+      </view>
+    </block>
+
+    <block wx:else>
     <view class="overview-grid">
-      <view class="overview-card" bindtap="goProjects">
+      <view class="overview-card highlight" bindtap="goProjects">
         <view class="overview-number">{{activeProjectCount}}</view>
         <view class="overview-label">施工中工地</view>
       </view>
@@ -105,9 +228,85 @@
         <view class="overview-number">{{projectCount}}</view>
         <view class="overview-label">全部工地</view>
       </view>
-      <view class="overview-card" bindtap="goProjects">
-        <view class="overview-number">4</view>
-        <view class="overview-label">闭环步骤</view>
+      <view class="overview-card" bindtap="{{canAfterSales ? 'goAfterSalesManage' : ''}}">
+        <view class="overview-number {{canAfterSales && afterSalesPendingCount ? 'highlight' : ''}}">{{afterSalesPendingCount}}</view>
+        <view class="overview-label">{{canAfterSales ? '待处理售后' : '售后工单'}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{isBoss}}" class="boss-dashboard-card">
+      <view class="boss-dashboard-head">
+        <view>
+          <view class="boss-title">老板驾驶舱</view>
+          <view class="boss-subtitle">今天最需要盯住的工地、客户和员工动态</view>
+        </view>
+        <view class="boss-tenant">{{bossDashboard.tenantName || '晟景装饰'}}</view>
+      </view>
+      <view class="boss-metric-grid">
+        <view class="boss-metric-item alert" bindtap="goReview">
+          <view class="boss-metric-num">{{pendingCount}}</view>
+          <view class="boss-metric-label">待审核</view>
+        </view>
+        <view class="boss-metric-item" bindtap="goProjects">
+          <view class="boss-metric-num">{{bossMetrics.todayUploadedCount}}</view>
+          <view class="boss-metric-label">今日日报</view>
+        </view>
+        <view class="boss-metric-item warn" bindtap="goProjects">
+          <view class="boss-metric-num">{{bossMetrics.staleProjectCount}}</view>
+          <view class="boss-metric-label">超 3 天未更新</view>
+        </view>
+        <view class="boss-metric-item" bindtap="goCustomers">
+          <view class="boss-metric-num">{{bossMetrics.conversionRate}}%</view>
+          <view class="boss-metric-label">客户转化</view>
+        </view>
+      </view>
+
+      <view wx:if="{{bossAlerts.length}}" class="boss-alert-list">
+        <view class="boss-block-title">工地异常提醒</view>
+        <view wx:for="{{bossAlerts}}" wx:key="projectId" class="boss-alert-item">
+          <view class="boss-alert-dot"></view>
+          <view class="boss-alert-body">
+            <view class="boss-alert-name">{{item.projectName}}</view>
+            <view class="boss-alert-meta">{{item.reason}} · {{item.lastUpdatedText || '暂无更新时间'}}</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{canAfterSales && afterSalesPendingCount}}" class="boss-alert-list" bindtap="goAfterSalesManage">
+        <view class="boss-block-title">售后工单提醒</view>
+        <view class="boss-alert-item">
+          <view class="boss-alert-dot"></view>
+          <view class="boss-alert-body">
+            <view class="boss-alert-name">有 {{afterSalesPendingCount}} 个售后工单待处理</view>
+            <view class="boss-alert-meta">点击查看详情并分派处理</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="boss-split-grid">
+        <view class="boss-mini-panel">
+          <view class="boss-block-title">员工日报排行</view>
+          <view wx:if="{{staffRank.length}}">
+            <view wx:for="{{staffRank}}" wx:key="openid" class="boss-rank-row">
+              <view class="boss-rank-name">{{item.name}}</view>
+              <view class="boss-rank-count">{{item.count}} 条</view>
+            </view>
+          </view>
+          <view wx:else class="boss-empty">暂无日报记录</view>
+        </view>
+        <view class="boss-mini-panel">
+          <view class="boss-block-title">最新动态</view>
+          <view wx:if="{{recentActivities.length}}">
+            <view wx:for="{{recentActivities}}" wx:key="activityId" class="boss-activity-row">
+              <view class="boss-activity-type">{{item.type}}</view>
+              <view class="boss-activity-body">
+                <view class="boss-activity-title">{{item.title}}</view>
+                <view class="boss-activity-meta">{{item.meta}}</view>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="boss-empty">暂无新动态</view>
+        </view>
       </view>
     </view>
 
@@ -172,9 +371,13 @@
           <view class="quick-icon quick-icon-staff">🔑</view>
           <view class="quick-name">邀请码</view>
         </view>
-        <view class="quick-card" bindtap="goOwnerProject">
+        <view wx:if="{{canAfterSales}}" class="quick-card" bindtap="goAfterSalesManage">
+          <view class="quick-icon quick-icon-review">售</view>
+          <view class="quick-name">售后工单</view>
+        </view>
+        <view wx:if="{{canPreviewOwner}}" class="quick-card" bindtap="goOwnerProject">
           <view class="quick-icon quick-icon-owner">📱</view>
-          <view class="quick-name">业主页</view>
+          <view class="quick-name">业主预览</view>
         </view>
       </view>
     </view>
@@ -206,8 +409,16 @@
           </view>
           <view class="todo-arrow">→</view>
         </view>
+        <view wx:if="{{canAfterSales && afterSalesPendingCount}}" class="todo-item" bindtap="goAfterSalesManage">
+          <view class="todo-left">
+            <view class="todo-dot dot-alert"></view>
+            <view class="todo-text">有 {{afterSalesPendingCount}} 个售后工单待处理</view>
+          </view>
+          <view class="todo-arrow">→</view>
+        </view>
       </view>
     </view>
+    </block>
   </block>
 
   <!-- ========== 员工激活弹窗 ========== -->
@@ -219,6 +430,19 @@
       <view class="staff-dialog-actions">
         <button class="staff-dialog-btn staff-dialog-cancel" bindtap="hideStaffActivate" disabled="{{staffActivating}}">取消</button>
         <button class="staff-dialog-btn staff-dialog-confirm" bindtap="confirmStaffActivate" loading="{{staffActivating}}" disabled="{{staffActivating || staffCode.length < 6}}">激活</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 工长绑定工地弹窗 ========== -->
+  <view wx:if="{{workerProjectCodeVisible}}" class="staff-mask" bindtap="hideWorkerProjectBind">
+    <view class="staff-dialog" catchtap="noop">
+      <view class="staff-dialog-title">绑定工地</view>
+      <view class="staff-dialog-desc">输入老板、管理员或项目经理在工地详情里生成的 6 位工长绑定码。</view>
+      <input class="staff-code-input" type="number" maxlength="6" placeholder="请输入 6 位绑定码" value="{{workerProjectCode}}" bindinput="onWorkerProjectCodeInput" />
+      <view class="staff-dialog-actions">
+        <button class="staff-dialog-btn staff-dialog-cancel" bindtap="hideWorkerProjectBind" disabled="{{workerProjectBinding}}">取消</button>
+        <button class="staff-dialog-btn staff-dialog-confirm" bindtap="confirmWorkerProjectBind" loading="{{workerProjectBinding}}" disabled="{{workerProjectBinding || workerProjectCode.length < 6}}">绑定</button>
       </view>
     </view>
   </view>

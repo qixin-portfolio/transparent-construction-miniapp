@@ -1,5 +1,6 @@
 const { call, showError } = require('../../../../services/cloud')
 const { DEMO_MODE, demoProjects, demoLogs } = require('../../../../utils/demo')
+const { STAGES } = require('../../../../utils/constants')
 
 Page({
   data: {
@@ -8,13 +9,23 @@ Page({
     logs: [],
     loading: false,
     bindCode: null,
+    bindCodes: [],
     bindCodeText: '',
+    bindCodeSummary: '',
     bindCodeExpiresAtText: '',
+    bindOwnerCount: 0,
+    bindMaxOwners: 2,
     bindCodeLoading: false,
+    workerBindCodeText: '',
+    workerBindCodeExpiresAtText: '',
+    workerBindCodeSummary: '',
+    workerBindCodeLoading: false,
     user: null,
     canUpload: false,
     canManageOwner: false,
+    canManageWorkerBind: false,
     canViewManagementDetail: false,
+    canDeliverProject: false,
     canDelete: false,
     stats: {
       logCount: 0,
@@ -22,6 +33,14 @@ Page({
       latestDateText: '',
       latestStage: ''
     },
+    diagnostics: {
+      pendingCount: 0,
+      issueCount: 0,
+      confirmCount: 0,
+      rejectedCount: 0
+    },
+    animatedProgress: 0,
+    animatedProgressDeg: 0,
     flowStatus: {
       created: '未建档',
       uploaded: '待上传',
@@ -59,9 +78,11 @@ Page({
     const role = user && user.role
     this.setData({
       user: user || null,
-      canUpload: ['admin', 'boss_qi', 'boss_hu', 'designer', 'worker'].indexOf(role) !== -1,
+      canUpload: ['admin', 'boss_qi', 'boss_hu', 'designer', 'worker', 'project_manager'].indexOf(role) !== -1,
       canManageOwner: ['admin', 'boss_qi', 'boss_hu', 'designer', 'sales'].indexOf(role) !== -1,
+      canManageWorkerBind: ['admin', 'boss_qi', 'boss_hu', 'designer', 'sales', 'project_manager'].indexOf(role) !== -1,
       canViewManagementDetail: ['admin', 'boss_qi', 'boss_hu'].indexOf(role) !== -1,
+      canDeliverProject: ['admin', 'boss_qi', 'boss_hu'].indexOf(role) !== -1,
       canDelete: role === 'admin'
     })
   },
@@ -78,37 +99,54 @@ Page({
         const logs = this.prepareLogs(res.logs || [])
         const photoWall = this.makePhotoWall(logs)
         const stages = this.buildStageList(photoWall)
+        const project = res.project || null
         this.setData({
-          project: res.project || null,
+          project,
+          animatedProgress: 0,
+          animatedProgressDeg: 0,
           logs,
           visibleLogs: logs.slice(0, this.data.timelineCollapsedCount),
           stats: this.makeStats(logs),
-          flowStatus: this.makeFlowStatus(res.project || null, logs),
+          diagnostics: this.makeDiagnostics(logs),
+          flowStatus: this.makeFlowStatus(project, logs),
           photoWall,
           filteredPhotoWall: photoWall,
           photoStages: stages,
           filterStage: '',
           timelineExpanded: false,
           bindCode: null,
+          bindCodes: [],
           bindCodeText: '',
-          bindCodeExpiresAtText: ''
+          bindCodeSummary: '',
+          bindCodeExpiresAtText: '',
+          workerBindCodeText: '',
+          workerBindCodeExpiresAtText: '',
+          workerBindCodeSummary: ''
+        }, () => {
+          this.playProgressMotion((project || {}).progress)
         })
       })
       .catch((error) => {
         if (DEMO_MODE) {
           const logs = this.prepareLogs(demoLogs)
           const photoWall = this.makePhotoWall(logs)
+          const project = demoProjects[0]
           this.setData({
-            project: demoProjects[0],
+            project,
+            animatedProgress: 0,
+            animatedProgressDeg: 0,
             logs,
             visibleLogs: logs.slice(0, this.data.timelineCollapsedCount),
             stats: this.makeStats(logs),
-            flowStatus: this.makeFlowStatus(demoProjects[0], logs),
+            diagnostics: this.makeDiagnostics(logs),
+            flowStatus: this.makeFlowStatus(project, logs),
             photoWall,
             filteredPhotoWall: photoWall,
             photoStages: this.buildStageList(photoWall),
             filterStage: '',
             timelineExpanded: false
+          }, () => {
+            this.playProgressMotion((project || {}).progress)
           })
           return
         }
@@ -117,6 +155,9 @@ Page({
           logs: [],
           visibleLogs: [],
           stats: this.makeStats([]),
+          diagnostics: this.makeDiagnostics([]),
+          animatedProgress: 0,
+          animatedProgressDeg: 0,
           flowStatus: this.makeFlowStatus(null, []),
           photoWall: [],
           filteredPhotoWall: [],
@@ -139,11 +180,65 @@ Page({
     })
   },
 
+  resubmitRejectedLog(event) {
+    const logId = event.currentTarget.dataset.id || ''
+    const log = (this.data.logs || []).find((item) => item._id === logId)
+    if (!log) {
+      showError('未找到退回日报')
+      return
+    }
+    const stageIndex = Math.max(0, STAGES.findIndex((stage) => stage.name === log.stage || stage.code === log.stageCode))
+    const now = new Date()
+    const savedAtText = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    wx.setStorageSync(`stage-log-draft:${this.data.projectId}`, {
+      stageIndex,
+      quickNote: log.rejectReason ? `退回原因：${log.rejectReason}` : '',
+      images: [],
+      voiceTempPath: '',
+      voiceDuration: 0,
+      sourceType: 'resubmit',
+      form: {
+        workContent: log.workContent || '',
+        issue: log.issue || '',
+        needConfirm: log.needConfirm || '',
+        tomorrowPlan: log.tomorrowPlan || ''
+      },
+      savedAt: Date.now(),
+      savedAtText
+    })
+    wx.navigateTo({
+      url: `/subpackages/internal/pages/upload-log/upload-log?projectId=${this.data.projectId}&projectName=${encodeURIComponent((this.data.project || {}).name || '')}`
+    })
+  },
+
   goDesignDrawings() {
     const name = encodeURIComponent((this.data.project || {}).name || '')
     wx.navigateTo({
       url: `/subpackages/internal/pages/design-drawings/design-drawings?projectId=${this.data.projectId}&projectName=${name}`
     })
+  },
+
+  isProjectDelivered(project) {
+    if (!project) return false
+    return project.statusCode === 'delivered' || project.status === '已交付'
+  },
+
+  confirmDeliverProject() {
+    if (!this.data.canDeliverProject) {
+      showError('当前账号没有确认竣工交付的权限')
+      return
+    }
+    const project = this.data.project || {}
+    if (!project._id) {
+      showError('缺少工地信息')
+      return
+    }
+    if (this.isProjectDelivered(project)) {
+      wx.showToast({ title: '该项目已交付', icon: 'none' })
+      return
+    }
+    // 跳转到交付表单页（补全房屋档案 + 上传完工照片）
+    wx.navigateTo({ url: `/subpackages/internal/pages/deliver-form/deliver-form?projectId=${project._id}` })
   },
 
   deleteProject() {
@@ -229,10 +324,35 @@ Page({
     }
   },
 
+  makeDiagnostics(logs) {
+    return {
+      pendingCount: logs.filter((item) => (item.reviewStatus || 'pending') === 'pending').length,
+      issueCount: logs.filter((item) => String(item.issue || '').trim()).length,
+      confirmCount: logs.filter((item) => String(item.needConfirm || '').trim()).length,
+      rejectedCount: logs.filter((item) => item.reviewStatus === 'rejected').length
+    }
+  },
+
+  makeProgressDeg(progress) {
+    const value = Math.max(0, Math.min(100, Number(progress) || 0))
+    return value >= 100 ? 360 : Math.round(value * 3.6)
+  },
+
+  playProgressMotion(progress) {
+    const value = Math.max(0, Math.min(100, Number(progress) || 0))
+    setTimeout(() => {
+      this.setData({
+        animatedProgress: value,
+        animatedProgressDeg: this.makeProgressDeg(value)
+      })
+    }, 80)
+  },
+
   makeFlowStatus(project, logs) {
     const pendingCount = logs.filter((item) => (item.reviewStatus || 'pending') === 'pending').length
     const approvedCount = logs.filter((item) => item.reviewStatus === 'approved').length
     const rejectedCount = logs.filter((item) => item.reviewStatus === 'rejected').length
+    const ownerCount = this.getOwnerOpenids(project).length
     let reviewed = '待上传'
     if (pendingCount) {
       reviewed = `${pendingCount} 条待审`
@@ -246,13 +366,24 @@ Page({
       created: project ? '已建档' : '未建档',
       uploaded: logs.length ? `${logs.length} 条日报` : '待上传',
       reviewed,
-      ownerBound: project && project.ownerOpenid ? '已绑定' : '待绑定',
+      ownerBound: ownerCount ? `${ownerCount}/2 已绑定` : '待绑定',
       pendingCount,
       approvedCount,
       uploadClass: logs.length ? 'done' : '',
       reviewClass: pendingCount ? 'warning' : (approvedCount ? 'done' : ''),
-      ownerClass: project && project.ownerOpenid ? 'done' : ''
+      ownerClass: ownerCount ? 'done' : ''
     }
+  },
+
+  getOwnerOpenids(project) {
+    if (!project) return []
+    const openids = Array.isArray(project.ownerOpenids)
+      ? project.ownerOpenids.filter(Boolean)
+      : []
+    if (!openids.length && project.ownerOpenid) {
+      openids.push(project.ownerOpenid)
+    }
+    return Array.from(new Set(openids))
   },
 
   makePhotoWall(logs) {
@@ -317,6 +448,51 @@ Page({
     })
   },
 
+  goTimelineDiagnostic() {
+    if (!this.data.logs.length) {
+      wx.showToast({ title: '暂无施工日志', icon: 'none' })
+      return
+    }
+    this.setData({
+      timelineExpanded: true,
+      visibleLogs: this.data.logs
+    })
+    wx.pageScrollTo({
+      selector: '#manager-timeline-section',
+      duration: 260
+    })
+  },
+
+  prepareBindCodes(res) {
+    const projectOwners = this.getOwnerOpenids(this.data.project)
+    const ownerCount = Number(res.ownerCount != null ? res.ownerCount : projectOwners.length) || 0
+    const maxOwners = Number(res.maxOwners || 2)
+    const rawCodes = Array.isArray(res.codes) && res.codes.length
+      ? res.codes
+      : (res.code ? [{ code: res.code, expiresAt: res.expiresAt, usedByOpenid: res.usedByOpenid || '' }] : [])
+
+    const codes = rawCodes
+      .filter((item) => item && item.code)
+      .map((item, index) => {
+        const slot = ownerCount + index + 1
+        return {
+          code: item.code,
+          label: `业主${slot}`,
+          slotText: `第 ${slot} 位业主`,
+          expiresAt: item.expiresAt || 0,
+          expiresAtText: item.expiresAt ? this.formatTime(item.expiresAt) : '',
+          statusText: item.usedByOpenid ? '已使用' : '未使用'
+        }
+      })
+
+    return {
+      codes,
+      ownerCount,
+      maxOwners,
+      summary: `已绑定 ${ownerCount}/${maxOwners} 位业主，当前可用 ${codes.length} 个绑定码`
+    }
+  },
+
   createBindCode() {
     if (!this.data.canManageOwner) {
       showError('当前账号不能生成绑定码')
@@ -330,13 +506,19 @@ Page({
     this.setData({ bindCodeLoading: true })
     call('createOwnerBindCode', { projectId: this.data.projectId })
       .then((res) => {
+        const prepared = this.prepareBindCodes(res)
+        const firstCode = prepared.codes[0] || {}
         this.setData({
           bindCode: res,
-          bindCodeText: res.code || '',
-          bindCodeExpiresAtText: res.expiresAt ? this.formatTime(res.expiresAt) : ''
+          bindCodes: prepared.codes,
+          bindCodeText: firstCode.code || '',
+          bindCodeSummary: prepared.summary,
+          bindCodeExpiresAtText: firstCode.expiresAtText || '',
+          bindOwnerCount: prepared.ownerCount,
+          bindMaxOwners: prepared.maxOwners
         })
         wx.showToast({
-          title: '绑定码已生成',
+          title: prepared.codes.length > 1 ? '绑定码已生成' : '绑定码已更新',
           icon: 'success'
         })
       })
@@ -353,15 +535,64 @@ Page({
       showError('当前账号不能复制绑定码')
       return
     }
-    if (!this.data.bindCodeText) {
+    if (!this.data.bindCodes.length && !this.data.bindCodeText) {
       showError('请先生成绑定码')
       return
     }
     const projectName = (this.data.project || {}).name || '工地'
-    const text = `【晟景装饰】${projectName} 施工进度查看邀请\n绑定码：${this.data.bindCodeText}\n请在微信小程序「晟景透明工地」的「业主进度」页面输入此绑定码。`
+    const codeLines = this.data.bindCodes.length
+      ? this.data.bindCodes.map((item) => `${item.label}绑定码：${item.code}`).join('\n')
+      : `绑定码：${this.data.bindCodeText}`
+    const text = `【晟景装饰】${projectName} 施工进度查看邀请\n${codeLines}\n请分别使用各自微信，在小程序「晟景透明工地」的「业主进度」页面输入绑定码。`
     wx.setClipboardData({
       data: text
     })
+  },
+
+  copySingleBindCode(event) {
+    const code = event.currentTarget.dataset.code || ''
+    if (!code) return
+    wx.setClipboardData({
+      data: code
+    })
+  },
+
+  createWorkerBindCode() {
+    if (!this.data.canManageWorkerBind) {
+      showError('当前账号不能生成工长绑定码')
+      return
+    }
+    if (!this.data.projectId) {
+      showError('缺少工地 ID')
+      return
+    }
+
+    this.setData({ workerBindCodeLoading: true })
+    call('createWorkerProjectBindCode', { projectId: this.data.projectId })
+      .then((res) => {
+        this.setData({
+          workerBindCodeText: res.code || '',
+          workerBindCodeExpiresAtText: res.expiresAt ? this.formatTime(res.expiresAt) : '',
+          workerBindCodeSummary: '工长使用该码后会加入本工地；每进入一个新工地，都需要单独发码绑定'
+        })
+        wx.showToast({ title: '工长码已生成', icon: 'success' })
+      })
+      .catch((error) => {
+        showError('生成失败', error)
+      })
+      .finally(() => {
+        this.setData({ workerBindCodeLoading: false })
+      })
+  },
+
+  copyWorkerBindCode() {
+    if (!this.data.workerBindCodeText) {
+      showError('请先生成工长绑定码')
+      return
+    }
+    const projectName = (this.data.project || {}).name || '工地'
+    const text = `【晟景装饰】${projectName} 工长工地绑定邀请\n工长绑定码：${this.data.workerBindCodeText}\n请先用员工邀请码激活为工长或项目经理，再在小程序「工地」页输入该码绑定本工地。`
+    wx.setClipboardData({ data: text })
   },
 
   onShareAppMessage() {

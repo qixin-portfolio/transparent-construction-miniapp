@@ -12,3 +12,20 @@ $RECYCLE.BIN/
 
 # Node.js
 node_modules/
+# Build output
+out/
+dist/
+.next/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Cloud env
+cloudbaserc.json
+
+# Temp
+*.tmp
+temp/

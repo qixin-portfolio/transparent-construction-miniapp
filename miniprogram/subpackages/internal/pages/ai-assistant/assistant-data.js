@@ -1,3 +1,5 @@
+const knowledge = require('./assistant-knowledge')
+
 const flows = [
   {
     key: 'customer',
@@ -116,7 +118,7 @@ const flows = [
     title: '案例内容生成',
     desc: '把完工案例或工地素材生成朋友圈、小红书、抖音脚本和提词卡。',
     fields: [
-      { key: 'casePreset', label: '选择真实案例', type: 'select', options: ['自定义填写', '万硕花园经典美式', '公园里128平意式轻奢婚房', '万硕花园148平新中式'] },
+      { key: 'casePreset', label: '选择真实案例', type: 'select', options: ['自定义填写', '万硕01｜万硕花园148㎡意式简约', '天泰02｜天泰130㎡法式复古', '公园里110㎡交底样本', '万硕花园经典美式', '公园里128平意式轻奢婚房', '万硕花园148平新中式'] },
       { key: 'caseName', label: '案例名称', type: 'input', placeholder: '例如：万硕小区意式轻奢' },
       { key: 'area', label: '面积/预算', type: 'input', placeholder: '例如：128平，硬装约12万' },
       { key: 'style', label: '风格', type: 'input', placeholder: '例如：意式轻奢、新中式、美式' },
@@ -125,11 +127,11 @@ const flows = [
       { key: 'tone', label: '口播风格', type: 'select', options: ['老板娘温柔讲解', '老齐说真话', '设计师专业讲解', '短平快获客'] }
     ],
     sample: {
-      casePreset: '公园里128平意式轻奢婚房',
-      caseName: '公园里128平意式轻奢婚房',
-      area: '128平，报价总计约21.18万',
-      style: '意式轻奢',
-      highlights: '新婚婚房；客户喜欢意式轻奢和偏暗高级感；客厅全部上墙板；圆弧无主灯；三个卧室一个做衣帽间；家里偏用智能电器。',
+      casePreset: '万硕01｜万硕花园148㎡意式简约',
+      caseName: '万硕01｜万硕花园148㎡意式简约',
+      area: '148㎡，成交约16.5万',
+      style: '意式简约 / 莫干山',
+      highlights: '老客户转介绍；报价透明；客户重视价格、效果和环保；适合讲本地口碑、环保材料、设计效果和售后。',
       audience: '中高端新房客户',
       tone: '老板娘温柔讲解'
     }
@@ -156,6 +158,33 @@ const flows = [
 ]
 
 const caseLibrary = {
+  '万硕01｜万硕花园148㎡意式简约': {
+    caseName: '万硕01｜万硕花园148㎡意式简约',
+    area: '148㎡，三室两厅一卫；初始预算约15万，成交约16.5万',
+    style: '意式简约 / 莫干山',
+    highlights: '老客户转介绍；客户关心价格、效果和环保；选择晟景的原因是本地口碑、诚信、透明报价、环保和效果能落地。',
+    audience: '万硕、148㎡左右、婚房或改善型、想要意式简约的客户',
+    tone: '老板娘温柔讲解',
+    angle: '适合讲预算透明、环保材料、老店口碑和设计落地。'
+  },
+  '天泰02｜天泰130㎡法式复古': {
+    caseName: '天泰02｜天泰130㎡法式复古',
+    area: '130㎡，三室两厅两卫；初始预算约14万，成交约14.7万地面以上',
+    style: '法式复古 / 维意定制',
+    highlights: '新房装修；包含全屋定制；客户重视设计效果、环保材料、施工细节和售后保障。',
+    audience: '天泰、130㎡左右、喜欢法式复古、重视柜子和环保的客户',
+    tone: '设计师专业讲解',
+    angle: '适合讲法式复古、全屋定制、环保售后和施工细节。'
+  },
+  '公园里110㎡交底样本': {
+    caseName: '公园里110㎡交底样本',
+    area: '110㎡，三室两厅一厨一卫',
+    style: '新房拎包入住',
+    highlights: '客户重点是省钱和效果好；施工重点是细节精致、不出错；瓦工和油工是容易出错节点。',
+    audience: '公园里、刚需自住、省钱但希望效果好的客户',
+    tone: '老齐说真话',
+    angle: '适合讲开工交底、预算控制和施工细节。'
+  },
   '万硕花园经典美式': {
     caseName: '万硕花园经典美式',
     area: '面积未标注，四卧改善型；报价总计约28.51万',
@@ -206,6 +235,39 @@ function joinList(items) {
   return items.map((item, index) => `${index + 1}. ${item}`).join('\n')
 }
 
+function bulletList(items) {
+  return (items || []).map((item) => `- ${item}`).join('\n')
+}
+
+function sourceText(data) {
+  return Object.keys(data || {}).map((key) => data[key]).join(' ')
+}
+
+function communityBlock(data) {
+  const community = knowledge.findCommunity(sourceText(data))
+  if (!community) return ''
+  return `\n## 本地小区参考\n小区：${community.name}\n常见面积/户型：${community.area}，${community.layout}\n预算参考：${community.budget}\n客户特征：${community.customerType}\n推荐说法：${community.talkingPoint}\n`
+}
+
+function caseBlock(data) {
+  const cases = knowledge.recommendCases(sourceText(data))
+  return `\n## 可参考真实案例\n${cases.map((item, index) => `${index + 1}. ${item.title}：${item.area}，${item.style}，${item.finalAmount}。${item.promotion}`).join('\n')}\n`
+}
+
+function brandBlock() {
+  return `\n## 晟景统一口径\n${bulletList(knowledge.brand.sellingPoints)}\n`
+}
+
+function stageKnowledge(stage) {
+  if (stage === '瓦工') return bulletList(knowledge.inspectionRules.tile)
+  if (stage === '防水/闭水' || stage === '防水') return bulletList(knowledge.inspectionRules.waterproof)
+  if (stage === '水电定位' || stage === '水电验收' || stage === '水电') return bulletList(knowledge.quoteRules.waterElectric)
+  if (stage === '开工交底') return bulletList(knowledge.inspectionRules.handoff.concat(knowledge.inspectionRules.forbidden))
+  if (stage === '定制安装') return bulletList(knowledge.quoteRules.custom)
+  if (stage === '拆改') return bulletList(knowledge.quoteRules.oldHouse.concat(knowledge.inspectionRules.forbidden))
+  return bulletList(knowledge.inspectionRules.hardware)
+}
+
 function generateOutput(flowKey, data, photoNames) {
   const generators = {
     customer: generateCustomer,
@@ -228,6 +290,7 @@ function generateCustomer(data) {
 预算预期：${value(data, 'budget')}
 风格偏好：${value(data, 'style')}
 当前阶段：${value(data, 'stage')}
+${communityBlock(data)}${caseBlock(data)}${brandBlock()}
 
 ## 原始记录摘要
 ${value(data, 'notes')}
@@ -243,6 +306,12 @@ ${value(data, 'notes')}
 
 ## 给胡秀芬的话术
 姐，咱先不着急谈总价。我先帮你把预算拆开，看哪些钱必须花，哪些地方可以调整。晟景做的是中高端品质，不是最低价，但会把每一项钱花在哪里给你说清楚。
+
+## 客户异议处理参考
+1. 嫌贵：${knowledge.salesScripts.expensive}
+2. 拿低价对比：${knowledge.salesScripts.lowPrice}
+3. 担心环保：${knowledge.salesScripts.environment}
+4. 担心售后：${knowledge.salesScripts.afterSale}
 
 ## 给设计师的注意点
 1. 先做一版稳妥方案，避免造型过多导致预算超。
@@ -274,6 +343,7 @@ ${value(data, 'competitor')}
 
 ## 客户纠结点
 ${value(data, 'concern')}
+${brandBlock()}
 
 ## 利润风险判断
 风险等级：中高
@@ -284,18 +354,23 @@ ${value(data, 'concern')}
 3. 旧房翻新、定制安装、水电改造不能轻易承诺一口价。
 
 ## 不能轻易让价的项目
-1. 水电改造。
-2. 防水。
-3. 墙面基层和刮墙。
-4. 定制安装和五金。
-5. 板材环保等级。
+${joinList(knowledge.quoteRules.mustKeep)}
 
 ## 可以调整预算的项目
-1. 背景墙复杂造型。
-2. 局部吊顶。
-3. 软装和后期搭配。
-4. 部分装饰性灯具。
-5. 非必要柜体数量。
+${joinList(knowledge.quoteRules.canAdjust)}
+
+## 报价解释知识库
+水电：
+${bulletList(knowledge.quoteRules.waterElectric)}
+
+瓦工：
+${bulletList(knowledge.quoteRules.tile)}
+
+全屋定制：
+${bulletList(knowledge.quoteRules.custom)}
+
+旧房：
+${bulletList(knowledge.quoteRules.oldHouse)}
 
 ## 30秒话术
 姐，咱不是说别人便宜就一定不好，也不是说晟景贵就一定适合你。咱先把钱拆开看，水电、防水、板材、五金和售后，这些是以后天天住、天天用的地方。这些地方省了，后期维修比现在省的钱更多。
@@ -334,6 +409,13 @@ ${value(data, 'promise')}
 7. 赠品、到店礼、加送项目必须写入备注。
 8. 每个节点完工后拍照发群，老齐或负责人确认。
 
+## 审核知识库提醒
+交接重点：
+${bulletList(knowledge.inspectionRules.handoff)}
+
+不可拆改提前说明：
+${bulletList(knowledge.inspectionRules.forbidden)}
+
 ## 给工长的重点提醒
 这个项目最容易出问题的是“客户要求变动”和“交接不清”。所有变更必须留文字记录，水电、定制、刮墙这些节点不能凭经验省步骤。
 
@@ -368,6 +450,16 @@ ${value(data, 'notes')}
 
 ## 本阶段必查项目
 ${joinList(checks)}
+
+## 晟景施工经验补充
+瓦工/安装：
+${bulletList(knowledge.inspectionRules.tile)}
+
+防水：
+${bulletList(knowledge.inspectionRules.waterproof)}
+
+不能省钱：
+${bulletList(knowledge.inspectionRules.hardware)}
 
 ## 老齐现场口播脚本
 今天到${value(data, 'project')}看工地，现在是${stage}阶段。这个阶段最怕的不是做得慢，是前面没确认清楚、后面返工。今天我主要看这几项：${checks.slice(0, 3).join('、')}。交城装修想少踩坑，每个节点都得有人盯。
@@ -452,6 +544,9 @@ ${ending}
 ## 三、本阶段检查重点
 ${joinList(checks)}
 
+## 三点五、知识库提醒
+${stageKnowledge(stage)}
+
 ## 四、工地群简短版
 
 【${value(data, 'project')}｜${stage}】
@@ -478,46 +573,68 @@ function generateContent(data) {
   const audience = preset && preset.audience ? preset.audience : value(data, 'audience')
   const tone = preset && preset.tone ? preset.tone : value(data, 'tone')
   const angle = preset && preset.angle ? preset.angle : '根据案例亮点拆解客户最关心的效果、预算和落地细节。'
-  return `# 案例内容生成
+  return `# 可直接发布的案例文案
+
+## 一、抖音 / 视频号短视频
+
+标题：
+交城${style}案例｜${caseName}这笔装修钱花在哪？
+
+60秒口播：
+开头：
+交城准备装修的，先看这套${caseName}，别只看效果图，重点看钱花在哪里。
+
+中间：
+这套房子适合${audience}。它不是单纯堆造型，而是把真实生活需求落到每个细节里：${highlights}
+
+装修最怕的是前期只问总价，后面才发现水电、柜子、板材、五金和安装没讲清楚。真正住得舒服，靠的是这些地方一项项落地。
+
+结尾：
+你家如果也准备装修，发户型图给我，我先免费帮你算一版预算。门店在交城南环路康健装饰广场。
+
+## 二、小红书笔记
+
+标题：
+交城装修｜${style}这样做，耐看还不乱花钱
+
+正文：
+这套${caseName}，我建议准备装修的朋友重点看3个地方：
+
+1. 不是只看风格，而是看生活动线是不是顺。
+2. 不是只问总价，而是看预算有没有分到水电、柜子、板材、五金和安装。
+3. 不是只追求一眼惊艳，而是住进去以后每天都方便。
+
+本案亮点：
+${highlights}
+
+适合人群：
+${audience}
+
+我的建议：
+${angle}
+
+## 三、朋友圈文案
+
+交城${caseName}案例整理。
+
+这套房子不是只看一张效果图，而是把材料、灯光、柜子、生活动线和预算分配讲清楚。
+
+装修最重要的不是一眼惊艳，而是住进去每天都顺手。
+
+准备装修的朋友，可以带户型图来店里坐坐，先把预算算明白。
+
+## 四、置顶评论 / 私信引导
+
+交城装修、旧房翻新、全屋定制，发户型图免费算预算。门店在南环路康健装饰广场。
+
+## 五、生成依据（内部参考）
 
 案例：${caseName}
 面积/预算：${area}
 风格：${style}
 目标客户：${audience}
 口播风格：${tone}
-
-## 案例亮点
-${highlights}
-
-## 推荐切入角度
-${angle}
-
-## 抖音标题
-交城${style}案例，钱花在哪里一眼看明白
-
-## 60秒抖音口播
-开头：
-交城准备装修的，看一下这套${caseName}。
-
-中间：
-这套房子最值得讲的不是单纯好看，而是每个需求都对应到真实生活。${highlights}
-
-如果你家也想做这种效果，我建议先别急着问总价，先看预算花在哪里。水电、柜子、板材、五金、墙板和安装这些地方，才是以后住得舒不舒服的关键。
-
-结尾：
-你家如果也准备装修，发户型图给我，我先免费帮你算一版预算。门店在交城南环路康健装饰广场。
-
-## 朋友圈文案
-交城${caseName}案例整理。
-这套房子不是只看一张效果图，而是把材料、灯光、柜子、生活动线和预算分配讲清楚。
-装修最重要的不是一眼惊艳，而是住进去每天都顺手。
-准备装修的朋友，可以带户型图来店里坐坐，先把预算算明白。
-
-## 小红书标题
-交城装修｜${style}这样做，高级又不乱花钱
-
-## 置顶评论
-交城装修、旧房翻新、全屋定制，发户型图免费算预算。门店在南环路康健装饰广场。`
+${caseBlock({ caseName, area, style, highlights })}`
 }
 
 function generateStyle(data) {
@@ -528,6 +645,7 @@ function generateStyle(data) {
 家庭情况：${value(data, 'family')}
 客户喜好：${value(data, 'likes')}
 落地限制：${value(data, 'constraints')}
+${brandBlock()}
 
 ## 方案A：稳妥耐看型
 风格建议：现代原木 / 简洁轻奢

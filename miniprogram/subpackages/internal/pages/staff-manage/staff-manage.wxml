@@ -98,7 +98,8 @@
       <view class="section-title">邀请码列表</view>
       <view wx:if="{{loadingCodes}}" class="muted">加载中...</view>
       <view wx:elif="{{inviteCodes.length === 0}}" class="card empty">
-        <view class="muted">暂无邀请码</view>
+        <view class="empty-title">暂无邀请码</view>
+        <view class="muted">选择角色后生成 6 位邀请码，再发给对应员工。</view>
       </view>
       <view wx:else class="code-list">
         <view wx:for="{{inviteCodes}}" wx:key="_id" class="code-item">
@@ -121,16 +122,36 @@
       <view class="section-title">已激活内部员工</view>
       <view wx:if="{{loadingMembers}}" class="muted">加载中...</view>
       <view wx:elif="{{members.length === 0}}" class="card empty">
-        <view class="muted">暂无内部员工</view>
+        <view class="empty-title">暂无内部员工</view>
+        <view class="muted">员工输入邀请码激活后，会显示在这里。</view>
       </view>
       <view wx:else class="member-list">
         <view wx:for="{{members}}" wx:key="_id" class="member-item">
-          <view class="member-avatar">{{item.name ? item.name[0] : '员'}}</view>
-          <view class="member-info">
-            <view class="member-name">{{item.name || '未命名'}}</view>
-            <view class="member-role">{{item.roleLabel}}</view>
+          <view class="member-main">
+            <view class="member-avatar">{{item.displayName ? item.displayName[0] : '员'}}</view>
+            <view class="member-info">
+              <view class="member-name">{{item.displayName || '未命名'}}</view>
+              <view class="member-role">{{item.roleLabel}}</view>
+              <view wx:if="{{item.staffRemark && item.name}}" class="member-meta">微信名：{{item.name}}</view>
+            </view>
+            <view class="member-status {{item.status === 'active' ? 'active' : 'inactive'}}">{{item.status === 'active' ? '在职' : '停用'}}</view>
           </view>
-          <view class="member-status {{item.status === 'active' ? 'active' : 'inactive'}}">{{item.status === 'active' ? '在职' : '停用'}}</view>
+          <view wx:if="{{canAdmin && (item.canEdit || item.canDelete)}}" class="member-actions">
+            <button
+              wx:if="{{item.canEdit}}"
+              class="member-action"
+              data-id="{{item._id}}"
+              data-remark="{{item.staffRemark}}"
+              catchtap="editMemberRemark"
+            >备注</button>
+            <button
+              wx:if="{{item.canDelete}}"
+              class="member-action danger"
+              data-id="{{item._id}}"
+              data-name="{{item.displayName || item.name || item.roleLabel || '该员工'}}"
+              catchtap="deleteMember"
+            >移除</button>
+          </view>
         </view>
       </view>
     </view>

@@ -195,8 +195,16 @@ Page({
     const form = this.collectForm()
     const photoNames = this.data.photos.map((photo) => photo.name)
     const output = assistant.generateOutput(this.data.currentFlowKey, form, photoNames)
-    this.setData({ output, hasOutput: true })
+    this.setData({ output, hasOutput: true }, () => this.scrollToOutput())
     return output
+  },
+
+  scrollToOutput() {
+    if (!wx.pageScrollTo) return
+    wx.pageScrollTo({
+      selector: '.output-card',
+      duration: 220
+    })
   },
 
   copyOutput() {
@@ -235,7 +243,7 @@ Page({
     const id = Number(event.currentTarget.dataset.id)
     const record = this.data.history.find((item) => item.id === id)
     if (record) {
-      this.setData({ output: record.content, hasOutput: true })
+      this.setData({ output: record.content, hasOutput: true }, () => this.scrollToOutput())
     }
   },
 

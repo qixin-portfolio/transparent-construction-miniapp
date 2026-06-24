@@ -11,11 +11,18 @@ const VALID_SPACES = [
   'whole_house', 'living_room', 'master_bedroom', 'second_bedroom',
   'kitchen', 'bathroom', 'entrance', 'balcony', 'study'
 ]
+const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
+const DEFAULT_TENANT_NAME = '晟景装饰'
 
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
-  return { openid: OPENID, user: res.data[0] || null }
+  const user = res.data[0] || null
+  if (user && !user.tenantId) {
+    user.tenantId = DEFAULT_TENANT_ID
+    user.tenantName = DEFAULT_TENANT_NAME
+  }
+  return { openid: OPENID, user }
 }
 
 function assertRole(user, roles) {
@@ -42,6 +49,11 @@ exports.main = async (event) => {
     if (VALID_SPACES.indexOf(space) === -1) throw new Error('空间分类无效')
     if (!title) throw new Error('图纸标题不能为空')
     if (!fileID) throw new Error('缺少图纸文件')
+    const tenantId = user.tenantId || DEFAULT_TENANT_ID
+    const tenantName = user.tenantName || DEFAULT_TENANT_NAME
+    const projectRes = await db.collection('projects').doc(projectId).get()
+    const project = projectRes.data || {}
+    if (project.tenantId && project.tenantId !== tenantId) throw new Error('无权上传该工地图纸')
 
     // 效果图默认业主可见，施工图默认不可见
     const finalOwnerVisible = type === 'render' ? ownerVisible : false
@@ -49,6 +61,8 @@ exports.main = async (event) => {
     const now = db.serverDate()
     const drawing = {
       projectId,
+      tenantId,
+      tenantName,
       type,
       space,
       title,

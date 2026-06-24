@@ -1,0 +1,49 @@
+<view class="lifecycle-page">
+  <view class="lifecycle-hero">
+    <view class="lifecycle-eyebrow">一键售后报修</view>
+    <view class="lifecycle-title">把问题说清楚</view>
+    <view class="lifecycle-desc">提交问题类型、描述和现场照片，晟景后续按工单跟进。</view>
+  </view>
+
+  <view class="lifecycle-card">
+    <view class="info-row">
+      <view class="info-label">关联项目</view>
+      <view class="info-value">{{projectId ? '当前选择的项目' : '未指定项目'}}</view>
+    </view>
+    <view class="form-group">
+      <view class="form-label">问题类型</view>
+      <picker range="{{categoryOptions}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+        <view class="picker-display">
+          <text>{{form.category}}</text>
+          <text class="picker-arrow">更换 ›</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <view class="form-label">问题描述</view>
+      <textarea class="textarea" placeholder="请描述出现问题的位置、现象和希望处理的时间" value="{{form.description}}" data-key="description" bindinput="onInput"></textarea>
+    </view>
+    <view class="form-group">
+      <view class="form-label">现场照片</view>
+      <view class="photo-uploader">
+        <view wx:for="{{photos}}" wx:for-index="idx" wx:key="*this" class="photo-thumb" data-index="{{idx}}" bindtap="removePhoto">
+          <image src="{{item}}" mode="aspectFill"></image>
+        </view>
+        <view wx:if="{{photos.length < 6}}" class="photo-add" bindtap="choosePhotos">+</view>
+      </view>
+    </view>
+    <view class="form-group">
+      <view class="form-label">联系人</view>
+      <input class="input" placeholder="请输入联系人" value="{{form.contactName}}" data-key="contactName" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <view class="form-label">联系电话</view>
+      <input class="input" type="number" placeholder="请输入联系电话" value="{{form.contactPhone}}" data-key="contactPhone" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <view class="form-label">期望上门时间</view>
+      <input class="input" placeholder="如周六上午、下周一下午" value="{{form.preferredTime}}" data-key="preferredTime" bindinput="onInput" />
+    </view>
+    <button class="button-primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">提交售后报修</button>
+  </view>
+</view>

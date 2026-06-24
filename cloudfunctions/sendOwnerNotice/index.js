@@ -40,7 +40,13 @@ exports.main = async (event) => {
       return { skipped: true, reason: 'project_not_found' }
     }
 
-    if (!project || !project.ownerOpenid) {
+    if (!project) {
+      return { skipped: true, reason: 'no_owner' }
+    }
+
+    // 兼容新旧字段：优先用 ownerOpenids 数组，回退到 ownerOpenid 单值
+    const ownerOpenids = project.ownerOpenids || (project.ownerOpenid ? [project.ownerOpenid] : [])
+    if (!ownerOpenids.length) {
       return { skipped: true, reason: 'no_owner' }
     }
 
@@ -61,26 +67,35 @@ exports.main = async (event) => {
       }
     }
 
-    // 3. 发送订阅消息
+    // 3. 向所有业主发送订阅消息（夫妻都收到）
     const projectName = (project.name || '工地').slice(0, 20)
+    const sendResults = []
 
-    const result = await cloud.openapi.subscribeMessage.send({
-      touser: project.ownerOpenid,
-      templateId: SUBSCRIBE_TEMPLATE_ID,
-      page: 'subpackages/owner/pages/owner/owner',
-      miniprogramState: 'trial',  // ⚠️ 测试用 trial，正式发布后改回 formal
-      // miniprogramState: 'formal',
-      data: {
-        thing1: { value: projectName },
-        phrase2: { value: stage },
-        thing3: { value: `${progress}%` },
-        date4: { value: fmtDate(Date.now()) }
+    for (const ownerOpenid of ownerOpenids) {
+      try {
+        const result = await cloud.openapi.subscribeMessage.send({
+          touser: ownerOpenid,
+          templateId: SUBSCRIBE_TEMPLATE_ID,
+          page: 'subpackages/owner/pages/owner/owner',
+          miniprogramState: 'trial',
+          data: {
+            thing1: { value: projectName },
+            phrase2: { value: stage },
+            thing3: { value: `${progress}%` },
+            date4: { value: fmtDate(Date.now()) }
+          }
+        })
+        sendResults.push({ openid: ownerOpenid.slice(0, 8) + '***', ok: true })
+      } catch (err) {
+        sendResults.push({ openid: ownerOpenid.slice(0, 8) + '***', ok: false, errCode: err.errCode || 0 })
       }
-    })
+    }
 
     return {
       ok: true,
-      sentTo: project.ownerOpenid.slice(0, 8) + '***',
+      sentCount: sendResults.filter(r => r.ok).length,
+      totalCount: ownerOpenids.length,
+      results: sendResults,
       stage
     }
   } catch (error) {

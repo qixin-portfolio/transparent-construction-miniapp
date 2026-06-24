@@ -5,7 +5,10 @@ Page({
   data: {
     loading: false,
     reviewingId: '',
-    items: []
+    items: [],
+    rejectDialogVisible: false,
+    rejectReason: '',
+    rejectTargetId: ''
   },
 
   onShow() {
@@ -40,7 +43,10 @@ Page({
     return (items || []).map((item) => Object.assign({}, item, {
       photoFileIDs: item.photoFileIDs || item.photos || [],
       dateText: this.formatTime(item.createdAt || item.updatedAt),
-      submitterText: item.submittedByName || '内部人员'
+      submitterText: item.submittedByName || '内部人员',
+      aiGenerated: !!item.aiGenerated || /^ai_/.test(item.sourceType || ''),
+      ownerSummaryText: item.ownerSummary || '',
+      voiceTranscriptText: item.voiceTranscript || ''
     }))
   },
 
@@ -69,6 +75,14 @@ Page({
     const id = event.currentTarget.dataset.id
     const action = event.currentTarget.dataset.action
     const isApprove = action === 'approve'
+    if (!isApprove) {
+      this.setData({
+        rejectDialogVisible: true,
+        rejectReason: '',
+        rejectTargetId: id
+      })
+      return
+    }
     wx.showModal({
       title: isApprove ? '确认审核通过？' : '确认退回修改？',
       content: isApprove ? '通过后，这条日报和照片会展示给业主。' : '退回后，业主不会看到这条日报。',
@@ -82,14 +96,35 @@ Page({
     })
   },
 
-  doReview(id, action) {
+  onRejectReasonInput(event) {
+    this.setData({ rejectReason: String(event.detail.value || '').slice(0, 120) })
+  },
+
+  hideRejectDialog() {
+    if (this.data.reviewingId) return
+    this.setData({ rejectDialogVisible: false, rejectReason: '', rejectTargetId: '' })
+  },
+
+  confirmReject() {
+    const reason = String(this.data.rejectReason || '').trim()
+    if (!reason) {
+      showError('请填写退回原因')
+      return
+    }
+    this.doReview(this.data.rejectTargetId, 'reject', reason)
+  },
+
+  noop() {},
+
+  doReview(id, action, rejectReason = '') {
     this.setData({ reviewingId: id })
-    call('reviewStageLog', { stageLogId: id, action })
+    call('reviewStageLog', { stageLogId: id, action, rejectReason })
       .then(() => {
         wx.showToast({
           title: action === 'approve' ? '已通过' : '已退回',
           icon: 'success'
         })
+        this.setData({ rejectDialogVisible: false, rejectReason: '', rejectTargetId: '' })
         this.loadItems()
       })
       .catch((error) => {

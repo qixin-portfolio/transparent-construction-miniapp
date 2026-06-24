@@ -1,0 +1,31 @@
+<view class="lifecycle-page">
+  <view class="lifecycle-hero">
+    <view class="lifecycle-eyebrow">归档资料</view>
+    <view class="lifecycle-title">设计图纸</view>
+    <view class="lifecycle-desc">效果图、平面图等设计资料都在这里。</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="lifecycle-card empty-block">
+    <view class="empty-title">正在加载图纸...</view>
+  </view>
+
+  <view wx:elif="{{!drawings.length}}" class="lifecycle-card empty-block">
+    <view class="empty-title">暂无图纸资料</view>
+    <view class="empty-desc">晟景设计师上传效果图后，会在这里展示。</view>
+  </view>
+
+  <block wx:else>
+    <view wx:for="{{groupedDrawings}}" wx:key="space" class="drawings-group">
+      <view class="group-header">{{item.space}}</view>
+      <view class="drawings-grid">
+        <view wx:for="{{item.items}}" wx:for-item="drawing" wx:key="_id" class="drawing-card" data-current="{{drawing.tempFileURL}}" data-urls="{{drawing.previewUrls || []}}" bindtap="previewDrawing">
+          <image class="drawing-image" src="{{drawing.tempFileURL}}" mode="aspectFill" lazy-load></image>
+          <view class="drawing-info">
+            <view class="drawing-title">{{drawing.title || '效果图'}}</view>
+            <view class="drawing-type">{{drawing.type === 'render' ? '效果图' : drawing.type}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

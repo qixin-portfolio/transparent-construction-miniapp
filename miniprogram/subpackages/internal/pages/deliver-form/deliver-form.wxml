@@ -1,0 +1,72 @@
+<view class="page">
+  <view class="hero">
+    <view class="hero-eyebrow">竣工交付</view>
+    <view class="hero-title">{{project.name || '确认交付'}}</view>
+    <view class="hero-desc">补全房屋档案信息并上传完工照片，确认后系统将自动生成电子质保卡。</view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">房屋档案信息</view>
+    <view class="form-group">
+      <view class="form-label">户型</view>
+      <input class="form-input" placeholder="如：三室两厅" data-field="layout" value="{{layout}}" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <view class="form-label">面积（㎡）</view>
+      <input class="form-input" type="digit" placeholder="如：120" data-field="area" value="{{area}}" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <view class="form-label">装修风格</view>
+      <picker mode="selector" range="{{styleOptions}}" value="{{styleIndex}}" bindchange="onStyleChange">
+        <view class="picker-display">
+          <view class="picker-value {{style ? '' : 'placeholder'}}">{{style || '请选择'}}</view>
+          <view class="picker-arrow">更换 ›</view>
+        </view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <view class="form-label">装修类型</view>
+      <picker mode="selector" range="{{typeOptions}}" value="{{typeIndex}}" bindchange="onTypeChange">
+        <view class="picker-display">
+          <view class="picker-value {{decorateType ? '' : 'placeholder'}}">{{decorateType || '请选择'}}</view>
+          <view class="picker-arrow">更换 ›</view>
+        </view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <view class="form-label">开工日期</view>
+      <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange">
+        <view class="picker-display">
+          <view class="picker-value {{startDate ? '' : 'placeholder'}}">{{startDate || '请选择'}}</view>
+          <view class="picker-arrow">更换 ›</view>
+        </view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <view class="form-label">竣工日期</view>
+      <picker mode="date" value="{{completedAt}}" bindchange="onCompletedAtChange">
+        <view class="picker-display">
+          <view class="picker-value {{completedAt ? '' : 'placeholder'}}">{{completedAt || '请选择'}}</view>
+          <view class="picker-arrow">更换 ›</view>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">完工照片</view>
+    <view class="card-desc">上传竣工后的实景照片，业主可在「我的家装档案」中查看。</view>
+    <view class="photo-uploader">
+      <view wx:for="{{completionPhotos}}" wx:key="*this" class="photo-thumb">
+        <image src="{{item}}" mode="aspectFill" data-current="{{item}}" bindtap="previewPhoto"></image>
+        <view class="photo-remove" data-index="{{index}}" catchtap="removePhoto">×</view>
+      </view>
+      <view wx:if="{{completionPhotos.length < 9}}" class="photo-add" bindtap="chooseCompletionPhoto">+</view>
+    </view>
+  </view>
+
+  <view class="action-area">
+    <button class="btn-primary" bindtap="submitDeliver">确认交付</button>
+    <view class="action-tip">确认后系统将自动生成电子质保卡，并在业主端开放售后报修入口。</view>
+  </view>
+</view>

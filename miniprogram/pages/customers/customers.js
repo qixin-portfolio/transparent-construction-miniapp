@@ -1,5 +1,6 @@
 const { call, showError } = require('../../services/cloud')
 const { DEMO_MODE, demoCustomers } = require('../../utils/demo')
+const { getCustomerLifecycleStatus, getCustomerLifecycleLabel, isDeliveredCustomer } = require('../../utils/status')
 
 Page({
   data: {
@@ -79,6 +80,9 @@ Page({
       const stage = item.stage || '咨询'
       return Object.assign({}, item, {
         stage,
+        lifecycleStatus: getCustomerLifecycleStatus(item),
+        lifecycleLabel: getCustomerLifecycleLabel(item),
+        isDeliveredCustomer: isDeliveredCustomer(item),
         nextAction: this.getNextAction(stage, item.dealStatus || '未成交')
       })
     })

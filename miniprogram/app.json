@@ -10,7 +10,22 @@
       "root": "subpackages/owner",
       "name": "owner",
       "pages": [
-        "pages/owner/owner"
+        "pages/projects/projects",
+        "pages/owner/owner",
+        "pages/completed-home/completed-home",
+        "pages/owner-archive/owner-archive",
+        "pages/archive-drawings/archive-drawings",
+        "pages/warranty-card/warranty-card",
+        "pages/after-sale-create/after-sale-create",
+        "pages/after-sale-list/after-sale-list",
+        "pages/after-sale-detail/after-sale-detail",
+        "pages/referral-create/referral-create",
+        "pages/benefits/benefits",
+        "pages/completion-album/completion-album",
+        "pages/case-authorization/case-authorization",
+        "pages/supplement-upload/supplement-upload",
+        "pages/case-list/case-list",
+        "pages/case-detail/case-detail"
       ]
     },
     {
@@ -24,41 +39,50 @@
         "pages/customer-edit/customer-edit",
         "pages/ai-assistant/ai-assistant",
         "pages/design-drawings/design-drawings",
-        "pages/staff-manage/staff-manage"
+        "pages/staff-manage/staff-manage",
+        "pages/after-sales-list/after-sales-list",
+        "pages/after-sales-detail/after-sales-detail",
+        "pages/deliver-form/deliver-form"
       ]
     }
   ],
   "preloadRule": {
     "pages/workbench/workbench": {
       "network": "all",
-      "packages": ["owner"]
+      "packages": ["internal"]
     },
     "pages/projects/projects": {
       "network": "all",
-      "packages": ["internal"]
+      "packages": ["owner"]
+    }
+  },
+  "plugins": {
+    "WechatSI": {
+      "version": "0.3.6",
+      "provider": "wx069ba97219f66d99"
     }
   },
   "window": {
     "navigationBarTitleText": "晟景透明工地",
-    "navigationBarBackgroundColor": "#0F6A4A",
+    "navigationBarBackgroundColor": "#1B7A56",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#F8FAF9",
+    "backgroundColor": "#FAFBFC",
     "backgroundTextStyle": "dark"
   },
   "tabBar": {
     "custom": true,
     "color": "#9CA3AF",
-    "selectedColor": "#0F6A4A",
+    "selectedColor": "#1B7A56",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/workbench/workbench",
-        "text": "首页"
+        "text": "工地"
       },
       {
         "pagePath": "pages/projects/projects",
-        "text": "工地"
+        "text": "晟景"
       },
       {
         "pagePath": "pages/profile/profile",

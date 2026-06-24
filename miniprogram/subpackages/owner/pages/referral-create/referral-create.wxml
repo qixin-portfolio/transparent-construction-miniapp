@@ -1,0 +1,35 @@
+<view class="lifecycle-page">
+  <view class="lifecycle-hero">
+    <view class="lifecycle-eyebrow">推荐朋友装修</view>
+    <view class="lifecycle-title">把靠谱服务推荐给朋友</view>
+    <view class="lifecycle-desc">填写朋友信息后，晟景会安排工作人员跟进咨询。</view>
+  </view>
+
+  <view class="lifecycle-card">
+    <view class="form-group">
+      <view class="form-label">您的称呼</view>
+      <input class="input" placeholder="方便我们记录推荐来源" value="{{form.referrerName}}" data-key="referrerName" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <view class="form-label">朋友姓名</view>
+      <input class="input" placeholder="请输入朋友姓名" value="{{form.friendName}}" data-key="friendName" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <view class="form-label">朋友电话</view>
+      <input class="input" type="number" placeholder="请输入朋友电话" value="{{form.friendPhone}}" data-key="friendPhone" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <view class="form-label">小区/地址</view>
+      <input class="input" placeholder="朋友准备装修的小区" value="{{form.friendCommunity}}" data-key="friendCommunity" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <view class="form-label">装修需求</view>
+      <textarea class="textarea" placeholder="如新房装修、旧房翻新、全屋定制等" value="{{form.need}}" data-key="need" bindinput="onInput"></textarea>
+    </view>
+    <view class="form-group">
+      <view class="form-label">备注</view>
+      <input class="input" placeholder="其他需要说明的信息" value="{{form.remark}}" data-key="remark" bindinput="onInput" />
+    </view>
+    <button class="button-primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">提交推荐</button>
+  </view>
+</view>

@@ -4,15 +4,19 @@ const crypto = require('crypto')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
+const _ = db.command
 
 // 可以被邀请码激活的内部角色
-const INVITABLE_ROLES = ['worker', 'designer', 'sales', 'boss_qi', 'boss_hu']
+const INVITABLE_ROLES = ['worker', 'project_manager', 'designer', 'sales', 'boss_qi', 'boss_hu']
 // 有权生成邀请码的管理角色
 const MANAGE_ROLES = ['admin', 'boss_qi', 'boss_hu']
 const CODE_EXPIRES_IN = 7 * 24 * 60 * 60 * 1000
+const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
+const DEFAULT_TENANT_NAME = '晟景装饰'
 
 const ROLE_LABELS = {
   worker: '工长',
+  project_manager: '项目经理',
   designer: '设计师',
   sales: '销售',
   boss_qi: '老板（老齐）',
@@ -22,7 +26,12 @@ const ROLE_LABELS = {
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
-  return { openid: OPENID, user: res.data[0] || null }
+  const user = res.data[0] || null
+  if (user && !user.tenantId) {
+    user.tenantId = DEFAULT_TENANT_ID
+    user.tenantName = DEFAULT_TENANT_NAME
+  }
+  return { openid: OPENID, user }
 }
 
 function makeCode() {
@@ -55,11 +64,13 @@ exports.main = async (event) => {
     if (MANAGE_ROLES.indexOf(user.role) === -1) {
       throw new Error('仅管理员可生成内部员工邀请码')
     }
+    const tenantId = user.tenantId || DEFAULT_TENANT_ID
+    const tenantName = user.tenantName || DEFAULT_TENANT_NAME
 
     const now = Date.now()
     // 同一角色若有未过期的有效邀请码，直接复用返回
     const activeRes = await db.collection('staff_invite_codes')
-      .where({ role, status: 'active', expiresAt: db.command.gt(now) })
+      .where({ role, tenantId: _.in([tenantId, '', null]), status: 'active', expiresAt: _.gt(now) })
       .orderBy('expiresAt', 'desc')
       .limit(1)
       .get()
@@ -80,6 +91,8 @@ exports.main = async (event) => {
     const addRes = await db.collection('staff_invite_codes').add({
       data: {
         code,
+        tenantId,
+        tenantName,
         role,
         roleLabel: ROLE_LABELS[role] || role,
         remark,

@@ -1,0 +1,427 @@
+@import "../owner-lifecycle.wxss";
+
+/* ===== 头图区 ===== */
+.hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 18rpx;
+  flex-wrap: wrap;
+}
+
+.hero-meta-item {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 26rpx;
+}
+
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+  font-size: 23rpx;
+  font-weight: 600;
+}
+
+.hero-date {
+  margin-top: 10rpx;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 24rpx;
+}
+
+/* ===== 档案完整度卡 ===== */
+.completeness-card {
+  padding-bottom: 28rpx;
+}
+
+.completeness-stats {
+  display: flex;
+  align-items: center;
+  margin: 22rpx 0 18rpx;
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+}
+
+.stat-num {
+  font-size: 44rpx;
+  font-weight: 800;
+  color: #1B7A56;
+  line-height: 1.2;
+}
+
+.stat-label {
+  margin-top: 6rpx;
+  color: #6B7280;
+  font-size: 22rpx;
+}
+
+.stat-divider {
+  width: 1rpx;
+  height: 56rpx;
+  background: #E5E7EB;
+}
+
+.completeness-bar {
+  height: 12rpx;
+  border-radius: 999rpx;
+  background: #F3F4F6;
+  overflow: hidden;
+}
+
+.completeness-bar-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #1B7A56, #2AA876);
+  transition: width 0.4s ease;
+}
+
+.completeness-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14rpx;
+}
+
+.pill-green {
+  color: #1B7A56;
+  background: #E8F5EE;
+}
+
+.pill-yellow {
+  color: #B78103;
+  background: #FEF3C7;
+}
+
+.completeness-time {
+  color: #9CA3AF;
+  font-size: 22rpx;
+}
+
+.completeness-desc {
+  margin-top: 14rpx;
+  color: #6B7280;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+/* ===== 房屋信息网格 ===== */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-top: 16rpx;
+}
+
+.info-cell {
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #F3F4F6;
+}
+
+.info-cell:nth-child(odd) {
+  padding-right: 24rpx;
+}
+
+.info-cell:nth-child(even) {
+  padding-left: 24rpx;
+  border-left: 1rpx solid #F3F4F6;
+}
+
+.info-cell:nth-last-child(-n+2) {
+  border-bottom: none;
+}
+
+.info-cell-label {
+  color: #9CA3AF;
+  font-size: 22rpx;
+  margin-bottom: 6rpx;
+}
+
+.info-cell-value {
+  color: #1A1A1A;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+/* ===== 服务团队 ===== */
+.team-list {
+  margin-top: 16rpx;
+}
+
+.team-item {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #F3F4F6;
+}
+
+.team-item:last-child {
+  border-bottom: none;
+}
+
+.team-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  min-width: 64rpx;
+  border-radius: 50%;
+  background: #E8F5EE;
+  color: #1B7A56;
+  font-size: 28rpx;
+  font-weight: 800;
+  text-align: center;
+  line-height: 64rpx;
+}
+
+.team-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.team-name {
+  color: #1A1A1A;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.team-role {
+  color: #6B7280;
+  font-size: 22rpx;
+  margin-top: 4rpx;
+}
+
+.team-phone {
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  background: #E8F5EE;
+  color: #1B7A56;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+/* ===== 资料分类宫格 ===== */
+.section-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18rpx;
+  margin-top: 16rpx;
+}
+
+.section-entry {
+  padding: 24rpx;
+  border-radius: 20rpx;
+  background: #F8FAF9;
+  border: 2rpx solid transparent;
+  transition: all 0.2s;
+}
+
+.section-entry:active {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.section-empty {
+  opacity: 0.65;
+}
+
+.section-supplement {
+  opacity: 1;
+  border: 2rpx dashed #1B7A56;
+  background: #F0FDF4;
+}
+
+.section-icon {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 14rpx;
+  background: #E8F5EE;
+  color: #1B7A56;
+  font-size: 26rpx;
+  font-weight: 800;
+  text-align: center;
+  line-height: 48rpx;
+}
+
+.section-title {
+  margin-top: 14rpx;
+  color: #1A1A1A;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.section-desc {
+  margin-top: 6rpx;
+  color: #9CA3AF;
+  font-size: 21rpx;
+  line-height: 1.4;
+}
+
+.section-count {
+  margin-top: 10rpx;
+  color: #9CA3AF;
+  font-size: 22rpx;
+}
+
+.count-active {
+  color: #1B7A56;
+  font-weight: 600;
+}
+
+.count-supplement {
+  color: #1B7A56;
+  font-weight: 700;
+}
+
+/* ===== 关键施工节点 ===== */
+.milestone-list {
+  margin-top: 16rpx;
+  padding-left: 12rpx;
+}
+
+.milestone-item {
+  position: relative;
+  padding-left: 32rpx;
+  padding-bottom: 28rpx;
+}
+
+.milestone-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10rpx;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: #1B7A56;
+  z-index: 1;
+}
+
+.milestone-item:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 6rpx;
+  top: 24rpx;
+  bottom: 0;
+  width: 2rpx;
+  background: #E5E7EB;
+}
+
+.milestone-content {
+  padding-left: 8rpx;
+}
+
+.milestone-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.milestone-title {
+  color: #1A1A1A;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.milestone-status {
+  padding: 2rpx 14rpx;
+  border-radius: 8rpx;
+  background: #E8F5EE;
+  color: #1B7A56;
+  font-size: 21rpx;
+  font-weight: 600;
+}
+
+.milestone-date {
+  margin-top: 6rpx;
+  color: #9CA3AF;
+  font-size: 22rpx;
+}
+
+.milestone-desc {
+  margin-top: 8rpx;
+  color: #4B5563;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.milestone-photos {
+  display: flex;
+  gap: 10rpx;
+  margin-top: 12rpx;
+  flex-wrap: wrap;
+}
+
+.milestone-photo {
+  width: 130rpx;
+  height: 130rpx;
+  border-radius: 14rpx;
+  background: #F3F4F6;
+}
+
+/* ===== 完工照片墙 ===== */
+.photo-wall {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.photo-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 14rpx;
+  background: #F3F4F6;
+}
+
+/* ===== 资料补充提示 ===== */
+.supplement-card {
+  text-align: center;
+  padding: 36rpx 32rpx;
+}
+
+.supplement-text {
+  color: #4B5563;
+  font-size: 25rpx;
+  line-height: 1.65;
+  margin-bottom: 22rpx;
+}
+
+/* ===== 按钮 ===== */
+.button-primary {
+  width: 100%;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 22rpx;
+  background: linear-gradient(135deg, #1B7A56, #2AA876);
+  color: #FFFFFF;
+  font-size: 28rpx;
+  font-weight: 600;
+  border: none;
+  margin-top: 12rpx;
+}
+
+.button-primary::after {
+  border: none;
+}
+
+.button-secondary {
+  width: 100%;
+  height: 76rpx;
+  line-height: 76rpx;
+  border-radius: 22rpx;
+  background: #F8FAF9;
+  color: #1B7A56;
+  font-size: 27rpx;
+  font-weight: 600;
+  border: 2rpx solid #E8F5EE;
+  margin-top: 16rpx;
+}
+
+.button-secondary::after {
+  border: none;
+}

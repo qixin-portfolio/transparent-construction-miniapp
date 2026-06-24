@@ -2,6 +2,7 @@ const { call, showError } = require('../../../../services/cloud')
 
 const ROLE_OPTIONS = [
   { code: 'worker', label: '工长' },
+  { code: 'project_manager', label: '项目经理' },
   { code: 'designer', label: '设计师' },
   { code: 'sales', label: '销售' },
   { code: 'boss_qi', label: '老板（老齐）' },
@@ -18,6 +19,7 @@ Page({
   data: {
     authReady: false,
     canManage: false,
+    canAdmin: false,
     roleOptions: ROLE_OPTIONS,
     selectedRole: 'worker',
     remark: '',
@@ -41,7 +43,8 @@ Page({
     app.ensureLogin()
       .then((user) => {
         const canManage = user && ['admin', 'boss_qi', 'boss_hu'].indexOf(user.role) !== -1
-        this.setData({ authReady: true, canManage })
+        const canAdmin = user && user.role === 'admin'
+        this.setData({ authReady: true, canManage, canAdmin })
         if (canManage) {
           this.loadInviteCodes()
           this.loadMembers()
@@ -132,6 +135,52 @@ Page({
       .finally(() => {
         this.setData({ loadingMembers: false })
       })
+  },
+
+  editMemberRemark(e) {
+    const memberId = e.currentTarget.dataset.id
+    const currentRemark = e.currentTarget.dataset.remark || ''
+    if (!memberId || !this.data.canAdmin) return
+
+    wx.showModal({
+      title: '修改员工备注',
+      content: currentRemark ? `当前备注：${currentRemark}` : '给员工加一个好认的备注',
+      editable: true,
+      placeholderText: '例如：张工长、老胡、王设计',
+      confirmText: '保存',
+      success: (res) => {
+        if (!res.confirm) return
+        const staffRemark = String(res.content || '').trim().slice(0, 50)
+        call('updateStaffMember', { memberId, staffRemark })
+          .then(() => {
+            wx.showToast({ title: '备注已更新', icon: 'success' })
+            this.loadMembers()
+          })
+          .catch((err) => showError('修改失败', err))
+      }
+    })
+  },
+
+  deleteMember(e) {
+    const memberId = e.currentTarget.dataset.id
+    const name = e.currentTarget.dataset.name || '该员工'
+    if (!memberId || !this.data.canAdmin) return
+
+    wx.showModal({
+      title: '移除内部员工',
+      content: `确定把「${name}」从内部员工列表移除吗？移除后该账号会变为普通业主账号。`,
+      confirmText: '移除',
+      confirmColor: '#D9534F',
+      success: (res) => {
+        if (!res.confirm) return
+        call('deleteStaffMember', { memberId })
+          .then(() => {
+            wx.showToast({ title: '已移除', icon: 'success' })
+            this.loadMembers()
+          })
+          .catch((err) => showError('移除失败', err))
+      }
+    })
   },
 
   makeTeamStats(inviteCodes, members) {

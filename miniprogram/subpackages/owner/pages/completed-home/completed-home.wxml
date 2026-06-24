@@ -1,0 +1,81 @@
+<view class="lifecycle-page">
+  <view class="lifecycle-hero">
+    <view class="lifecycle-eyebrow">晟景老客户服务</view>
+    <view class="lifecycle-title">我的完工服务</view>
+    <view class="lifecycle-desc">{{project ? project.name : '装修完工后，档案、质保、售后和推荐权益都在这里。'}}</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="lifecycle-card empty-block">
+    <view class="empty-title">正在加载完工服务...</view>
+  </view>
+
+  <block wx:else>
+    <view class="lifecycle-card">
+      <view class="lifecycle-card-title">{{project.name || '我的家'}}</view>
+      <view class="lifecycle-card-desc">{{project.address || '晟景装饰完工项目'}}</view>
+      <view class="info-row">
+        <view class="info-label">当前状态</view>
+        <view class="info-value">{{project.status || '已完工'}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">售后工单</view>
+        <view class="info-value">{{ticketStats.open || 0}} 个处理中 / 共 {{ticketStats.total || 0}} 个</view>
+      </view>
+    </view>
+
+    <view class="lifecycle-grid">
+      <view class="lifecycle-entry" data-page="owner-archive" bindtap="goPage">
+        <view class="entry-icon">档</view>
+        <view class="entry-title">我的家装档案</view>
+        <view class="entry-desc">{{archiveText}}</view>
+      </view>
+      <view class="lifecycle-entry" data-page="warranty-card" bindtap="goPage">
+        <view class="entry-icon">保</view>
+        <view class="entry-title">电子质保卡</view>
+        <view class="entry-desc">{{warrantyCard ? '质保信息可查' : '暂无质保卡'}}</view>
+      </view>
+      <view class="lifecycle-entry" data-page="after-sale-create" bindtap="goPage">
+        <view class="entry-icon">修</view>
+        <view class="entry-title">一键售后报修</view>
+        <view class="entry-desc">提交问题和照片</view>
+      </view>
+      <view class="lifecycle-entry" data-page="after-sale-list" bindtap="goPage">
+        <view class="entry-icon">单</view>
+        <view class="entry-title">我的售后工单</view>
+        <view class="entry-desc">查看处理进度</view>
+      </view>
+      <view class="lifecycle-entry" data-page="referral-create" bindtap="goPage">
+        <view class="entry-icon">荐</view>
+        <view class="entry-title">推荐朋友装修</view>
+        <view class="entry-desc">老客户转介绍</view>
+      </view>
+      <view class="lifecycle-entry" data-page="benefits" bindtap="goPage">
+        <view class="entry-icon">益</view>
+        <view class="entry-title">老客户权益</view>
+        <view class="entry-desc">{{benefits.length ? benefits.length + ' 项权益' : '查看专属服务'}}</view>
+      </view>
+      <view class="lifecycle-entry" data-page="completion-album" bindtap="goPage">
+        <view class="entry-icon">册</view>
+        <view class="entry-title">完工纪念册</view>
+        <view class="entry-desc">{{albumText}}</view>
+      </view>
+      <view class="lifecycle-entry" data-page="case-authorization" bindtap="goPage">
+        <view class="entry-icon">权</view>
+        <view class="entry-title">案例授权</view>
+        <view class="entry-desc">{{authorizationText}}</view>
+      </view>
+    </view>
+
+    <view class="lifecycle-card">
+      <view class="lifecycle-card-title">最近售后</view>
+      <view wx:if="{{latestTickets.length}}" class="lifecycle-list">
+        <view wx:for="{{latestTickets}}" wx:key="_id" class="info-row">
+          <view class="info-label">{{item.category || '售后'}}</view>
+          <view class="info-value">{{item.status || 'submitted'}} · {{item.ticketNo}}</view>
+        </view>
+      </view>
+      <view wx:else class="lifecycle-card-desc">暂无售后工单，有问题可以随时提交报修。</view>
+      <button class="button-primary" bindtap="goAfterSaleCreate">提交售后报修</button>
+    </view>
+  </block>
+</view>

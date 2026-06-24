@@ -17,6 +17,12 @@
       "timeout": 20
     },
     {
+      "name": "bindWorkerProject",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
       "name": "createCustomer",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
@@ -29,7 +35,25 @@
       "timeout": 20
     },
     {
+      "name": "createAfterSalesTicket",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "createReferralRecord",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
       "name": "createStaffInviteCode",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "createWorkerProjectBindCode",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
       "timeout": 20
@@ -68,7 +92,61 @@
       "timeout": 20
     },
     {
+      "name": "deleteStaffMember",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "deliverProject",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
       "name": "getOwnerProject",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "getOwnerPortal",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "getCompletedOwnerHome",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "getOwnerArchive",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "getWarrantyCard",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "getAfterSalesTicket",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "getCompletionAlbum",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "getCaseAuthorization",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
       "timeout": 20
@@ -86,7 +164,41 @@
       "timeout": 20
     },
     {
+      "name": "getBossDashboard",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "generateStageLogDraft",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 60,
+      "envVariables": {
+        "ZHIPUAI_API_KEY": "{{env.ZHIPUAI_API_KEY}}",
+        "ZHIPUAI_TEXT_MODEL": "{{env.ZHIPUAI_TEXT_MODEL}}"
+      }
+    },
+    {
       "name": "listCustomers",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "listAfterSalesTickets",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "updateAfterSalesTicket",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "listCustomerBenefits",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
       "timeout": 20
@@ -99,6 +211,18 @@
     },
     {
       "name": "listMyProjects",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "listOwnerProjects",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "listPublicCases",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
       "timeout": 20
@@ -122,6 +246,18 @@
       "timeout": 20
     },
     {
+      "name": "getTenantBranding",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "initSaasDefaults",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
       "name": "login",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
@@ -129,6 +265,18 @@
     },
     {
       "name": "reviewStageLog",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "recordWorkerCheckin",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "listWorkerCheckins",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
       "timeout": 20
@@ -158,6 +306,12 @@
       }
     },
     {
+      "name": "submitOwnerSupplement",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
       "name": "updateDesignDrawing",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
@@ -171,6 +325,24 @@
     },
     {
       "name": "updateCustomer",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "updateStaffMember",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "updateMyProfile",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20
+    },
+    {
+      "name": "updateCaseAuthorization",
       "handler": "index.main",
       "runtime": "Nodejs16.13",
       "timeout": 20

@@ -1,0 +1,93 @@
+<view class="detail-page">
+  <view wx:if="{{loading}}" class="loading-block">
+    <view class="loading-text">案例加载中...</view>
+  </view>
+
+  <block wx:elif="{{display}}">
+    <!-- 1. 顶部大图 -->
+    <view class="hero-section">
+      <image wx:if="{{display.coverImage}}" class="hero-image" src="{{display.coverImage}}" mode="aspectFill" data-current="{{display.coverImage}}" data-urls="{{display.photos}}" bindtap="previewPhoto"></image>
+      <view wx:else class="hero-placeholder">
+        <view class="hero-placeholder-text">案例图片整理中</view>
+      </view>
+      <view wx:if="{{display.isReference}}" class="ref-tag">品牌参考</view>
+    </view>
+
+    <!-- 2. 案例标题 -->
+    <view class="title-section">
+      <view class="case-title">{{display.displayTitle}}</view>
+      <view class="case-subtitle">{{display.displaySubtitle}}</view>
+      <view wx:if="{{display.authorizationLabel}}" class="auth-label">{{display.authorizationLabel}}</view>
+    </view>
+
+    <!-- 3. 案例概况 -->
+    <view class="info-card">
+      <view class="card-title">案例概况</view>
+      <view class="info-list">
+        <view class="info-row">
+          <view class="info-key">项目区域</view>
+          <view class="info-val">{{display.displayLocation || '交城本地'}}</view>
+        </view>
+        <view wx:if="{{display.displayTags.length}}" class="info-row">
+          <view class="info-key">装修风格</view>
+          <view class="info-val">{{display.displayTags[0]}}</view>
+        </view>
+        <view class="info-row">
+          <view class="info-key">方案类型</view>
+          <view class="info-val">{{display.displayPlanType}}</view>
+        </view>
+      </view>
+      <view wx:if="{{display.displayBudgetText}}" class="budget-block">
+        <text>{{display.displayBudgetText}}</text>
+      </view>
+    </view>
+
+    <!-- 4. 设计亮点 -->
+    <view class="info-card">
+      <view class="card-title">设计亮点</view>
+      <view class="highlights-content">{{display.displayHighlights}}</view>
+    </view>
+
+    <!-- 5. 完工实景 -->
+    <view wx:if="{{display.photos.length}}" class="info-card">
+      <view class="card-title">完工实景</view>
+      <view class="photo-grid">
+        <image
+          wx:for="{{display.photos}}"
+          wx:key="*this"
+          class="photo-item {{index === 0 ? 'photo-large' : ''}}"
+          src="{{item}}"
+          mode="aspectFill"
+          lazy-load
+          data-current="{{item}}"
+          data-urls="{{display.photos}}"
+          bindtap="previewPhoto"></image>
+      </view>
+    </view>
+    <view wx:else class="info-card">
+      <view class="card-title">完工实景</view>
+      <view class="empty-photos">案例图片整理中，敬请期待</view>
+    </view>
+
+    <!-- 6. 适合人群 -->
+    <view class="info-card">
+      <view class="card-title">适合人群</view>
+      <view class="audience-content">{{display.displayAudience}}</view>
+    </view>
+
+    <!-- 7. 底部 CTA -->
+    <view class="cta-section">
+      <view class="cta-title">喜欢这个案例？</view>
+      <view class="cta-desc">预约免费量房设计，让晟景为您定制专属方案</view>
+      <view class="cta-actions">
+        <button class="cta-btn outline" bindtap="callStore">📞 电话咨询</button>
+        <button class="cta-btn primary" bindtap="showAppointment">预约量房设计</button>
+      </view>
+    </view>
+
+    <view class="footer">
+      <view class="footer-brand">晟景装饰 · 透明工地</view>
+      <view class="footer-sub">交城本地 28 年实体老品牌</view>
+    </view>
+  </block>
+</view>

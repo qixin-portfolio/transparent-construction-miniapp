@@ -5,11 +5,18 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 const REVIEW_ROLES = ['admin', 'boss_qi', 'boss_hu']
+const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
+const DEFAULT_TENANT_NAME = '晟景装饰'
 
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
-  return res.data[0] || null
+  const user = res.data[0] || null
+  if (user && !user.tenantId) {
+    user.tenantId = DEFAULT_TENANT_ID
+    user.tenantName = DEFAULT_TENANT_NAME
+  }
+  return user
 }
 
 function assertReviewRole(user) {
@@ -22,9 +29,10 @@ exports.main = async () => {
   try {
     const user = await getCurrentUser()
     assertReviewRole(user)
+    const tenantId = user.tenantId || DEFAULT_TENANT_ID
 
     const res = await db.collection('stage_logs')
-      .where({ reviewStatus: 'pending' })
+      .where({ reviewStatus: 'pending', tenantId: _.in([tenantId, '', null]) })
       .orderBy('createdAt', 'desc')
       .limit(100)
       .get()

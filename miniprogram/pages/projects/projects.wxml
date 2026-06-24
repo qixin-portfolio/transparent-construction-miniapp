@@ -1,16 +1,42 @@
 <!-- ========== 业主端：品牌营销首页 ========== -->
 <view wx:if="{{isOwner}}" class="store-page">
-  <!-- 品牌 Banner -->
+  <!-- 品牌 Banner — 实景门店展示 -->
   <view class="store-banner">
-    <view class="store-banner-brand">晟景装饰</view>
-    <view class="store-banner-slogan">交城 28 年本土硬核金牌老品牌</view>
-    <view class="store-banner-tags">
-      <text class="store-banner-tag">高定全案整装</text>
-      <text class="store-banner-tag">私宅空间定制</text>
-      <text class="store-banner-tag">全德系工程工艺</text>
+    <view class="store-banner-copy">
+      <view class="store-banner-kicker">🏠 交城本地老品牌</view>
+      <view class="store-banner-brand">{{storeBrandName}}</view>
+      <view class="store-banner-address-row">
+        <text class="store-banner-address">📍 {{storeInfo.address}}</text>
+      </view>
+      <view class="store-banner-tags">
+        <text wx:for="{{storeTags}}" wx:key="*this" class="store-banner-tag">{{item}}</text>
+      </view>
     </view>
   </view>
 
+  <!-- 顾问双人卡片 -->
+  <view class="advisor-duo">
+    <view
+      wx:for="{{advisors}}"
+      wx:key="name"
+      class="advisor-card"
+      data-douyin="{{item.douyinId}}"
+      data-name="{{item.name}}"
+      bindtap="copyAdvisorDouyin">
+      <image class="advisor-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+      <view class="advisor-info">
+        <view class="advisor-name">{{item.name}}</view>
+        <view class="advisor-subtitle">{{item.subtitle}}</view>
+        <view class="advisor-role">{{item.role}}</view>
+      </view>
+      <view class="advisor-arrow">
+        <text class="advisor-douyin-label">抖音</text>
+        <text class="advisor-arrow-icon">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 品牌数据 -->
   <view class="brand-data-marquee">
     <view class="data-cell">
       <view class="data-num">28年</view>
@@ -103,64 +129,42 @@
     </view>
   </view>
 
-  <!-- 抖音账号 -->
-  <view class="store-section">
-    <view class="store-section-head">
-      <view class="sub-title">关注我们</view>
-      <view class="muted">抖音看更多装修内容</view>
-    </view>
-    <view class="douyin-list">
-      <view
-        wx:for="{{douyinAccounts}}"
-        wx:key="douyinId"
-        class="douyin-card"
-        data-id="{{item.douyinId}}"
-        data-name="{{item.name}}"
-        bindtap="copyDouyinId">
-        <view class="douyin-avatar" style="background: {{item.avatarColor}};">
-          <text class="douyin-avatar-text">抖</text>
-        </view>
-        <view class="douyin-info">
-          <view class="douyin-name">{{item.name}}</view>
-          <view class="douyin-desc">{{item.desc}}</view>
-          <view class="douyin-id-row">
-            <text class="douyin-id-label">抖音号：</text>
-            <text class="douyin-id-value">{{item.douyinId}}</text>
-          </view>
-        </view>
-        <view class="douyin-copy">复制</view>
-      </view>
-    </view>
-  </view>
-
   <!-- 完工案例 -->
   <view class="store-section">
     <view class="store-section-head">
       <view class="sub-title">完工案例</view>
-      <view class="muted">真实完工 · 交城本地</view>
+      <view class="muted">{{caseSource === 'real' ? '真实完工 · 业主授权' : '品牌参考案例'}}</view>
     </view>
     <view class="case-list">
       <view
         wx:for="{{showcaseCases}}"
-        wx:key="title"
-        class="case-card">
-        <view
-          wx:if="{{item.image}}"
-          class="case-image-wrap"
-          data-url="{{item.image}}"
-          bindtap="previewCaseImage">
-          <image class="case-image" src="{{item.image}}" mode="aspectFill" lazy-load></image>
-        </view>
-        <view wx:else class="case-image-placeholder">
-          <view class="case-image-ph-text">照片待上传</view>
+        wx:key="_id"
+        class="case-card"
+        data-id="{{item._id}}"
+        bindtap="goCaseDetail">
+        <view class="case-image-wrap">
+          <image wx:if="{{item.coverImage}}" class="case-image" src="{{item.coverImage}}" mode="aspectFill" lazy-load></image>
+          <view wx:else class="case-image-placeholder">
+            <view class="case-image-ph-text">照片待上传</view>
+          </view>
+          <view wx:if="{{item.isReference}}" class="case-ref-badge">品牌参考</view>
+          <view wx:if="{{item.authorizationLabel}}" class="case-auth-badge">{{item.authorizationLabel}}</view>
         </view>
         <view class="case-info">
-          <view class="case-title">{{item.title}}</view>
-          <view class="case-meta">{{item.area}} · {{item.style}}</view>
-          <view class="case-budget">{{item.budget}}</view>
-          <view class="case-highlight">{{item.highlight}}</view>
+          <view class="case-title">{{item.displayTitle}}</view>
+          <view class="case-meta">{{item.displaySubtitle}}</view>
+          <view class="case-plan">方案类型：{{item.displayPlanType}}</view>
+          <view wx:if="{{item.displayHighlights}}" class="case-highlight">{{item.displayHighlights}}</view>
+          <view class="case-actions-inline">
+            <view class="case-action-btn primary" catchtap="goCaseDetail" data-id="{{item._id}}">查看案例</view>
+            <view class="case-action-btn outline" catchtap="showAppointment">预约量房</view>
+          </view>
         </view>
       </view>
+    </view>
+    <view class="case-more-entry" bindtap="goCaseList">
+      <text>查看全部完工案例</text>
+      <text class="case-more-arrow">›</text>
     </view>
   </view>
 
@@ -208,7 +212,7 @@
   </view>
 
   <view class="store-footer">
-    <view class="store-footer-text">晟景装饰 · 交城透明工地</view>
+    <view class="store-footer-text">{{storeBrandName}} · 透明工地</view>
   </view>
 
   <view class="store-bottom-bar">
@@ -237,44 +241,49 @@
 </view>
 
 <!-- ========== 内部员工端：工地列表 ========== -->
-<view wx:else class="projects-page">
+<view wx:else class="projects-page {{isWorker ? 'worker-page' : ''}}">
   <view class="projects-header">
-    <view class="projects-title">工地</view>
-    <view class="projects-subtitle">内部人员按权限查看相关工地</view>
+    <view class="projects-title">{{isWorker ? '我的工地' : '工地'}}</view>
+    <view class="projects-subtitle">{{isWorker ? '只显示已绑定的工地，每个工地由管理端发码加入' : '内部人员按权限查看相关工地'}}</view>
   </view>
 
   <view class="project-flow-panel">
     <view class="project-flow-head">
       <view>
-        <view class="project-flow-title">核心业务链路</view>
-        <view class="project-flow-desc">建工地 → 上传日报 → 审核发布 → 业主查看</view>
+        <view class="project-flow-title">{{isWorker ? '今日主要任务' : '核心业务链路'}}</view>
+        <view class="project-flow-desc">{{isWorker ? '到场打卡 → 拍照 → 上传日报' : '建工地 → 上传日报 → 审核发布 → 业主查看'}}</view>
       </view>
       <view wx:if="{{canCreate}}" class="project-flow-action" bindtap="goCreate">新建工地</view>
     </view>
-    <view class="project-stat-row">
-      <view class="project-stat-item">
+    <view wx:if="{{!isWorker}}" class="project-stat-row">
+      <view class="project-stat-item {{statusFilter === '' ? 'active' : ''}}" data-status="" bindtap="onStatusFilter">
         <view class="project-stat-num">{{projectStats.total}}</view>
         <view class="project-stat-label">全部工地</view>
       </view>
-      <view class="project-stat-item">
+      <view class="project-stat-item {{statusFilter === '施工中' ? 'active' : ''}}" data-status="施工中" bindtap="onStatusFilter">
         <view class="project-stat-num">{{projectStats.active}}</view>
         <view class="project-stat-label">施工中</view>
       </view>
-      <view class="project-stat-item">
+      <view class="project-stat-item {{statusFilter === 'unbound' ? 'active' : ''}}" data-status="unbound" bindtap="onStatusFilter">
         <view class="project-stat-num warn">{{projectStats.unbound}}</view>
         <view class="project-stat-label">未绑业主</view>
       </view>
     </view>
+    <view wx:else class="project-worker-tip">
+      <view class="project-worker-tip-main">当前可查看 {{projectStats.total}} 个绑定工地</view>
+      <view class="project-worker-tip-sub">当前账号没有全部工地权限，只能操作已绑定工地。</view>
+      <button class="worker-bind-inline-btn" bindtap="showWorkerProjectBind">{{projectStats.total === 0 ? '输入工地绑定码' : '绑定新工地'}}</button>
+    </view>
   </view>
 
   <!-- 搜索栏 -->
-  <view class="search-bar">
+  <view wx:if="{{!isWorker}}" class="search-bar">
     <view class="search-icon">🔍</view>
     <input class="search-input" placeholder="搜索工地名称或地址" value="{{searchKeyword}}" bindinput="onSearch" confirm-type="search" />
   </view>
 
   <!-- 状态筛选 -->
-  <scroll-view class="status-filter" scroll-x enable-flex>
+  <scroll-view wx:if="{{!isWorker}}" class="status-filter" scroll-x enable-flex>
     <view class="status-filter-inner">
       <view class="filter-tab {{statusFilter === '' ? 'filter-tab-active' : ''}}" data-status="" bindtap="onStatusFilter">全部</view>
       <view class="filter-tab {{statusFilter === '施工中' ? 'filter-tab-active' : ''}}" data-status="施工中" bindtap="onStatusFilter">施工中</view>
@@ -288,7 +297,7 @@
     <view wx:for="{{projects}}" wx:key="_id" class="project-card" data-id="{{item._id}}" bindtap="goDetail">
       <view class="project-card-head">
         <view class="project-card-name">{{item.name}}</view>
-        <view class="tag {{item.status === '已完工' ? 'tag-info' : 'tag-success'}}">{{item.status || '施工中'}}</view>
+        <view class="tag {{item.statusCode === 'completed' || item.statusCode === 'delivered' ? 'tag-info' : 'tag-success'}}">{{item.statusText || item.status || '施工中'}}</view>
       </view>
       <view class="project-card-address">{{item.address || '未填写地址'}}</view>
       <view class="project-meta-grid">
@@ -302,7 +311,7 @@
         </view>
         <view class="project-meta-item">
           <view class="meta-label">状态</view>
-          <view class="meta-value">{{item.status || '施工中'}}</view>
+          <view class="meta-value">{{item.statusText || item.status || '施工中'}}</view>
         </view>
       </view>
       <view class="project-progress">
@@ -314,6 +323,7 @@
       </view>
       <view class="project-card-actions">
         <view class="project-mini-btn primary" wx:if="{{canUpload}}" data-id="{{item._id}}" data-name="{{item.name}}" catchtap="goUploadFromProject">写日报</view>
+        <view class="project-mini-btn checkin" wx:if="{{isWorker}}" data-id="{{item._id}}" catchtap="recordWorkerCheckinFromProject">{{workerCheckingProjectId === item._id ? '打卡中' : '到场打卡'}}</view>
         <view class="project-mini-btn" data-id="{{item._id}}" catchtap="goDetail">看详情</view>
         <view class="project-mini-btn" wx:if="{{canManageOwner && !item.ownerOpenid}}" data-id="{{item._id}}" catchtap="goBindFromProject">绑业主</view>
         <view class="project-mini-badge" wx:if="{{item.ownerOpenid}}">业主已绑定</view>
@@ -324,12 +334,25 @@
 
   <view wx:else class="project-empty">
     <view class="empty-title">{{loading ? '正在加载' : '暂无工地'}}</view>
-    <view class="muted">{{loading ? '工地数据加载中...' : (searchKeyword ? '没有匹配的工地' : '点击右下角按钮新增工地')}}</view>
+    <view class="muted">{{loading ? '工地数据加载中...' : (isWorker ? '请输入管理端发放的工地绑定码' : (searchKeyword ? '没有匹配的工地' : '点击右下角按钮新增工地'))}}</view>
+    <button wx:if="{{!loading && isWorker}}" class="worker-bind-empty-btn" bindtap="showWorkerProjectBind">输入工地绑定码</button>
   </view>
 
   <!-- 悬浮新增按钮 -->
   <view wx:if="{{canCreate}}" class="fab" bindtap="goCreate">
     <view class="fab-icon">+</view>
     <view class="fab-text">新增</view>
+  </view>
+
+  <view wx:if="{{workerProjectCodeVisible}}" class="worker-bind-mask" bindtap="hideWorkerProjectBind">
+    <view class="worker-bind-dialog" catchtap="noop">
+      <view class="worker-bind-title">绑定我的工地</view>
+      <view class="worker-bind-desc">输入管理员、老板或项目经理在工地详情里生成的 6 位工长绑定码。</view>
+      <input class="worker-bind-code-input" type="number" maxlength="6" placeholder="请输入 6 位绑定码" value="{{workerProjectCode}}" bindinput="onWorkerProjectCodeInput" />
+      <view class="worker-bind-actions">
+        <button class="worker-bind-btn worker-bind-cancel" bindtap="hideWorkerProjectBind" disabled="{{workerProjectBinding}}">取消</button>
+        <button class="worker-bind-btn worker-bind-confirm" bindtap="confirmWorkerProjectBind" loading="{{workerProjectBinding}}" disabled="{{workerProjectBinding || workerProjectCode.length < 6}}">绑定</button>
+      </view>
+    </view>
   </view>
 </view>

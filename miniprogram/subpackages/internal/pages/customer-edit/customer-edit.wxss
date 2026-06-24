@@ -52,13 +52,7 @@
   justify-content: space-between;
 }
 
-.picker-arrow {
-  color: #9CA3AF;
-  font-size: 24rpx;
-  flex-shrink: 0;
-}
-
-/* 提交区 */
+/* .picker-arrow 使用全局 app.wxss 绿色药丸样式，不在此处覆盖 */
 .submit-area {
   margin-top: 32rpx;
   padding: 0 16rpx;
@@ -68,30 +62,30 @@
 .customer-edit-page {
   min-height: 100vh;
   padding: 24rpx 28rpx calc(48rpx + env(safe-area-inset-bottom));
-  background: #F8F4EA;
+  background: #FAFBFC;
   box-sizing: border-box;
 }
 
 .page-title {
-  color: #173E33;
+  color: #1A1A1A;
   font-size: 40rpx;
   font-weight: 800;
 }
 
 .form-section {
-  border: 1rpx solid #E9DDC8;
+  border: 1rpx solid #E8ECF0;
   border-radius: 12rpx;
-  background: #FFFDF7;
+  background: #FFFFFF;
   box-shadow: none;
 }
 
 .form-section-title {
-  color: #173E33;
+  color: #1A1A1A;
   border-bottom-color: #F1E8D8;
 }
 
 .form-label {
-  color: #6C776F;
+  color: #5C5C5C;
 }
 
 .submit-area {
@@ -100,7 +94,7 @@
 
 .submit-area .button-primary {
   border-radius: 12rpx;
-  background: #147657;
+  background: #1B7A56;
 }
 
 /* UI 1.2 · 客户详情 / 新增客户 */
@@ -108,7 +102,7 @@
   min-height: 100vh;
   padding: 32rpx;
   padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
-  background: #F8FAF9;
+  background: #FAFBFC;
 }
 
 .page-title {
@@ -130,7 +124,7 @@
 
 .submit-area .button-primary {
   border-radius: 28rpx;
-  background: #0F6A4A;
+  background: #1B7A56;
 }
 
 /* Stage 2 · 客户生命周期 */
@@ -159,7 +153,7 @@
   min-width: 0;
   padding: 20rpx 8rpx;
   border-radius: 24rpx;
-  background: #F8FAF9;
+  background: #FAFBFC;
   text-align: center;
 }
 
@@ -176,7 +170,7 @@
 }
 
 .lifecycle-step.active .lifecycle-dot {
-  background: #0F6A4A;
+  background: #1B7A56;
   color: #FFFFFF;
 }
 
@@ -188,7 +182,7 @@
 }
 
 .lifecycle-step.active .lifecycle-label {
-  color: #0F6A4A;
+  color: #1B7A56;
 }
 
 .customer-action-row {
@@ -212,12 +206,12 @@
 }
 
 .customer-action-btn.secondary {
-  background: #EAF7F1;
-  color: #0F6A4A;
+  background: #E8F5EE;
+  color: #1B7A56;
 }
 
 .customer-action-btn.primary {
-  background: #0F6A4A;
+  background: #1B7A56;
   color: #FFFFFF;
 }
 

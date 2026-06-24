@@ -1,0 +1,265 @@
+.lifecycle-page {
+  min-height: 100vh;
+  padding: 0 28rpx calc(48rpx + env(safe-area-inset-bottom));
+  background: #FAFBFC;
+  box-sizing: border-box;
+}
+
+.lifecycle-hero {
+  margin: 0 -28rpx 28rpx;
+  padding: 52rpx 32rpx 88rpx;
+  color: #FFFFFF;
+  background: linear-gradient(150deg, #0D4D36 0%, #1B7A56 58%, #2AA876 100%);
+}
+
+.lifecycle-eyebrow {
+  display: inline-flex;
+  min-height: 44rpx;
+  align-items: center;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.lifecycle-title {
+  margin-top: 18rpx;
+  font-size: 48rpx;
+  line-height: 1.18;
+  font-weight: 800;
+}
+
+.lifecycle-desc {
+  margin-top: 14rpx;
+  max-width: 620rpx;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 26rpx;
+  line-height: 1.55;
+}
+
+.lifecycle-card {
+  margin-bottom: 24rpx;
+  padding: 32rpx;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 32rpx rgba(13, 77, 54, 0.05);
+  box-sizing: border-box;
+}
+
+.lifecycle-card-title {
+  color: #1A1A1A;
+  font-size: 32rpx;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+.lifecycle-card-desc {
+  margin-top: 8rpx;
+  color: #5C5C5C;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.lifecycle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18rpx;
+  margin-bottom: 24rpx;
+}
+
+.lifecycle-entry {
+  min-height: 178rpx;
+  padding: 28rpx;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 28rpx rgba(13, 77, 54, 0.05);
+}
+
+.lifecycle-entry:active,
+.lifecycle-card.tap:active {
+  opacity: 0.94;
+  transform: scale(0.99);
+}
+
+.entry-icon {
+  width: 54rpx;
+  height: 54rpx;
+  border-radius: 18rpx;
+  color: #1B7A56;
+  background: #E8F5EE;
+  font-size: 30rpx;
+  line-height: 54rpx;
+  text-align: center;
+  font-weight: 800;
+}
+
+.entry-title {
+  margin-top: 20rpx;
+  color: #1A1A1A;
+  font-size: 29rpx;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+.entry-desc {
+  margin-top: 8rpx;
+  color: #6B7280;
+  font-size: 22rpx;
+  line-height: 1.45;
+}
+
+.lifecycle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid #F3F4F6;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  flex-shrink: 0;
+  color: #6B7280;
+  font-size: 25rpx;
+}
+
+.info-value {
+  min-width: 0;
+  color: #1A1A1A;
+  font-size: 26rpx;
+  line-height: 1.45;
+  text-align: right;
+  word-break: break-all;
+}
+
+.empty-block {
+  padding: 72rpx 36rpx;
+  color: #6B7280;
+  text-align: center;
+}
+
+.empty-title {
+  color: #1A1A1A;
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.empty-desc {
+  margin-top: 12rpx;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.form-group {
+  margin-bottom: 24rpx;
+}
+
+.form-label {
+  margin-bottom: 12rpx;
+  color: #374151;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.input,
+.textarea,
+.picker-display {
+  width: 100%;
+  min-height: 88rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 22rpx;
+  background: #F8FAF9;
+  color: #1A1A1A;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.textarea {
+  min-height: 180rpx;
+}
+
+.photo-uploader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.photo-thumb,
+.photo-add {
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+  background: #E8F5EE;
+}
+
+.photo-thumb image {
+  width: 100%;
+  height: 100%;
+}
+
+.photo-add {
+  color: #1B7A56;
+  font-size: 48rpx;
+  line-height: 150rpx;
+  text-align: center;
+  font-weight: 300;
+}
+
+.action-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  margin-top: 28rpx;
+}
+
+.status-pill {
+  display: inline-flex;
+  min-height: 44rpx;
+  align-items: center;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  color: #1B7A56;
+  background: #E8F5EE;
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 32rpx;
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  top: 12rpx;
+  left: 0;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: #1B7A56;
+}
+
+.album-cover {
+  width: 100%;
+  height: 360rpx;
+  border-radius: 28rpx;
+  overflow: hidden;
+  background: #E8F5EE;
+}
+
+.album-cover image {
+  width: 100%;
+  height: 100%;
+}

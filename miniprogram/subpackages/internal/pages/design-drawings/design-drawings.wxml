@@ -7,7 +7,7 @@
         <view class="sub-title">{{projectName || '工地'}} · 设计图纸</view>
         <view class="muted">效果图供业主查看确认，施工图供设计师与工长对接</view>
       </view>
-      <button wx:if="{{canUpload}}" class="button-primary header-upload-btn" bindtap="openUploadPanel">上传</button>
+      <view wx:if="{{canUpload}}" class="header-upload-btn" hover-class="header-upload-btn-hover" bindtap="openUploadPanel">上传</view>
     </view>
 
     <view class="drawing-flow">
@@ -131,7 +131,10 @@
         <view class="form-row">
           <text class="form-label">图纸类型</text>
           <picker mode="selector" range="{{types}}" range-key="name" value="{{uploadForm.typeIndex}}" bindchange="onTypeChange">
-            <view class="picker-value">{{types[uploadForm.typeIndex].name}}</view>
+            <view class="picker-value">
+              <text>{{types[uploadForm.typeIndex].name}}</text>
+              <text class="picker-arrow">更换 ›</text>
+            </view>
           </picker>
         </view>
 
@@ -139,7 +142,10 @@
         <view class="form-row">
           <text class="form-label">空间分类</text>
           <picker mode="selector" range="{{spaces}}" range-key="name" value="{{uploadForm.spaceIndex}}" bindchange="onSpaceChange">
-            <view class="picker-value">{{spaces[uploadForm.spaceIndex].name}}</view>
+            <view class="picker-value">
+              <text>{{spaces[uploadForm.spaceIndex].name}}</text>
+              <text class="picker-arrow">更换 ›</text>
+            </view>
           </picker>
         </view>
 

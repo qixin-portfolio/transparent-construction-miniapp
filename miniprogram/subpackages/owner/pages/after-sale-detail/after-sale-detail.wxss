@@ -1,0 +1,41 @@
+@import "../owner-lifecycle.wxss";
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+
+.photo-thumb {
+  width: 100%;
+  height: 156rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+  background: #F3F4F6;
+}
+
+.photo-thumb image {
+  width: 100%;
+  height: 100%;
+}
+
+.timeline-item {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #EEF2F7;
+}
+
+.timeline-item:last-child {
+  border-bottom: 0;
+}
+
+.timeline-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.timeline-meta {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #6B7280;
+}

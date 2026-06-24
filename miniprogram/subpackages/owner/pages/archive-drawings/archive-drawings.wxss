@@ -1,0 +1,71 @@
+@import "../owner-lifecycle.wxss";
+
+.drawings-group {
+  margin-bottom: 28rpx;
+}
+
+.group-header {
+  position: relative;
+  padding-left: 20rpx;
+  margin-bottom: 16rpx;
+  color: #1A1A1A;
+  font-size: 30rpx;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.group-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6rpx;
+  width: 6rpx;
+  height: 32rpx;
+  border-radius: 4rpx;
+  background: #1B7A56;
+}
+
+.drawings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18rpx;
+}
+
+.drawing-card {
+  border-radius: 20rpx;
+  background: #FFFFFF;
+  box-shadow: 0 4rpx 20rpx rgba(13, 77, 54, 0.06);
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.drawing-card:active {
+  opacity: 0.92;
+  transform: scale(0.98);
+}
+
+.drawing-image {
+  width: 100%;
+  height: 280rpx;
+  background: #F3F4F6;
+  display: block;
+}
+
+.drawing-info {
+  padding: 16rpx 20rpx 18rpx;
+}
+
+.drawing-title {
+  color: #1A1A1A;
+  font-size: 26rpx;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawing-type {
+  margin-top: 4rpx;
+  color: #9CA3AF;
+  font-size: 21rpx;
+}

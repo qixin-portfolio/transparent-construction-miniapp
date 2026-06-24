@@ -66,7 +66,7 @@
         bindchange="onStageChange">
         <view class="picker">
           <text>{{form.stage}}</text>
-          <text class="picker-arrow">选择</text>
+          <text class="picker-arrow">更换 ›</text>
         </view>
       </picker>
     </view>
@@ -79,7 +79,7 @@
         bindchange="onDealChange">
         <view class="picker">
           <text>{{form.dealStatus}}</text>
-          <text class="picker-arrow">选择</text>
+          <text class="picker-arrow">更换 ›</text>
         </view>
       </picker>
     </view>

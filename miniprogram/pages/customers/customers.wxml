@@ -30,6 +30,16 @@
         <view class="customer-stat-label">已签单</view>
       </view>
     </view>
+    <view class="customer-focus-row">
+      <view class="customer-focus-item">
+        <view class="customer-focus-label">今日重点</view>
+        <view class="customer-focus-value">报价后跟进</view>
+      </view>
+      <view class="customer-focus-item">
+        <view class="customer-focus-label">成交动作</view>
+        <view class="customer-focus-value">签约后建工地</view>
+      </view>
+    </view>
   </view>
 
   <!-- 搜索栏 -->
@@ -53,7 +63,10 @@
   <view wx:if="{{customers.length}}" class="customer-list">
     <view wx:for="{{customers}}" wx:key="_id" class="customer-card" data-id="{{item._id}}" bindtap="goDetail">
       <view class="customer-card-head">
-        <view class="customer-name">{{item.name}}</view>
+        <view class="customer-title-row">
+          <view class="customer-avatar">{{item.name ? item.name[0] : '客'}}</view>
+          <view class="customer-name">{{item.name || '未命名客户'}}</view>
+        </view>
         <view class="tag {{item.dealStatus === '已成交' ? 'tag-success' : (item.dealStatus === '已流失' ? 'tag-danger' : 'tag-warning')}}">{{item.stage || '咨询'}}</view>
       </view>
       <view class="customer-info-row">

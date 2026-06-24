@@ -1,0 +1,41 @@
+<view class="lifecycle-page">
+  <view class="lifecycle-hero">
+    <view class="lifecycle-eyebrow">案例授权</view>
+    <view class="lifecycle-title">公开范围由您确认</view>
+    <view class="lifecycle-desc">不授权时，完工纪念册只给您本人查看。授权后，晟景才可按范围整理案例。</view>
+  </view>
+
+  <view class="lifecycle-card">
+    <view class="form-group">
+      <view class="form-label">授权范围</view>
+      <picker range="{{scopeOptions}}" range-key="name" value="{{scopeIndex}}" bindchange="onScopeChange">
+        <view class="picker-display">
+          <text>{{selectedScopeName}}</text>
+          <text class="picker-arrow">更换 ›</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">可使用材料</view>
+      <view class="lifecycle-list">
+        <view wx:for="{{materialOptions}}" wx:for-index="idx" wx:key="code" class="info-row" data-index="{{idx}}" bindtap="toggleMaterial">
+          <view class="info-label">{{item.name}}</view>
+          <view class="info-value">{{item.checked ? '允许' : '不允许'}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">业主姓名展示</view>
+      <picker range="{{nameOptions}}" value="{{nameIndex}}" bindchange="onNameChange">
+        <view class="picker-display">
+          <text>{{selectedNameText}}</text>
+          <text class="picker-arrow">更换 ›</text>
+        </view>
+      </picker>
+    </view>
+
+    <button class="button-primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">保存授权设置</button>
+  </view>
+</view>

@@ -25,6 +25,10 @@ Page({
       latestDateText: '',
       latestStage: ''
     },
+    projectProgressDeg: 0,
+    animatedProgress: 0,
+    animatedProgressDeg: 0,
+    heroPhotos: [],
     photoWall: [],
     filteredPhotoWall: [],
     photoStages: [],
@@ -37,6 +41,7 @@ Page({
   },
 
   onLoad(options) {
+    this.setData({ projectId: String(options.projectId || '').trim() })
     const bindCode = String(options.bindCode || '').replace(/\s/g, '')
     if (bindCode && /^\d{6}$/.test(bindCode)) {
       this.setData({
@@ -63,6 +68,10 @@ Page({
       .catch((error) => {
         this.setData({
           project: null, logs: [], visibleLogs: [], photoWall: [],
+          projectProgressDeg: 0,
+          animatedProgress: 0,
+          animatedProgressDeg: 0,
+          heroPhotos: [],
           filteredPhotoWall: [], photoStages: [], renderDrawings: []
         })
         showError('登录失败', error)
@@ -74,48 +83,66 @@ Page({
 
   loadOwnerProject() {
     this.setData({ loading: true })
-    call('getOwnerProject')
+    call('getOwnerProject', { projectId: this.data.projectId })
       .then((res) => {
         const logs = this.prepareLogs(res.logs || [])
         const photoWall = this.makePhotoWall(logs)
         const stages = this.buildStageList(photoWall)
+        const project = res.project || null
         this.setData({
-          project: res.project || null,
+          project,
+          projectProgressDeg: this.makeProgressDeg((project || {}).progress),
+          animatedProgress: 0,
+          animatedProgressDeg: 0,
           logs,
           visibleLogs: logs.slice(0, this.data.timelineCollapsedCount),
           stats: this.makeStats(logs),
           photoWall,
+          heroPhotos: photoWall.slice(0, 3),
           filteredPhotoWall: photoWall,
           photoStages: stages,
           filterStage: '',
           timelineExpanded: false,
           renderDrawings: []
+        }, () => {
+          this.playProgressMotion((project || {}).progress)
         })
         // 加载设计效果图
-        if (res.project) {
-          this.loadRenderDrawings(res.project._id)
+        if (project) {
+          this.loadRenderDrawings(project._id)
         }
       })
       .catch((error) => {
         if (DEMO_MODE) {
           const logs = this.prepareLogs(demoLogs)
           const photoWall = this.makePhotoWall(logs)
+          const project = demoProjects[0]
           this.setData({
-            project: demoProjects[0],
+            project,
+            projectProgressDeg: this.makeProgressDeg((project || {}).progress),
+            animatedProgress: 0,
+            animatedProgressDeg: 0,
             logs,
             visibleLogs: logs.slice(0, this.data.timelineCollapsedCount),
             stats: this.makeStats(logs),
             photoWall,
+            heroPhotos: photoWall.slice(0, 3),
             filteredPhotoWall: photoWall,
             photoStages: this.buildStageList(photoWall),
             filterStage: '',
             timelineExpanded: false,
             renderDrawings: []
+          }, () => {
+            this.playProgressMotion((project || {}).progress)
           })
           return
         }
         this.setData({
           project: null, logs: [], visibleLogs: [], photoWall: [],
+          projectProgressDeg: 0,
+          animatedProgress: 0,
+          animatedProgressDeg: 0,
+          heroPhotos: [],
           filteredPhotoWall: [], photoStages: [], renderDrawings: []
         })
         showError('业主进度加载失败', error)
@@ -210,7 +237,8 @@ Page({
   prepareLogs(logs) {
     return logs.map((item) => Object.assign({}, item, {
       dateText: this.formatDate(item.createdAt || item.updatedAt || item.reviewedAt),
-      photos: item.photos || []
+      photos: item.photos || [],
+      ownerText: item.ownerSummary || item.workContent || ''
     }))
   },
 
@@ -236,6 +264,22 @@ Page({
       latestDateText: latest.dateText || '',
       latestStage: latest.stage || ''
     }
+  },
+
+  makeProgressDeg(progress) {
+    const value = Math.max(0, Math.min(100, Number(progress) || 0))
+    return value >= 100 ? 360 : Math.round(value * 3.6)
+  },
+
+  playProgressMotion(progress) {
+    const value = Math.max(0, Math.min(100, Number(progress) || 0))
+    const deg = this.makeProgressDeg(value)
+    setTimeout(() => {
+      this.setData({
+        animatedProgress: value,
+        animatedProgressDeg: deg
+      })
+    }, 80)
   },
 
   bindProject() {

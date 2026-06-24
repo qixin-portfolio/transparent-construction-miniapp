@@ -1,0 +1,69 @@
+<view class="lifecycle-page">
+  <view class="lifecycle-hero">
+    <view class="lifecycle-eyebrow">售后工单详情</view>
+    <view class="lifecycle-title">{{ticket.issueType || '售后报修'}}</view>
+    <view class="lifecycle-desc">{{ticket.projectName || '晟景装饰项目'}} · {{ticket.statusText || '处理中'}}</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="lifecycle-card empty-block">
+    <view class="empty-title">正在加载工单...</view>
+  </view>
+
+  <view wx:elif="{{!ticket}}" class="lifecycle-card empty-block">
+    <view class="empty-title">工单不存在</view>
+    <view class="empty-desc">请返回我的工单重新进入。</view>
+  </view>
+
+  <block wx:else>
+    <view class="lifecycle-card">
+      <view class="row">
+        <view class="lifecycle-card-title">{{ticket.ticketNo || ticket._id}}</view>
+        <view class="status-pill">{{ticket.statusText}}</view>
+      </view>
+      <view class="lifecycle-card-desc">{{ticket.issueDescription || '未填写问题描述'}}</view>
+      <view class="info-row">
+        <view class="info-label">联系人</view>
+        <view class="info-value">{{ticket.contactName || '-'}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">联系电话</view>
+        <view class="info-value">{{ticket.contactPhone || '-'}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">期望上门时间</view>
+        <view class="info-value">{{ticket.expectedVisitTime || '-'}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">最近更新时间</view>
+        <view class="info-value">{{ticket.updatedAtText || '-'}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{ticket.images.length}}" class="lifecycle-card">
+      <view class="lifecycle-card-title">问题图片</view>
+      <view class="photo-grid">
+        <view wx:for="{{ticket.images}}" wx:key="*this" class="photo-thumb" data-photos="{{ticket.images}}" data-index="{{index}}" bindtap="previewPhoto">
+          <image src="{{item}}" mode="aspectFill"></image>
+        </view>
+      </view>
+    </view>
+
+    <view class="lifecycle-card">
+      <view class="lifecycle-card-title">处理记录</view>
+      <view wx:if="{{logs.length}}">
+        <view wx:for="{{logs}}" wx:key="_id" class="timeline-item">
+          <view class="timeline-title">{{item.actionText || item.action}}</view>
+          <view class="timeline-meta">{{item.remark || '-'}} · {{item.createdAtText || ''}}</view>
+        </view>
+      </view>
+      <view wx:else class="lifecycle-card-desc">暂无处理记录。</view>
+    </view>
+
+    <view wx:if="{{ticket.serviceResult}}" class="lifecycle-card">
+      <view class="lifecycle-card-title">处理结果</view>
+      <view class="lifecycle-card-desc">{{ticket.serviceResult}}</view>
+    </view>
+
+    <button wx:if="{{ticket.status === 'waiting_owner_confirm'}}" class="button-primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="confirmComplete">确认完成</button>
+  </block>
+</view>

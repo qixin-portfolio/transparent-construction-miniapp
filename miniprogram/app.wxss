@@ -1,55 +1,56 @@
 /* ================================================================
-   晟景透明工地小程序 · 全局设计系统 v2.0
-   现代装修服务品牌 + 轻量 SaaS 管理 + Apple 风格卡片
+   晟景透明工地 · 全局设计系统 UI 3.0
+   Forest + Amber · 现代可信赖工具感
+   设计旋钮：VARIANCE 7 / MOTION 4 / DENSITY 3
    ================================================================ */
 
 /* ---------- 页面基底 ---------- */
 page {
   min-height: 100vh;
-  background: #F7FAF8;
-  color: #111827;
+  background: #FAFBFC;
+  color: #1A1A1A;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 28rpx;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  letter-spacing: 0;
 }
 
 /* ---------- 通用页面容器 ---------- */
 .page {
   padding: 32rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
 .section {
-  margin-bottom: 28rpx;
+  margin-bottom: 32rpx;
 }
 
 /* ---------- 标题层级 ---------- */
-.title {
+.title,
+.page-title {
   font-size: 44rpx;
-  line-height: 1.3;
-  font-weight: 600;
-  color: #111827;
+  line-height: 1.25;
+  font-weight: 800;
+  color: #1A1A1A;
+  letter-spacing: -0.5rpx;
+}
+
+.sub-title,
+.card-title,
+.section-title,
+.form-section-title {
+  font-size: 32rpx;
+  line-height: 1.35;
+  font-weight: 700;
+  color: #1A1A1A;
   letter-spacing: 0;
-}
-
-.sub-title {
-  font-size: 32rpx;
-  line-height: 1.35;
-  font-weight: 600;
-  color: #111827;
-}
-
-.card-title {
-  font-size: 32rpx;
-  line-height: 1.35;
-  font-weight: 600;
-  color: #111827;
 }
 
 /* ---------- 文字辅助 ---------- */
 .muted {
-  color: #6B7280;
+  color: #5C5C5C;
   font-size: 24rpx;
   line-height: 1.5;
 }
@@ -61,17 +62,19 @@ page {
 }
 
 .danger {
-  color: #D9534F;
+  color: #EF4444;
 }
 
-/* ---------- 卡片系统 ---------- */
+/* ---------- 卡片系统 · 统一圆角 + 双层阴影 ---------- */
 .card {
   background: #FFFFFF;
   border: none;
   border-radius: 32rpx;
   padding: 32rpx;
   box-sizing: border-box;
-  box-shadow: 0 4rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow:
+    0 2rpx 8rpx rgba(0, 0, 0, 0.03),
+    0 8rpx 32rpx rgba(0, 0, 0, 0.02);
 }
 
 .card-lg {
@@ -79,7 +82,8 @@ page {
 }
 
 .card:active {
-  opacity: 0.92;
+  opacity: 0.94;
+  transform: scale(0.99);
 }
 
 /* ---------- 行布局 ---------- */
@@ -97,119 +101,113 @@ page {
   gap: 24rpx;
 }
 
-/* ---------- 状态标签 Pill ---------- */
-.tag {
+/* ---------- 状态标签 Pill · UI 3.0 ---------- */
+.tag,
+.status-tag {
   display: inline-flex;
   align-items: center;
   min-height: 44rpx;
   padding: 0 20rpx;
   border-radius: 999rpx;
-  background: #EAF7F1;
-  color: #0F6A4A;
   font-size: 24rpx;
   font-weight: 600;
   line-height: 44rpx;
   white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 默认 / 品牌色 */
+.tag,
+.status-tag.approved {
+  background: #E8F5EE;
+  color: #1B7A56;
 }
 
 .tag-success {
-  background: #EAF7F1;
-  color: #16A34A;
+  background: #DCFCE7;
+  color: #15803D;
 }
 
-.tag-warning {
-  background: #FEF3C7;
-  color: #B45309;
-}
-
-.tag-danger {
-  background: #FEE2E2;
-  color: #D9534F;
-}
-
-.tag-info {
-  background: #F3F4F6;
-  color: #6B7280;
-}
-
-/* ---------- 通用状态标签（时间线等） ---------- */
-.status-tag {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  min-height: 44rpx;
-  padding: 0 20rpx;
-  border-radius: 999rpx;
-  font-size: 24rpx;
-  line-height: 44rpx;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
+.tag-warning,
 .status-tag.pending {
   background: #FEF3C7;
   color: #B45309;
 }
 
-.status-tag.approved {
-  background: #EAF7F1;
-  color: #16A34A;
-}
-
+.tag-danger,
 .status-tag.rejected {
   background: #FEE2E2;
-  color: #D9534F;
+  color: #DC2626;
 }
 
+.tag-info,
 .status-tag.completed {
   background: #F3F4F6;
   color: #6B7280;
 }
 
-/* ---------- 按钮系统 ---------- */
-.button-primary {
-  height: 100rpx;
-  line-height: 100rpx;
+/* 强调色标签（琥珀黄） */
+.tag-accent {
+  background: #FFF8E1;
+  color: #B45309;
+}
+
+/* ---------- 按钮系统 · UI 3.0 ---------- */
+/* Primary：绿色渐变 + 光晕阴影 */
+.button-primary,
+.small-button {
+  height: 96rpx;
+  line-height: 96rpx;
   border-radius: 28rpx;
-  background: #0F6A4A;
+  background: linear-gradient(135deg, #1B7A56 0%, #2AA876 100%);
   color: #FFFFFF;
   font-size: 30rpx;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
   margin: 0;
   padding: 0 32rpx;
-  box-shadow: 0 8rpx 24rpx rgba(15, 106, 74, 0.24);
-  transition: opacity 0.15s;
+  box-shadow:
+    0 4rpx 12rpx rgba(27, 122, 86, 0.25),
+    0 8rpx 24rpx rgba(27, 122, 86, 0.12);
+  transition: opacity 0.15s, transform 0.15s;
 }
 
-.button-primary::after {
+.button-primary::after,
+.small-button::after {
   border: none;
 }
 
-.button-primary[disabled] {
+.button-primary[disabled],
+.small-button[disabled] {
   background: #C8DBD2;
   color: rgba(255, 255, 255, 0.7);
   box-shadow: none;
 }
 
-.button-primary:active:not([disabled]) {
-  opacity: 0.88;
+.button-primary:active:not([disabled]),
+.small-button:active:not([disabled]) {
+  opacity: 0.9;
+  transform: scale(0.98);
 }
 
-.button-secondary {
+/* Secondary：浅绿底 + 绿字 */
+.button-secondary,
+.text-action {
   height: 88rpx;
   line-height: 88rpx;
   border-radius: 28rpx;
-  background: #EAF7F1;
-  color: #0F6A4A;
+  background: #E8F5EE;
+  color: #1B7A56;
   font-size: 28rpx;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
   margin: 0;
   padding: 0 32rpx;
+  box-shadow: none;
 }
 
-.button-secondary::after {
+.button-secondary::after,
+.text-action::after {
   border: none;
 }
 
@@ -221,14 +219,15 @@ page {
   background: #D5EDE2;
 }
 
+/* Share：深色 */
 .button-share {
   height: 88rpx;
   line-height: 88rpx;
   border-radius: 28rpx;
-  background: #111827;
+  background: #1A1A1A;
   color: #FFFFFF;
   font-size: 28rpx;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
   margin: 0;
   padding: 0 32rpx;
@@ -243,13 +242,14 @@ page {
   color: rgba(255, 255, 255, 0.7);
 }
 
+/* Danger */
 .button-danger {
   background: #FEE2E2;
-  color: #D9534F;
+  color: #EF4444;
   border: none;
   border-radius: 28rpx;
   font-size: 28rpx;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -261,46 +261,27 @@ page {
   background: #FECACA;
 }
 
+/* Small button */
 .small-button {
   width: 144rpx;
   height: 72rpx;
   line-height: 72rpx;
   border-radius: 24rpx;
-  background: #0F6A4A;
-  color: #FFFFFF;
   font-size: 28rpx;
-  font-weight: 600;
-  border: none;
-  margin: 0;
+  padding: 0;
 }
 
-.small-button::after {
-  border: none;
-}
-
-.small-button:active {
-  opacity: 0.88;
-}
-
+/* Text action pill */
 .text-action {
   flex-shrink: 0;
   height: 56rpx;
-  margin: 0;
+  line-height: 56rpx;
   padding: 0 24rpx;
   border-radius: 999rpx;
-  background: #EAF7F1;
-  color: #0F6A4A;
   font-size: 24rpx;
-  line-height: 56rpx;
-  font-weight: 600;
-  border: none;
 }
 
-.text-action::after {
-  border: none;
-}
-
-/* ---------- 表单元素 ---------- */
+/* ---------- 表单元素 · UI 3.0 ---------- */
 .input,
 .textarea,
 .picker {
@@ -309,18 +290,19 @@ page {
   padding: 24rpx 28rpx;
   box-sizing: border-box;
   border-radius: 24rpx;
-  border: 2rpx solid #E5E7EB;
-  background: #F9FAFB;
+  border: 2rpx solid #E8ECF0;
+  background: #FAFBFC;
   font-size: 28rpx;
-  color: #111827;
-  transition: border-color 0.15s, background 0.15s;
+  color: #1A1A1A;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
 .input:focus,
 .textarea:focus,
 .picker:focus {
-  border-color: #0F6A4A;
+  border-color: #1B7A56;
   background: #FFFFFF;
+  box-shadow: 0 0 0 6rpx rgba(27, 122, 86, 0.08);
 }
 
 .textarea {
@@ -334,19 +316,26 @@ page {
   justify-content: space-between;
 }
 
-/* ---------- 进度条 ---------- */
-.progress {
+/* ---------- 进度条 · 渐变填充 ---------- */
+.progress,
+.owner-progress,
+.project-progress,
+.hero-progress,
+.manager-progress {
   height: 16rpx;
   margin: 22rpx 0 12rpx;
   overflow: hidden;
   border-radius: 999rpx;
-  background: #E5E7EB;
+  background: #E8ECF0;
 }
 
-.progress-bar {
+.progress-bar,
+.owner-progress-bar,
+.project-progress-bar {
   height: 100%;
   border-radius: 999rpx;
-  background: linear-gradient(90deg, #0F6A4A 0%, #1F8B61 100%);
+  background: linear-gradient(90deg, #1B7A56 0%, #2AA876 100%);
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ---------- 空状态 ---------- */
@@ -359,9 +348,9 @@ page {
 }
 
 .empty-title {
-  color: #6B7280;
+  color: #5C5C5C;
   font-size: 32rpx;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 12rpx;
 }
 
@@ -372,7 +361,7 @@ page {
   padding: 0 28rpx;
   border-radius: 999rpx;
   background: #F3F4F6;
-  color: #6B7280;
+  color: #5C5C5C;
   font-size: 26rpx;
   line-height: 64rpx;
   white-space: nowrap;
@@ -380,13 +369,15 @@ page {
 }
 
 .filter-tab-active {
-  background: #0F6A4A;
+  background: linear-gradient(135deg, #1B7A56 0%, #2AA876 100%);
   color: #FFFFFF;
-  font-weight: 600;
+  font-weight: 700;
+  box-shadow: 0 4rpx 12rpx rgba(27, 122, 86, 0.2);
 }
 
 /* ---------- 章节标题行 ---------- */
-.section-head {
+.section-head,
+.page-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -394,386 +385,41 @@ page {
   margin: 8rpx 0 20rpx;
 }
 
-/* ---------- picker 箭头 ---------- */
+/* ---------- picker 箭头 · 绿色药丸按钮 ---------- */
 .picker-arrow {
-  color: #9CA3AF;
-  font-size: 24rpx;
-  flex-shrink: 0;
-}
-
-/* ---------- 图片圆角通用 ---------- */
-photo,
-image {
-  border-radius: 28rpx;
-}
-
-/* ---------- 安全区底部留白 ---------- */
-.safe-bottom {
-  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
-}
-
-/* ================================================================
-   UI 1.1 · 晟景品牌视觉统一层
-   方向：深绿顶栏 + 暖米色底 + 轻卡片 + 克制按钮
-   ================================================================ */
-page {
-  background: #F8F4EA;
-  color: #173E33;
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-  letter-spacing: 0;
-}
-
-.page {
-  padding: 28rpx 28rpx calc(40rpx + env(safe-area-inset-bottom));
-}
-
-.section {
-  margin-bottom: 24rpx;
-}
-
-.title,
-.page-title {
-  color: #173E33;
-  font-size: 40rpx;
-  line-height: 1.25;
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
-.sub-title,
-.card-title,
-.section-title,
-.form-section-title {
-  color: #173E33;
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
-.muted,
-.muted-sm {
-  color: #6C776F;
-}
-
-.card {
-  background: #FFFDF7;
-  border: 1rpx solid #E9DDC8;
-  border-radius: 18rpx;
-  box-shadow: 0 10rpx 28rpx rgba(24, 57, 45, 0.07);
-}
-
-.card:active {
-  opacity: 0.96;
-}
-
-.tag,
-.status-tag {
-  min-height: 42rpx;
-  padding: 0 18rpx;
-  border-radius: 999rpx;
-  background: #DDF1E9;
-  color: #147657;
-  font-size: 22rpx;
-  line-height: 42rpx;
-  font-weight: 700;
-}
-
-.tag-success,
-.status-tag.approved {
-  background: #DDF1E9;
-  color: #147657;
-}
-
-.tag-warning,
-.status-tag.pending {
-  background: #F5EBD6;
-  color: #9A6B24;
-}
-
-.tag-danger,
-.status-tag.rejected {
-  background: #F7E3DF;
-  color: #C24E45;
-}
-
-.tag-info,
-.status-tag.completed {
-  background: #EFEAE0;
-  color: #6C776F;
-}
-
-.button-primary,
-.small-button {
-  height: 88rpx;
-  line-height: 88rpx;
-  border-radius: 12rpx;
-  background: #147657;
-  color: #FFFFFF;
-  font-size: 28rpx;
-  font-weight: 700;
-  box-shadow: none;
-}
-
-.button-secondary,
-.text-action {
-  border-radius: 12rpx;
-  background: #F1E7D4;
-  color: #147657;
-  font-weight: 700;
-  box-shadow: none;
-}
-
-.button-share {
-  border-radius: 12rpx;
-  background: #0B4F3D;
-  color: #FFFFFF;
-  font-weight: 700;
-}
-
-.button-danger {
-  border-radius: 12rpx;
-  background: #C85B50;
-  color: #FFFFFF;
-  font-weight: 700;
-}
-
-.button-primary[disabled],
-.button-secondary[disabled],
-.button-share[disabled] {
-  opacity: 0.55;
-}
-
-.input,
-.textarea,
-.picker {
-  min-height: 84rpx;
-  border: 1rpx solid #E9DDC8;
-  border-radius: 10rpx;
-  background: #FFFFFF;
-  color: #173E33;
-  font-size: 26rpx;
-}
-
-.textarea {
-  min-height: 168rpx;
-}
-
-.input:focus,
-.textarea:focus,
-.picker:focus {
-  border-color: #147657;
-  background: #FFFFFF;
-}
-
-.progress,
-.owner-progress,
-.project-progress,
-.hero-progress,
-.manager-progress {
-  background: #E4DCCB;
-}
-
-.progress-bar,
-.owner-progress-bar,
-.project-progress-bar {
-  background: #147657;
-}
-
-.empty {
-  color: #6C776F;
-}
-
-.empty-title {
-  color: #173E33;
-}
-
-.filter-tab {
-  min-height: 58rpx;
-  padding: 0 22rpx;
-  border-radius: 10rpx;
-  background: #F1E7D4;
-  color: #6C776F;
-  font-size: 24rpx;
-  line-height: 58rpx;
-}
-
-.filter-tab-active {
-  background: #147657;
-  color: #FFFFFF;
-}
-
-.section-head,
-.page-header {
-  margin-bottom: 20rpx;
-}
-
-image {
-  border-radius: 12rpx;
-}
-
-/* ================================================================
-   UI 1.2 · 按 figma-import 高保真设计系统收敛
-   来源：figma-import/assets/common.css，不新增业务能力
-   ================================================================ */
-page {
-  background: #F8FAF9;
-  color: #111827;
-  font-size: 28rpx;
-  line-height: 1.5;
-}
-
-.page {
-  padding: 32rpx;
-  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
-  background: #F8FAF9;
-}
-
-.section {
-  margin-bottom: 32rpx;
-}
-
-.title,
-.page-title {
-  color: #111827;
-  font-size: 44rpx;
-  line-height: 1.25;
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
-.sub-title,
-.card-title,
-.section-title,
-.form-section-title {
-  color: #111827;
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
-.muted {
-  color: #6B7280;
-}
-
-.muted-sm {
-  color: #9CA3AF;
-}
-
-.card {
-  background: #FFFFFF;
-  border: none;
-  border-radius: 32rpx;
-  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
-}
-
-.tag,
-.status-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 48rpx;
   padding: 0 20rpx;
   border-radius: 999rpx;
-  background: #EAF7F1;
-  color: #0F6A4A;
+  background: #1B7A56;
+  color: #FFFFFF;
   font-size: 24rpx;
-  line-height: 48rpx;
   font-weight: 600;
+  line-height: 48rpx;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.tag-success,
-.status-tag.approved {
-  background: #EAF7F1;
-  color: #0F6A4A;
+/* ---------- picker 显示行 · flex 布局容纳更换按钮 ---------- */
+.picker-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
 }
 
-.tag-warning,
-.status-tag.pending {
-  background: #FEF3C7;
-  color: #F59E0B;
+.picker-value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
 }
 
-.tag-danger,
-.status-tag.rejected {
-  background: #FEE2E2;
-  color: #D9534F;
-}
-
-.tag-info,
-.status-tag.completed {
-  background: #F3F4F6;
-  color: #6B7280;
-}
-
-.button-primary,
-.small-button {
-  height: 96rpx;
-  line-height: 96rpx;
-  border-radius: 28rpx;
-  background: #0F6A4A;
-  color: #FFFFFF;
-  font-size: 30rpx;
-  font-weight: 700;
-  box-shadow: none;
-}
-
-.button-secondary,
-.text-action {
-  border-radius: 28rpx;
-  background: #EAF7F1;
-  color: #0F6A4A;
-  font-weight: 700;
-  box-shadow: none;
-}
-
-.button-share {
-  border-radius: 28rpx;
-  background: #111827;
-  color: #FFFFFF;
-  font-weight: 700;
-  box-shadow: none;
-}
-
-.button-danger {
-  border-radius: 28rpx;
-  background: #D9534F;
-  color: #FFFFFF;
-  font-weight: 700;
-}
-
-.input,
-.textarea,
-.picker {
-  border: 2rpx solid #E5E7EB;
+/* ---------- 图片圆角通用 ---------- */
+image {
   border-radius: 24rpx;
-  background: #FFFFFF;
-  color: #111827;
-}
-
-.input:focus,
-.textarea:focus,
-.picker:focus {
-  border-color: #0F6A4A;
-}
-
-.progress,
-.owner-progress,
-.project-progress,
-.hero-progress,
-.manager-progress {
-  background: #E5E7EB;
-}
-
-.progress-bar,
-.owner-progress-bar,
-.project-progress-bar {
-  background: #0F6A4A;
-}
-
-.filter-tab {
-  border-radius: 999rpx;
-  background: #F3F4F6;
-  color: #6B7280;
-}
-
-.filter-tab-active {
-  background: #0F6A4A;
-  color: #FFFFFF;
 }
 
 .image-grid-box,
@@ -783,6 +429,7 @@ page {
   gap: 16rpx;
 }
 
-image {
-  border-radius: 24rpx;
+/* ---------- 安全区底部留白 ---------- */
+.safe-bottom {
+  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
 }

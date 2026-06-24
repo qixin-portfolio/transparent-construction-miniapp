@@ -4,11 +4,18 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
 const _ = db.command
+const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
+const DEFAULT_TENANT_NAME = '晟景装饰'
 
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
-  return { openid: OPENID, user: res.data[0] || null }
+  const user = res.data[0] || null
+  if (user && !user.tenantId) {
+    user.tenantId = DEFAULT_TENANT_ID
+    user.tenantName = DEFAULT_TENANT_NAME
+  }
+  return { openid: OPENID, user }
 }
 
 async function safeRemoveWhere(collectionName, where) {
@@ -50,15 +57,19 @@ exports.main = async (event) => {
 
     const projectRes = await db.collection('projects').doc(projectId).get()
     if (!projectRes.data) throw new Error('工地不存在')
+    const tenantId = user.tenantId || DEFAULT_TENANT_ID
+    if (projectRes.data.tenantId && projectRes.data.tenantId !== tenantId) {
+      throw new Error('无权删除该工地')
+    }
 
-    const logsRes = await db.collection('stage_logs').where({ projectId }).limit(100).get()
+    const logsRes = await db.collection('stage_logs').where({ projectId, tenantId: _.in([tenantId, '', null]) }).limit(100).get()
     const logs = logsRes.data || []
     const logIds = logs.map((item) => item._id).filter(Boolean)
 
-    const photosRes = await db.collection('photos').where({ projectId }).limit(300).get()
+    const photosRes = await db.collection('photos').where({ projectId, tenantId: _.in([tenantId, '', null]) }).limit(300).get()
     const photos = photosRes.data || []
 
-    const drawingsRes = await db.collection('design_drawings').where({ projectId }).limit(200).get()
+    const drawingsRes = await db.collection('design_drawings').where({ projectId, tenantId: _.in([tenantId, '', null]) }).limit(200).get()
     const drawings = drawingsRes.data || []
 
     const fileIDs = []
@@ -75,15 +86,16 @@ exports.main = async (event) => {
 
     const removed = {
       cloudFiles: await safeDeleteFiles(fileIDs),
-      photos: await safeRemoveWhere('photos', { projectId }),
-      logs: await safeRemoveWhere('stage_logs', { projectId }),
-      drawings: await safeRemoveWhere('design_drawings', { projectId }),
-      members: await safeRemoveWhere('project_members', { projectId }),
-      bindCodes: await safeRemoveWhere('owner_bind_codes', { projectId })
+      photos: await safeRemoveWhere('photos', { projectId, tenantId: _.in([tenantId, '', null]) }),
+      logs: await safeRemoveWhere('stage_logs', { projectId, tenantId: _.in([tenantId, '', null]) }),
+      drawings: await safeRemoveWhere('design_drawings', { projectId, tenantId: _.in([tenantId, '', null]) }),
+      members: await safeRemoveWhere('project_members', { projectId, tenantId: _.in([tenantId, '', null]) }),
+      bindCodes: await safeRemoveWhere('owner_bind_codes', { projectId, tenantId: _.in([tenantId, '', null]) }),
+      workerBindCodes: await safeRemoveWhere('worker_project_bind_codes', { projectId, tenantId: _.in([tenantId, '', null]) })
     }
 
     if (logIds.length) {
-      removed.photosByLogs = await safeRemoveWhere('photos', { stageLogId: _.in(logIds) })
+      removed.photosByLogs = await safeRemoveWhere('photos', { stageLogId: _.in(logIds), tenantId: _.in([tenantId, '', null]) })
     }
 
     await db.collection('projects').doc(projectId).remove()

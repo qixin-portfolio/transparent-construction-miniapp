@@ -1,0 +1,70 @@
+<view class="page">
+  <view class="hero">
+    <view class="eyebrow">售后工单详情</view>
+    <view class="title">{{ticket.issueType || '售后报修'}}</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="card empty">正在加载工单...</view>
+  <view wx:elif="{{!ticket}}" class="card empty">工单不存在</view>
+
+  <block wx:else>
+    <view class="card">
+      <view class="row">
+        <view class="card-title">{{ticket.projectName || '晟景装饰项目'}}</view>
+        <view class="status">{{ticket.statusText}}</view>
+      </view>
+      <view class="desc">{{ticket.issueDescription || '未填写问题描述'}}</view>
+      <view class="info-row">
+        <view class="info-label">工单编号</view>
+        <view class="info-value">{{ticket.ticketNo || ticket._id}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">联系人</view>
+        <view class="info-value">{{ticket.contactName || '-'}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">联系电话</view>
+        <view class="info-value">{{ticket.contactPhone || '-'}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">期望上门时间</view>
+        <view class="info-value">{{ticket.expectedVisitTime || '-'}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{ticket.images.length}}" class="card">
+      <view class="card-title">报修图片</view>
+      <view class="photo-grid">
+        <view wx:for="{{ticket.images}}" wx:key="*this" class="photo-thumb" data-photos="{{ticket.images}}" data-index="{{index}}" bindtap="previewPhoto">
+          <image src="{{item}}" mode="aspectFill"></image>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">处理操作</view>
+      <view class="action-row">
+        <button wx:if="{{ticket.status === 'pending'}}" class="button-primary" loading="{{submitting}}" disabled="{{submitting}}" data-action="accept" bindtap="quickAction">受理</button>
+        <button wx:if="{{ticket.status === 'accepted' || ticket.status === 'assigned'}}" class="button-primary" loading="{{submitting}}" disabled="{{submitting}}" data-action="start_processing" bindtap="quickAction">标记处理中</button>
+        <button wx:if="{{ticket.status === 'processing'}}" class="button-primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="markWaitConfirm">待业主确认</button>
+        <button wx:if="{{ticket.status !== 'completed' && ticket.status !== 'closed'}}" class="button-secondary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="closeTicket">关闭工单</button>
+      </view>
+    </view>
+
+    <view wx:if="{{ticket.serviceResult}}" class="card">
+      <view class="card-title">处理结果</view>
+      <view class="desc">{{ticket.serviceResult}}</view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">处理记录</view>
+      <view wx:if="{{logs.length}}">
+        <view wx:for="{{logs}}" wx:key="_id" class="timeline-item">
+          <view class="timeline-title">{{item.actionText || item.action}}</view>
+          <view class="timeline-meta">{{item.remark || '-'}} · {{item.createdAtText || ''}}</view>
+        </view>
+      </view>
+      <view wx:else class="desc">暂无处理记录。</view>
+    </view>
+  </block>
+</view>

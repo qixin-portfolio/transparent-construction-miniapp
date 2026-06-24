@@ -4,20 +4,28 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
 
-const INVITABLE_ROLES = ['worker', 'designer', 'sales', 'boss_qi', 'boss_hu']
+const INVITABLE_ROLES = ['worker', 'project_manager', 'designer', 'sales', 'boss_qi', 'boss_hu']
 
 const ROLE_LABELS = {
   worker: '工长',
+  project_manager: '项目经理',
   designer: '设计师',
   sales: '销售',
   boss_qi: '老板（老齐）',
   boss_hu: '老板（老胡）'
 }
+const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
+const DEFAULT_TENANT_NAME = '晟景装饰'
 
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
-  return { openid: OPENID, user: res.data[0] || null }
+  const user = res.data[0] || null
+  if (user && !user.tenantId) {
+    user.tenantId = DEFAULT_TENANT_ID
+    user.tenantName = DEFAULT_TENANT_NAME
+  }
+  return { openid: OPENID, user }
 }
 
 exports.main = async (event) => {
@@ -61,10 +69,14 @@ exports.main = async (event) => {
     }
 
     const now = db.serverDate()
+    const tenantId = inviteCode.tenantId || user.tenantId || DEFAULT_TENANT_ID
+    const tenantName = inviteCode.tenantName || user.tenantName || DEFAULT_TENANT_NAME
     // 更新用户角色
     await db.collection('users').doc(user._id).update({
       data: {
         role: inviteCode.role,
+        tenantId,
+        tenantName,
         activatedAt: now,
         activatedByCode: code,
         updatedAt: now
@@ -77,6 +89,8 @@ exports.main = async (event) => {
         status: 'used',
         usedByOpenid: openid,
         usedByName: user.name || '',
+        tenantId,
+        tenantName,
         usedAt: now,
         updatedAt: now
       }

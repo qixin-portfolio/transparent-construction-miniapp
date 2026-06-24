@@ -2,20 +2,56 @@
   <!-- 用户信息大卡 -->
   <view class="profile-hero">
     <view wx:if="{{user}}" class="profile-user">
-      <view class="profile-avatar">{{user.name ? user.name[0] : '微'}}</view>
+      <image wx:if="{{user.avatarUrl}}" class="profile-avatar profile-avatar-image" src="{{user.avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="profile-avatar">{{user.avatarText || '微'}}</view>
       <view class="profile-user-info">
-        <view class="profile-user-name">{{user.name || '微信用户'}}</view>
-        <view class="profile-user-role">{{user.role || '未激活'}}</view>
+        <view class="profile-user-name">{{user.displayName || '微信用户'}}</view>
+        <view class="profile-user-role">{{roleLabel || user.role || '未激活'}}</view>
       </view>
-      <view class="profile-user-status tag {{user.status === 'active' ? 'tag-success' : 'tag-info'}}">{{user.status || '未登录'}}</view>
+      <view class="profile-user-status tag {{user.status === 'active' ? 'tag-success' : 'tag-info'}}">{{user.status === 'active' ? '已激活' : (user.status || '未登录')}}</view>
     </view>
     <view wx:else class="profile-guest">
-      <view class="profile-avatar profile-avatar-guest">👤</view>
+      <view class="profile-avatar profile-avatar-guest">微</view>
       <view class="profile-user-info">
         <view class="profile-user-name">尚未登录</view>
         <view class="profile-user-role">登录后展示角色和工具入口</view>
       </view>
     </view>
+    <view class="profile-role-strip {{canUseAiAssistant ? 'has-ai' : ''}}">
+      <view class="profile-role-cell active">
+        <view class="profile-role-label">当前身份</view>
+        <view class="profile-role-value">{{user ? (roleLabel || '待确认') : '未登录'}}</view>
+      </view>
+      <view class="profile-role-cell">
+        <view class="profile-role-label">常用入口</view>
+        <view class="profile-role-value">{{user ? (isOwner ? '进度' : (canReview ? '审核' : '工地')) : '登录'}}</view>
+      </view>
+      <view wx:if="{{canUseAiAssistant}}" class="profile-role-cell">
+        <view class="profile-role-label">AI工具</view>
+        <view class="profile-role-value">可用</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{user}}" class="profile-sync-card {{user.hasWechatProfile && !profileSyncEditing ? 'is-saved' : ''}}">
+    <view class="profile-sync-row">
+      <view class="profile-sync-mark">{{user.hasWechatProfile ? '名' : '微'}}</view>
+      <view class="profile-sync-copy">
+        <view class="profile-sync-title">{{user.hasWechatProfile ? '微信昵称已同步' : '同步微信昵称'}}</view>
+        <view class="profile-sync-desc">{{user.hasWechatProfile ? (user.displayName || '已保存') : '用于团队列表、日报记录里区分人员。'}}</view>
+      </view>
+      <view wx:if="{{user.hasWechatProfile && !profileSyncEditing}}" class="profile-sync-edit" bindtap="showProfileSyncEditor">修改</view>
+    </view>
+
+    <view wx:if="{{profileSyncEditing}}" class="profile-sync-form">
+      <input class="profile-nickname-input" type="nickname" placeholder="填写微信昵称" value="{{profileForm.nickName}}" bindinput="onNickNameInput" />
+      <button class="profile-avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image wx:if="{{profileForm.avatarUrl || user.avatarUrl}}" class="profile-sync-avatar" src="{{profileForm.avatarUrl || user.avatarUrl}}" mode="aspectFill"></image>
+        <view wx:else class="profile-sync-avatar-text">头像</view>
+      </button>
+      <button class="profile-sync-btn" loading="{{profileSaving}}" disabled="{{profileSaving}}" bindtap="saveWechatProfile">保存</button>
+    </view>
+    <view wx:if="{{profileSyncEditing && user.hasWechatProfile}}" class="profile-sync-cancel" bindtap="hideProfileSyncEditor">收起</view>
   </view>
 
   <view wx:if="{{user && !isOwner}}" class="profile-workflow-card">
@@ -56,7 +92,10 @@
       <view class="menu-item" bindtap="goProjects">
         <view class="menu-icon menu-icon-site">🏗</view>
         <view class="menu-copy">
-          <view class="menu-text">工地管理</view>
+          <view class="menu-title-row">
+            <view class="menu-text">工地管理</view>
+            <view class="menu-badge">常用</view>
+          </view>
           <view class="menu-desc">查看工地、进入图纸和日报</view>
         </view>
         <view class="menu-arrow">›</view>
@@ -64,7 +103,10 @@
       <view wx:if="{{canReview}}" class="menu-item" bindtap="goReview">
         <view class="menu-icon menu-icon-review">📋</view>
         <view class="menu-copy">
-          <view class="menu-text">审核日报</view>
+          <view class="menu-title-row">
+            <view class="menu-text">审核日报</view>
+            <view class="menu-badge warn">审核</view>
+          </view>
           <view class="menu-desc">审核后同步给业主查看</view>
         </view>
         <view class="menu-arrow">›</view>
@@ -72,7 +114,10 @@
       <view wx:if="{{canViewCustomers}}" class="menu-item" bindtap="goCustomers">
         <view class="menu-icon menu-icon-customer">👥</view>
         <view class="menu-copy">
-          <view class="menu-text">客户库</view>
+          <view class="menu-title-row">
+            <view class="menu-text">客户库</view>
+            <view class="menu-badge blue">转化</view>
+          </view>
           <view class="menu-desc">跟进预约线索和签单客户</view>
         </view>
         <view class="menu-arrow">›</view>
@@ -80,7 +125,10 @@
       <view wx:if="{{canManageStaff}}" class="menu-item" bindtap="goStaffManage">
         <view class="menu-icon menu-icon-staff">🔑</view>
         <view class="menu-copy">
-          <view class="menu-text">团队管理</view>
+          <view class="menu-title-row">
+            <view class="menu-text">团队管理</view>
+            <view class="menu-badge warn">管理</view>
+          </view>
           <view class="menu-desc">生成邀请码和查看已激活员工</view>
         </view>
         <view class="menu-arrow">›</view>
@@ -95,7 +143,10 @@
       <view class="menu-item" bindtap="goAiAssistant">
         <view class="menu-icon menu-icon-ai">✨</view>
         <view class="menu-copy">
-          <view class="menu-text">晟景AI助理</view>
+          <view class="menu-title-row">
+            <view class="menu-text">晟景AI助理</view>
+            <view class="menu-badge pink">话术</view>
+          </view>
           <view class="menu-desc">客户话术、报价解释、施工交底</view>
         </view>
         <view class="menu-arrow">›</view>
@@ -103,8 +154,11 @@
       <view wx:if="{{isOwner || !user}}" class="menu-item" bindtap="goOwnerProject">
         <view class="menu-icon menu-icon-owner">📱</view>
         <view class="menu-copy">
-          <view class="menu-text">业主进度页</view>
-          <view class="menu-desc">绑定后查看专属施工进度</view>
+          <view class="menu-title-row">
+            <view class="menu-text">我的项目</view>
+            <view class="menu-badge blue">业主</view>
+          </view>
+          <view class="menu-desc">查看名下工地、质保和售后入口</view>
         </view>
         <view class="menu-arrow">›</view>
       </view>
@@ -118,8 +172,11 @@
       <view class="menu-item" bindtap="goOwnerProject">
         <view class="menu-icon menu-icon-owner">📱</view>
         <view class="menu-copy">
-          <view class="menu-text">我的施工进度</view>
-          <view class="menu-desc">查看已审核的日报和现场照片</view>
+          <view class="menu-title-row">
+            <view class="menu-text">我的项目</view>
+            <view class="menu-badge blue">进度</view>
+          </view>
+          <view class="menu-desc">查看施工进度、质保卡和售后工单</view>
         </view>
         <view class="menu-arrow">›</view>
       </view>

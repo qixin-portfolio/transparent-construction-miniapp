@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "完工案例",
+  "navigationBarBackgroundColor": "#0D4D36",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "usingComponents": {}
+}

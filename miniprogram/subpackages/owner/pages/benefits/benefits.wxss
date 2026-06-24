@@ -1,0 +1,194 @@
+@import "../owner-lifecycle.wxss";
+
+/* ===== 四宫格权益卡片 ===== */
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18rpx;
+  margin-bottom: 24rpx;
+}
+
+.benefit-card {
+  padding: 28rpx 24rpx;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+  box-shadow: 0 4rpx 20rpx rgba(13, 77, 54, 0.06);
+  border: 2rpx solid transparent;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.benefit-card:active {
+  opacity: 0.92;
+  transform: scale(0.98);
+}
+
+.benefit-highlight {
+  background: linear-gradient(135deg, #FFFBF0 0%, #FFF8E1 100%);
+  border-color: #FFB800;
+  box-shadow: 0 4rpx 20rpx rgba(255, 184, 0, 0.15);
+}
+
+.benefit-type {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  color: #6B7280;
+  background: #F3F4F6;
+  font-size: 21rpx;
+  font-weight: 600;
+}
+
+.benefit-highlight .benefit-type {
+  color: #B78103;
+  background: rgba(255, 184, 0, 0.16);
+}
+
+.benefit-title {
+  margin-top: 14rpx;
+  color: #1A1A1A;
+  font-size: 32rpx;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+.benefit-highlight .benefit-title {
+  color: #92400E;
+}
+
+.benefit-desc {
+  margin-top: 8rpx;
+  color: #6B7280;
+  font-size: 23rpx;
+  line-height: 1.5;
+}
+
+/* ===== 推荐有礼三级激励 ===== */
+.referral-section {
+  padding-bottom: 28rpx;
+}
+
+.section-header {
+  position: relative;
+  padding-left: 20rpx;
+  color: #1A1A1A;
+  font-size: 30rpx;
+  font-weight: 800;
+  line-height: 1.4;
+  margin-bottom: 22rpx;
+}
+
+.section-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6rpx;
+  width: 6rpx;
+  height: 32rpx;
+  border-radius: 4rpx;
+  background: #1B7A56;
+}
+
+.referral-tiers {
+  display: flex;
+  gap: 16rpx;
+  align-items: stretch;
+}
+
+.tier-card {
+  flex: 1;
+  padding: 24rpx 16rpx;
+  border-radius: 20rpx;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.tier-small {
+  background: #F3F4F6;
+}
+
+.tier-medium {
+  background: #1B7A56;
+  color: #FFFFFF;
+}
+
+.tier-large {
+  background: #0D4D36;
+  color: #FFFFFF;
+  flex: 1.3;
+}
+
+.tier-amount {
+  font-size: 34rpx;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.tier-label {
+  margin-top: 8rpx;
+  font-size: 25rpx;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.tier-desc {
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  line-height: 1.4;
+  opacity: 0.75;
+}
+
+.tier-small .tier-amount,
+.tier-small .tier-label {
+  color: #374151;
+}
+
+.tier-small .tier-desc {
+  color: #6B7280;
+}
+
+/* ===== 规则说明 ===== */
+.rules-section,
+.auth-section,
+.incentive-section {
+  padding-bottom: 28rpx;
+}
+
+.rules-text,
+.incentive-text {
+  color: #4B5563;
+  font-size: 25rpx;
+  line-height: 1.65;
+}
+
+/* ===== 案例授权流程 ===== */
+.auth-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.auth-step {
+  display: flex;
+  gap: 16rpx;
+  align-items: flex-start;
+}
+
+.step-num {
+  width: 44rpx;
+  height: 44rpx;
+  min-width: 44rpx;
+  border-radius: 50%;
+  background: #E8F5EE;
+  color: #1B7A56;
+  font-size: 24rpx;
+  font-weight: 800;
+  text-align: center;
+  line-height: 44rpx;
+}
+
+.step-text {
+  color: #374151;
+  font-size: 26rpx;
+  line-height: 44rpx;
+}

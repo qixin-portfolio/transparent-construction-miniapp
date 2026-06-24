@@ -108,7 +108,7 @@
 .upload-page {
   min-height: 100vh;
   padding: 24rpx 28rpx calc(48rpx + env(safe-area-inset-bottom));
-  background: #F8F4EA;
+  background: #FAFBFC;
   box-sizing: border-box;
 }
 
@@ -117,21 +117,21 @@
 }
 
 .page-title {
-  color: #173E33;
+  color: #1A1A1A;
   font-size: 40rpx;
   font-weight: 800;
 }
 
 .form-card {
   margin-bottom: 16rpx;
-  border: 1rpx solid #E9DDC8;
+  border: 1rpx solid #E8ECF0;
   border-radius: 12rpx;
-  background: #FFFDF7;
+  background: #FFFFFF;
   box-shadow: none;
 }
 
 .form-label {
-  color: #173E33;
+  color: #1A1A1A;
   font-weight: 800;
 }
 
@@ -147,17 +147,17 @@
 
 .photo-wrap,
 .photo-add {
-  border: 1rpx solid #E9DDC8;
+  border: 1rpx solid #E8ECF0;
   border-radius: 12rpx;
-  background: #F1E7D4;
+  background: #F3F4F6;
 }
 
 .photo-remove {
-  background: #C24E45;
+  background: #DC2626;
 }
 
 .photo-add-icon {
-  color: #147657;
+  color: #1B7A56;
   font-weight: 700;
 }
 
@@ -167,7 +167,7 @@
 
 .submit-area .button-primary {
   border-radius: 12rpx;
-  background: #147657;
+  background: #1B7A56;
 }
 
 /* UI 1.2 · 上传日报 */
@@ -175,7 +175,7 @@
   min-height: 100vh;
   padding: 32rpx;
   padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
-  background: #F8FAF9;
+  background: #FAFBFC;
 }
 
 .page-title {
@@ -200,26 +200,48 @@
 .photo-add {
   border: none;
   border-radius: 24rpx;
-  background: #F8FAF9;
+  background: #FAFBFC;
 }
 
 .submit-area .button-primary {
   border-radius: 28rpx;
-  background: #0F6A4A;
+  background: #1B7A56;
 }
 
 /* Stage 1 · 日报审核链路提示 */
-.report-flow-card {
+.report-flow-card,
+.report-tip-card {
   margin-bottom: 24rpx;
   padding: 32rpx;
   border-radius: 32rpx;
-  background: #0F6A4A;
+  background: #1B7A56;
   color: #FFFFFF;
 }
 
 .report-flow-title {
   font-size: 32rpx;
   font-weight: 800;
+}
+
+.report-tip-card {
+  padding: 24rpx 28rpx;
+  border-radius: 24rpx;
+  background: #E8F5EE;
+  color: #1B7A56;
+  box-shadow: none;
+}
+
+.report-tip-title {
+  font-size: 28rpx;
+  line-height: 1.35;
+  font-weight: 900;
+}
+
+.report-tip-desc {
+  margin-top: 6rpx;
+  color: #5E6B62;
+  font-size: 23rpx;
+  line-height: 1.4;
 }
 
 .report-flow-desc {
@@ -246,7 +268,7 @@
 
 .report-flow-step.active {
   background: #FFFFFF;
-  color: #0F6A4A;
+  color: #1B7A56;
 }
 
 .report-flow-line {
@@ -269,4 +291,576 @@
 .submit-note {
   margin-bottom: 16rpx;
   text-align: center;
+}
+
+/* UI 4.0 · 照片可信型日报上传 */
+.upload-page {
+  padding: 28rpx 28rpx calc(56rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.page-header {
+  margin-top: 8rpx;
+}
+
+.report-flow-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 32rpx;
+  background: linear-gradient(150deg, #0D4D36 0%, #1B7A56 58%, #2AA876 100%);
+  box-shadow: 0 18rpx 48rpx rgba(13, 77, 54, 0.12);
+}
+
+.report-flow-card::after {
+  content: "";
+  position: absolute;
+  top: -90rpx;
+  right: -90rpx;
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 50%;
+  background: rgba(255, 184, 0, 0.12);
+}
+
+.report-flow-title,
+.report-flow-desc,
+.report-flow-steps {
+  position: relative;
+  z-index: 2;
+}
+
+.form-card {
+  margin-bottom: 18rpx;
+  padding: 28rpx;
+  border-radius: 32rpx;
+}
+
+.form-label {
+  margin-bottom: 14rpx;
+}
+
+.photo-guide-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 18rpx;
+}
+
+.photo-guide-chip {
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: #E8F5EE;
+  color: #1B7A56;
+  font-size: 22rpx;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.photo-grid {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14rpx;
+}
+
+.photo-wrap,
+.photo-add {
+  height: 220rpx;
+  border-radius: 20rpx;
+  transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s ease;
+}
+
+.photo-wrap:active,
+.photo-add:active {
+  opacity: 0.9;
+  transform: scale(0.985);
+}
+
+.photo-add {
+  border: 2rpx dashed #B9D9CC;
+  background: linear-gradient(180deg, #F7FCF9 0%, #FFFFFF 100%);
+}
+
+.photo-add-icon {
+  color: #1B7A56;
+}
+
+.submit-area {
+  margin-top: 24rpx;
+  padding: 18rpx 0 0;
+}
+
+.ai-draft-card {
+  margin-bottom: 20rpx;
+  padding: 30rpx;
+  border-radius: 32rpx;
+  background: #FFFFFF;
+  box-shadow: 0 12rpx 36rpx rgba(15, 23, 42, 0.04);
+}
+
+.ai-draft-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-bottom: 20rpx;
+}
+
+.quick-note {
+  min-height: 150rpx;
+  background: #FAFBFC;
+}
+
+.quick-actions,
+.submit-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14rpx;
+  margin-top: 18rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quick-actions .button-secondary,
+.quick-actions .button-primary,
+.submit-actions .button-secondary,
+.submit-actions .button-primary {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 78rpx;
+  line-height: 78rpx;
+  border-radius: 24rpx;
+  font-size: 25rpx;
+  padding: 0 8rpx;
+  white-space: nowrap;
+}
+
+.quick-actions .button-primary {
+  grid-column: 1 / -1;
+}
+
+.submit-actions {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+}
+
+.voice-status {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 18rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 22rpx;
+  background: #E8F5EE;
+}
+
+.voice-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #1B7A56;
+  flex-shrink: 0;
+}
+
+.voice-text {
+  flex: 1;
+  min-width: 0;
+  color: #1B7A56;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.voice-remove {
+  flex-shrink: 0;
+  color: #DC2626;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.recording-tip {
+  margin-top: 14rpx;
+  color: #B45309;
+  font-size: 24rpx;
+}
+
+.quick-step-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12rpx;
+  margin: 4rpx 0 18rpx;
+}
+
+.quick-step {
+  height: 54rpx;
+  line-height: 54rpx;
+  border-radius: 18rpx;
+  background: #F3F4F6;
+  color: #6B7280;
+  font-size: 23rpx;
+  font-weight: 800;
+  text-align: center;
+}
+
+.quick-step.active {
+  background: #E8F5EE;
+  color: #1B7A56;
+}
+
+.ai-result-card {
+  margin-top: 16rpx;
+  padding: 20rpx;
+  border-radius: 22rpx;
+  background: #FAFBFC;
+  border: 1rpx solid #E8ECF0;
+}
+
+.ai-result-card.owner-preview {
+  background: #F6FBF8;
+  border-color: #D7EFE2;
+}
+
+.ai-result-title {
+  color: #111827;
+  font-size: 24rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.ai-result-text {
+  margin-top: 8rpx;
+  color: #4B5563;
+  font-size: 24rpx;
+  line-height: 1.55;
+}
+
+.ai-warning {
+  margin-top: 14rpx;
+  padding: 16rpx 18rpx;
+  border-radius: 18rpx;
+  background: #FFF8E1;
+  color: #A16207;
+  font-size: 23rpx;
+  line-height: 1.45;
+}
+
+/* UI 4.3 · 日报上传按行动顺序组织 */
+.upload-page {
+  background: #F7F8F4;
+  overflow-x: hidden;
+}
+
+.page-header {
+  margin-top: 0;
+  margin-bottom: 22rpx;
+}
+
+.page-kicker {
+  margin-bottom: 8rpx;
+  color: #1B7A56;
+  font-size: 23rpx;
+  line-height: 1.25;
+  font-weight: 900;
+}
+
+.page-title {
+  letter-spacing: 0;
+}
+
+.report-flow-card {
+  border-radius: 28rpx;
+  background: linear-gradient(150deg, #0D4D36 0%, #1B7A56 66%, #278F67 100%);
+  box-shadow: 0 18rpx 42rpx rgba(13, 77, 54, 0.12);
+}
+
+.report-flow-card::after {
+  display: none;
+}
+
+.report-flow-step {
+  border-radius: 14rpx;
+}
+
+.report-flow-meta {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10rpx;
+  margin-top: 20rpx;
+}
+
+.report-flow-meta-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52rpx;
+  padding: 0 8rpx;
+  border-radius: 14rpx;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 22rpx;
+  line-height: 1.2;
+  font-weight: 800;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.ai-draft-card,
+.form-card {
+  border: 1rpx solid rgba(27, 122, 86, 0.07);
+  border-radius: 26rpx;
+  box-shadow: 0 12rpx 34rpx rgba(31, 45, 38, 0.045);
+}
+
+.ai-draft-head {
+  gap: 14rpx;
+}
+
+.ai-draft-head .sub-title,
+.form-label,
+.photo-section .sub-title {
+  letter-spacing: 0;
+}
+
+.quick-step-row {
+  gap: 10rpx;
+}
+
+.quick-step {
+  border-radius: 14rpx;
+}
+
+.quick-note,
+.textarea {
+  border-radius: 18rpx;
+  background: #FBFCF8;
+}
+
+.stage-card {
+  padding: 28rpx;
+  padding-bottom: 30rpx;
+}
+
+.top-stage-card {
+  margin-bottom: 20rpx;
+}
+
+.stage-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-bottom: 18rpx;
+}
+
+.stage-card-head .form-label {
+  margin-bottom: 6rpx;
+}
+
+.stage-card-desc {
+  color: #6B7280;
+  font-size: 23rpx;
+  line-height: 1.35;
+}
+
+.stage-change-hint {
+  flex-shrink: 0;
+  min-height: 44rpx;
+  padding: 0 18rpx;
+  border-radius: 14rpx;
+  background: #E8F5EE;
+  color: #1B7A56;
+  font-size: 22rpx;
+  line-height: 44rpx;
+  font-weight: 900;
+}
+
+.stage-picker-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  min-height: 116rpx;
+  padding: 22rpx 22rpx 22rpx 24rpx;
+  border: 2rpx solid #B9D9CC;
+  border-radius: 22rpx;
+  background: linear-gradient(180deg, #F7FCF9 0%, #FFFFFF 100%);
+  box-shadow: inset 0 0 0 1rpx rgba(27, 122, 86, 0.04);
+  box-sizing: border-box;
+}
+
+.stage-picker-card:active {
+  background: #EEF8F2;
+}
+
+.stage-picker-card.disabled {
+  border-color: #E5E7EB;
+  background: #F8FAF9;
+  box-shadow: none;
+}
+
+.stage-picker-card.disabled:active {
+  background: #F8FAF9;
+}
+
+.stage-picker-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.stage-picker-kicker {
+  color: #1B7A56;
+  font-size: 22rpx;
+  line-height: 1.25;
+  font-weight: 900;
+}
+
+.stage-picker-name {
+  display: -webkit-box;
+  margin-top: 8rpx;
+  overflow: hidden;
+  color: #111827;
+  font-size: 34rpx;
+  line-height: 1.28;
+  font-weight: 900;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.stage-picker-side {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12rpx;
+}
+
+.stage-progress-pill {
+  min-height: 42rpx;
+  padding: 0 16rpx;
+  border-radius: 14rpx;
+  background: #FFF8E1;
+  color: #8A5A00;
+  font-size: 21rpx;
+  line-height: 42rpx;
+  font-weight: 900;
+}
+
+.stage-progress-pill.muted-pill {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+.stage-change-btn {
+  min-height: 44rpx;
+  padding: 0 16rpx;
+  border-radius: 14rpx;
+  background: #1B7A56;
+  color: #FFFFFF;
+  font-size: 22rpx;
+  line-height: 44rpx;
+  font-weight: 900;
+}
+
+.completed-stage-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 16rpx;
+  color: #6B7280;
+  font-size: 22rpx;
+  line-height: 38rpx;
+}
+
+.completed-stage-label {
+  font-weight: 800;
+}
+
+.completed-stage-chip {
+  padding: 0 12rpx;
+  border-radius: 999rpx;
+  background: #F3F4F6;
+  color: #6B7280;
+  font-size: 21rpx;
+}
+
+.work-card {
+  border-left: 8rpx solid #1B7A56;
+}
+
+.risk-card {
+  border-left: 8rpx solid #F59E0B;
+}
+
+.confirm-card {
+  border-left: 8rpx solid #8B7CFF;
+}
+
+.plan-card {
+  border-left: 8rpx solid #86A99A;
+}
+
+.photo-guide-row {
+  gap: 10rpx;
+}
+
+.photo-guide-chip {
+  border-radius: 14rpx;
+  background: #EDF6F1;
+}
+
+.photo-grid {
+  gap: 12rpx;
+}
+
+.photo-wrap,
+.photo-add {
+  height: 212rpx;
+  border-radius: 18rpx;
+}
+
+.photo-add {
+  border-color: #C7DED3;
+  background: #FBFCF8;
+}
+
+.photo-remove {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 14rpx;
+  line-height: 44rpx;
+}
+
+.submit-area {
+  margin-top: 18rpx;
+}
+
+.submit-note {
+  color: #5E6B62;
+}
+
+.quick-actions .button-secondary,
+.quick-actions .button-primary,
+.submit-actions .button-secondary,
+.submit-actions .button-primary {
+  border-radius: 18rpx;
+  font-weight: 800;
+}
+
+.voice-status,
+.ai-result-card,
+.ai-warning {
+  border-radius: 18rpx;
+}
+
+@media (max-width: 360px) {
+  .report-flow-meta,
+  .quick-actions,
+  .submit-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions .button-primary {
+    grid-column: auto;
+  }
 }

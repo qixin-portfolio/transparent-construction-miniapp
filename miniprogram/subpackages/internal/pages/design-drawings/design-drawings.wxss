@@ -15,11 +15,19 @@
   display: flex;
   align-items: center;
   gap: 20rpx;
+  overflow: hidden;
 }
 
 .header-copy {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
+}
+
+.header-copy .sub-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-icon {
@@ -27,7 +35,7 @@
   width: 72rpx;
   height: 72rpx;
   border-radius: 22rpx;
-  background: #EAF7F1;
+  background: #E8F5EE;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,12 +45,25 @@
 
 .header-upload-btn {
   flex-shrink: 0;
-  width: 144rpx;
-  height: 72rpx;
-  line-height: 72rpx;
-  border-radius: 22rpx;
-  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 64rpx;
+  line-height: 1;
+  padding: 0 32rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(135deg, #1B7A56 0%, #2AA876 100%);
+  color: #FFFFFF;
   font-size: 26rpx;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4rpx 12rpx rgba(27, 122, 86, 0.2);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.header-upload-btn-hover {
+  opacity: 0.88;
+  transform: scale(0.97);
 }
 
 .drawing-flow {
@@ -51,7 +72,7 @@
   margin-top: 28rpx;
   padding: 24rpx;
   border-radius: 28rpx;
-  background: #F8FAF9;
+  background: #FAFBFC;
 }
 
 .drawing-flow-step {
@@ -75,7 +96,7 @@
 }
 
 .drawing-flow-step.done .drawing-flow-dot {
-  background: #0F6A4A;
+  background: #1B7A56;
   color: #FFFFFF;
 }
 
@@ -87,7 +108,7 @@
 }
 
 .drawing-flow-step.done .drawing-flow-text {
-  color: #0F6A4A;
+  color: #1B7A56;
   font-weight: 700;
 }
 
@@ -108,12 +129,12 @@
 .drawing-stat {
   padding: 18rpx 8rpx;
   border-radius: 24rpx;
-  background: #F8FAF9;
+  background: #FAFBFC;
   text-align: center;
 }
 
 .drawing-stat-value {
-  color: #0F6A4A;
+  color: #1B7A56;
   font-size: 34rpx;
   font-weight: 800;
   line-height: 1.1;
@@ -257,8 +278,8 @@
 
 .drawing-space-tag {
   font-size: 22rpx;
-  color: #0F6A4A;
-  background: #EAF7F1;
+  color: #1B7A56;
+  background: #E8F5EE;
   padding: 6rpx 20rpx;
   border-radius: 999rpx;
   flex-shrink: 0;
@@ -292,8 +313,8 @@
 }
 
 .drawing-state-pill.visible {
-  background: #EAF7F1;
-  color: #0F6A4A;
+  background: #E8F5EE;
+  color: #1B7A56;
 }
 
 .drawing-state-pill.hidden {
@@ -318,7 +339,7 @@
 
 .drawing-readby {
   font-size: 22rpx;
-  color: #0F6A4A;
+  color: #1B7A56;
   margin-top: 6rpx;
 }
 
@@ -345,7 +366,7 @@
 }
 
 .read-tag {
-  color: #0F6A4A;
+  color: #1B7A56;
   font-size: 26rpx;
   padding: 16rpx 24rpx;
   font-weight: 500;
@@ -504,7 +525,7 @@
 .drawings-page {
   min-height: 100vh;
   padding: 24rpx 28rpx calc(48rpx + env(safe-area-inset-bottom));
-  background: #F8F4EA;
+  background: #FAFBFC;
   box-sizing: border-box;
 }
 
@@ -512,40 +533,40 @@
 .filter-section,
 .drawing-card,
 .modal-content {
-  border: 1rpx solid #E9DDC8;
+  border: 1rpx solid #E8ECF0;
   border-radius: 12rpx;
-  background: #FFFDF7;
+  background: #FFFFFF;
   box-shadow: none;
 }
 
 .header-icon {
   border-radius: 10rpx;
-  background: #DDF1E9;
-  color: #147657;
+  background: #E8F5EE;
+  color: #1B7A56;
 }
 
 .drawing-image-wrap,
 .temp-image-wrap,
 .choose-btn {
   border-radius: 12rpx;
-  background: #D7CDB8;
+  background: #E8ECF0;
 }
 
 .drawing-title,
 .modal-title {
-  color: #173E33;
+  color: #1A1A1A;
   font-weight: 800;
 }
 
 .drawing-space-tag,
 .read-tag {
   border-radius: 999rpx;
-  background: #DDF1E9;
-  color: #147657;
+  background: #E8F5EE;
+  color: #1B7A56;
 }
 
 .drawing-type-badge {
-  background: #147657;
+  background: #1B7A56;
 }
 
 .confirmed-badge {
@@ -563,13 +584,13 @@
 .picker-value,
 .form-input,
 .form-textarea {
-  border: 1rpx solid #E9DDC8;
+  border: 1rpx solid #E8ECF0;
   border-radius: 10rpx;
   background: #FFFFFF;
 }
 
 .temp-image-remove {
-  background: #C24E45;
+  background: #DC2626;
 }
 
 /* UI 1.2 · 设计图纸 */
@@ -577,7 +598,7 @@
   min-height: 100vh;
   padding: 32rpx;
   padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
-  background: #F8FAF9;
+  background: #FAFBFC;
 }
 
 .header-card,
@@ -591,8 +612,8 @@
 }
 
 .header-icon {
-  background: #EAF7F1;
-  color: #0F6A4A;
+  background: #E8F5EE;
+  color: #1B7A56;
 }
 
 .drawing-image-wrap,
@@ -603,7 +624,7 @@
 }
 
 .drawing-type-badge {
-  background: #0F6A4A;
+  background: #1B7A56;
 }
 
 .picker-value,

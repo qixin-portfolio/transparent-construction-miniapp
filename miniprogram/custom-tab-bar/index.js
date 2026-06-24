@@ -1,15 +1,16 @@
 Component({
   data: {
     selected: 0,
-    list: [
-      { pagePath: '/pages/workbench/workbench', text: '首页', icon: 'home' },
-      { pagePath: '/pages/projects/projects', text: '工地', icon: 'site' },
-      { pagePath: '/pages/profile/profile', text: '我的', icon: 'user' }
-    ]
+    list: []
+  },
+
+  attached() {
+    this.buildList()
   },
 
   pageLifetimes: {
     show() {
+      this.buildList()
       const pages = getCurrentPages()
       const current = pages[pages.length - 1]
       if (!current) return
@@ -24,9 +25,29 @@ Component({
   },
 
   methods: {
+    buildList() {
+      var app = getApp()
+      var user = app.globalData.user
+      var isOwner = user && user.role === 'owner'
+
+      var list = isOwner
+        ? [
+            { pagePath: '/pages/workbench/workbench', text: '工地', icon: 'site' },
+            { pagePath: '/pages/projects/projects', text: '晟景', icon: 'brand' },
+            { pagePath: '/pages/profile/profile', text: '我的', icon: 'user' }
+          ]
+        : [
+            { pagePath: '/pages/workbench/workbench', text: '首页', icon: 'home' },
+            { pagePath: '/pages/projects/projects', text: '工地', icon: 'site' },
+            { pagePath: '/pages/profile/profile', text: '我的', icon: 'user' }
+          ]
+
+      this.setData({ list: list })
+    },
+
     switchTab(e) {
-      const index = e.currentTarget.dataset.index
-      const item = this.data.list[index]
+      var index = e.currentTarget.dataset.index
+      var item = this.data.list[index]
       if (!item) return
       wx.switchTab({ url: item.pagePath })
     }

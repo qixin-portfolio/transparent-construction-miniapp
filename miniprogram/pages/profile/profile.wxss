@@ -10,7 +10,7 @@
   margin: 24rpx 0 0;
   padding: 40rpx 36rpx;
   border-radius: 40rpx;
-  background: linear-gradient(135deg, #0F6A4A 0%, #1F8B61 100%);
+  background: linear-gradient(135deg, #1B7A56 0%, #2AA876 100%);
   color: #FFFFFF;
 }
 
@@ -115,7 +115,7 @@
   line-height: 1;
 }
 
-.menu-icon-site { background: #EAF7F1; }
+.menu-icon-site { background: #E8F5EE; }
 .menu-icon-review { background: #FEF3C7; }
 .menu-icon-customer { background: #DBEAFE; }
 .menu-icon-staff { background: #EDE9FE; }
@@ -147,37 +147,37 @@
 .profile-page {
   min-height: 100vh;
   padding: 24rpx 28rpx calc(136rpx + env(safe-area-inset-bottom));
-  background: #F8F4EA;
+  background: #FAFBFC;
   box-sizing: border-box;
 }
 
 .profile-hero {
-  border: 1rpx solid #E9DDC8;
+  border: 1rpx solid #E8ECF0;
   border-radius: 12rpx;
-  background: #FFFDF7;
+  background: #FFFFFF;
   box-shadow: none;
 }
 
 .profile-avatar {
-  background: #DDF1E9;
-  color: #147657;
+  background: #E8F5EE;
+  color: #1B7A56;
 }
 
 .profile-user-name,
 .profile-section-title,
 .menu-text {
-  color: #173E33;
+  color: #1A1A1A;
   font-weight: 800;
 }
 
 .profile-user-role {
-  color: #6C776F;
+  color: #5C5C5C;
 }
 
 .profile-menu {
-  border: 1rpx solid #E9DDC8;
+  border: 1rpx solid #E8ECF0;
   border-radius: 12rpx;
-  background: #FFFDF7;
+  background: #FFFFFF;
   box-shadow: none;
 }
 
@@ -191,12 +191,12 @@
 
 .menu-icon-site,
 .menu-icon-owner {
-  background: #DDF1E9;
+  background: #E8F5EE;
 }
 
 .menu-icon-review,
 .menu-icon-staff {
-  background: #F5EBD6;
+  background: #FEF3C7;
 }
 
 .menu-icon-customer,
@@ -205,7 +205,7 @@
 }
 
 .menu-arrow {
-  color: #147657;
+  color: #1B7A56;
 }
 
 .profile-login-area {
@@ -216,7 +216,7 @@
 .profile-page {
   min-height: 100vh;
   padding: 32rpx 32rpx calc(148rpx + env(safe-area-inset-bottom));
-  background: #F8FAF9;
+  background: #FAFBFC;
 }
 
 .profile-hero,
@@ -228,8 +228,8 @@
 }
 
 .profile-avatar {
-  background: #EAF7F1;
-  color: #0F6A4A;
+  background: #E8F5EE;
+  color: #1B7A56;
 }
 
 .profile-user-name,
@@ -284,8 +284,8 @@
   min-height: 44rpx;
   padding: 0 18rpx;
   border-radius: 999rpx;
-  background: #EAF7F1;
-  color: #0F6A4A;
+  background: #E8F5EE;
+  color: #1B7A56;
   font-size: 22rpx;
   font-weight: 800;
   line-height: 44rpx;
@@ -318,7 +318,7 @@
 }
 
 .profile-workflow-step.done .profile-workflow-dot {
-  background: #0F6A4A;
+  background: #1B7A56;
   color: #FFFFFF;
 }
 
@@ -330,7 +330,7 @@
 }
 
 .profile-workflow-step.done .profile-workflow-text {
-  color: #0F6A4A;
+  color: #1B7A56;
   font-weight: 700;
 }
 
@@ -355,4 +355,381 @@
   color: #6B7280;
   font-size: 23rpx;
   line-height: 1.35;
+}
+
+/* UI 4.3 · 我的页角色入口清晰化 */
+.profile-page {
+  background: #F7F8F4;
+  overflow-x: hidden;
+}
+
+.profile-hero,
+.profile-workflow-card,
+.profile-menu {
+  border: 1rpx solid rgba(27, 122, 86, 0.07);
+  border-radius: 26rpx;
+  box-shadow: 0 12rpx 34rpx rgba(31, 45, 38, 0.045);
+}
+
+.profile-hero {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FBFCF8 100%);
+}
+
+.profile-user,
+.profile-guest {
+  align-items: flex-start;
+}
+
+.profile-avatar {
+  border-radius: 20rpx;
+}
+
+.profile-user-name {
+  display: -webkit-box;
+  overflow: hidden;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.profile-user-status {
+  max-width: 140rpx;
+  overflow: hidden;
+  border-radius: 14rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-role-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12rpx;
+  margin-top: 28rpx;
+}
+
+.profile-role-cell {
+  min-width: 0;
+  padding: 18rpx 12rpx;
+  border-radius: 18rpx;
+  background: #F4F8F5;
+  text-align: center;
+}
+
+.profile-role-cell.active {
+  background: #1B7A56;
+}
+
+.profile-role-label {
+  color: #6B7280;
+  font-size: 20rpx;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.profile-role-cell.active .profile-role-label {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.profile-role-value {
+  margin-top: 8rpx;
+  overflow: hidden;
+  color: #111827;
+  font-size: 25rpx;
+  line-height: 1.25;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-role-cell.active .profile-role-value {
+  color: #FFFFFF;
+}
+
+.profile-workflow-card {
+  border-radius: 26rpx;
+  background: #FFFFFF;
+}
+
+.profile-workflow-tag {
+  border-radius: 14rpx;
+}
+
+.profile-workflow-steps {
+  gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.profile-workflow-steps::-webkit-scrollbar {
+  display: none;
+}
+
+.profile-workflow-step {
+  min-width: 104rpx;
+}
+
+.profile-section {
+  margin-top: 30rpx;
+}
+
+.profile-section-title {
+  padding: 0 4rpx;
+  color: #374151;
+}
+
+.profile-menu {
+  overflow: hidden;
+}
+
+.menu-item {
+  align-items: flex-start;
+  gap: 18rpx;
+  padding: 26rpx 24rpx;
+}
+
+.menu-icon {
+  border-radius: 18rpx;
+}
+
+.menu-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-width: 0;
+}
+
+.menu-title-row .menu-text {
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-badge {
+  flex-shrink: 0;
+  min-height: 38rpx;
+  padding: 0 14rpx;
+  border-radius: 12rpx;
+  background: #E8F5EE;
+  color: #1B7A56;
+  font-size: 20rpx;
+  line-height: 38rpx;
+  font-weight: 900;
+}
+
+.menu-badge.warn {
+  background: #FFF8E1;
+  color: #8A5A00;
+}
+
+.menu-badge.blue {
+  background: #EAF2FF;
+  color: #2563EB;
+}
+
+.menu-badge.pink {
+  background: #FCE7F3;
+  color: #BE185D;
+}
+
+.menu-desc {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.menu-arrow {
+  padding-top: 12rpx;
+}
+
+.profile-login-area .button-primary,
+.profile-login-area .button-secondary {
+  border-radius: 18rpx;
+}
+
+@media (max-width: 360px) {
+  .profile-role-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-workflow-line {
+    min-width: 28rpx;
+  }
+
+  .menu-title-row {
+    flex-wrap: wrap;
+  }
+}
+
+/* 微信资料授权 · 全角色通用 */
+.profile-avatar-image {
+  display: block;
+  overflow: hidden;
+  background: #E8F5EE;
+}
+
+.profile-role-strip {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profile-role-strip.has-ai {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.profile-sync-card {
+  margin-top: 18rpx;
+  padding: 22rpx 24rpx;
+  border: 1rpx solid rgba(27, 122, 86, 0.07);
+  border-radius: 22rpx;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FBFCF8 100%);
+  box-shadow: 0 8rpx 24rpx rgba(31, 45, 38, 0.035);
+  box-sizing: border-box;
+}
+
+.profile-sync-card.is-saved {
+  padding: 18rpx 22rpx;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.profile-sync-row {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.profile-sync-mark {
+  flex-shrink: 0;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 18rpx;
+  background: #E8F5EE;
+  color: #1B7A56;
+  font-size: 24rpx;
+  line-height: 56rpx;
+  font-weight: 900;
+  text-align: center;
+}
+
+.profile-sync-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-sync-title {
+  color: #111827;
+  font-size: 27rpx;
+  line-height: 1.3;
+  font-weight: 900;
+}
+
+.profile-sync-desc {
+  margin-top: 4rpx;
+  overflow: hidden;
+  color: #6B7280;
+  font-size: 22rpx;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-sync-edit {
+  flex-shrink: 0;
+  min-width: 80rpx;
+  min-height: 48rpx;
+  padding: 0 16rpx;
+  border-radius: 14rpx;
+  background: #E8F5EE;
+  color: #1B7A56;
+  font-size: 22rpx;
+  line-height: 48rpx;
+  font-weight: 900;
+  text-align: center;
+}
+
+.profile-sync-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72rpx 104rpx;
+  gap: 12rpx;
+  align-items: center;
+  margin-top: 18rpx;
+}
+
+.profile-avatar-picker {
+  width: 72rpx;
+  height: 72rpx;
+  margin: 0;
+  padding: 0;
+  border-radius: 18rpx;
+  background: #E8F5EE;
+  overflow: hidden;
+}
+
+.profile-avatar-picker::after {
+  border: none;
+}
+
+.profile-sync-avatar,
+.profile-sync-avatar-text {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 18rpx;
+}
+
+.profile-sync-avatar {
+  display: block;
+}
+
+.profile-sync-avatar-text {
+  color: #1B7A56;
+  font-size: 20rpx;
+  line-height: 72rpx;
+  font-weight: 900;
+  text-align: center;
+}
+
+.profile-nickname-input {
+  min-width: 0;
+  height: 72rpx;
+  padding: 0 20rpx;
+  border-radius: 18rpx;
+  background: #F7F8F4;
+  color: #111827;
+  font-size: 27rpx;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+.profile-sync-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 72rpx;
+  margin: 0;
+  border-radius: 18rpx;
+  background: #1B7A56;
+  color: #FFFFFF;
+  font-size: 26rpx;
+  line-height: 72rpx;
+  font-weight: 900;
+}
+
+.profile-sync-btn::after {
+  border: none;
+}
+
+.profile-sync-btn[disabled] {
+  background: #C8DBD2;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.profile-sync-cancel {
+  margin-top: 16rpx;
+  color: #6B7280;
+  font-size: 22rpx;
+  line-height: 1.4;
+  font-weight: 800;
+  text-align: center;
 }

@@ -3,6 +3,8 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
+const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
+const DEFAULT_TENANT_NAME = '晟景装饰'
 
 exports.main = async () => {
   try {
@@ -15,6 +17,18 @@ exports.main = async () => {
       if (user.status !== 'active') {
         throw new Error('账号已停用，请联系管理员')
       }
+      if (!user.tenantId) {
+        const now = db.serverDate()
+        await users.doc(user._id).update({
+          data: {
+            tenantId: DEFAULT_TENANT_ID,
+            tenantName: DEFAULT_TENANT_NAME,
+            updatedAt: now
+          }
+        })
+        user.tenantId = DEFAULT_TENANT_ID
+        user.tenantName = DEFAULT_TENANT_NAME
+      }
       return { user }
     }
 
@@ -26,6 +40,8 @@ exports.main = async () => {
       name: isFirstUser ? '初始管理员' : '',
       phone: '',
       role: isFirstUser ? 'admin' : 'owner',
+      tenantId: DEFAULT_TENANT_ID,
+      tenantName: DEFAULT_TENANT_NAME,
       status: 'active',
       createdAt: now,
       updatedAt: now

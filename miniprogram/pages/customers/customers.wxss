@@ -134,8 +134,8 @@
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
-  background: #0F6A4A;
-  box-shadow: 0 12rpx 32rpx rgba(15, 106, 74, 0.35);
+  background: linear-gradient(135deg, #1B7A56 0%, #2AA876 100%);
+  box-shadow: 0 8rpx 24rpx rgba(27, 122, 86, 0.3), 0 16rpx 40rpx rgba(27, 122, 86, 0.15);
 }
 
 .fab:active {
@@ -160,7 +160,7 @@
 .customers-page {
   min-height: 100vh;
   padding: 24rpx 28rpx calc(136rpx + env(safe-area-inset-bottom));
-  background: #F8F4EA;
+  background: #FAFBFC;
   box-sizing: border-box;
 }
 
@@ -169,15 +169,15 @@
 }
 
 .page-title {
-  color: #173E33;
+  color: #1A1A1A;
   font-size: 40rpx;
   font-weight: 800;
 }
 
 .search-bar {
-  border: 1rpx solid #E9DDC8;
+  border: 1rpx solid #E8ECF0;
   border-radius: 10rpx;
-  background: #FFFDF7;
+  background: #FFFFFF;
   box-shadow: none;
 }
 
@@ -187,24 +187,24 @@
 
 .customer-card,
 .customer-empty {
-  border: 1rpx solid #E9DDC8;
+  border: 1rpx solid #E8ECF0;
   border-radius: 12rpx;
-  background: #FFFDF7;
+  background: #FFFFFF;
   box-shadow: none;
 }
 
 .customer-name {
-  color: #173E33;
+  color: #1A1A1A;
   font-weight: 800;
 }
 
 .customer-info-row,
 .customer-info-item {
-  color: #6C776F;
+  color: #5C5C5C;
 }
 
 .customer-card-arrow {
-  color: #147657;
+  color: #1B7A56;
 }
 
 .fab {
@@ -213,15 +213,15 @@
   width: 106rpx;
   height: 106rpx;
   border-radius: 28rpx;
-  background: #147657;
-  box-shadow: 0 10rpx 24rpx rgba(20, 118, 87, 0.22);
+  background: linear-gradient(135deg, #1B7A56 0%, #2AA876 100%);
+  box-shadow: 0 8rpx 24rpx rgba(27, 122, 86, 0.3), 0 16rpx 40rpx rgba(27, 122, 86, 0.15);
 }
 
 /* UI 1.2 · 客户库对齐 Figma 白卡 CRM */
 .customers-page {
   min-height: 100vh;
   padding: 32rpx 32rpx calc(148rpx + env(safe-area-inset-bottom));
-  background: #F8FAF9;
+  background: #FAFBFC;
 }
 
 .page-title {
@@ -270,7 +270,7 @@
 
 .fab {
   border-radius: 50%;
-  background: #0F6A4A;
+  background: linear-gradient(135deg, #1B7A56 0%, #2AA876 100%);
 }
 
 /* Stage 2 · 客户转化闭环 */
@@ -307,7 +307,7 @@
   flex-shrink: 0;
   padding: 12rpx 22rpx;
   border-radius: 18rpx;
-  background: #0F6A4A;
+  background: #1B7A56;
   color: #FFFFFF;
   font-size: 24rpx;
   font-weight: 800;
@@ -323,12 +323,12 @@
   min-width: 0;
   padding: 20rpx 8rpx;
   border-radius: 24rpx;
-  background: #F8FAF9;
+  background: #FAFBFC;
   text-align: center;
 }
 
 .customer-stat-num {
-  color: #0F6A4A;
+  color: #1B7A56;
   font-size: 36rpx;
   line-height: 1.1;
   font-weight: 800;
@@ -370,7 +370,7 @@
   margin-top: 18rpx;
   padding: 18rpx 20rpx;
   border-radius: 22rpx;
-  background: #F8FAF9;
+  background: #FAFBFC;
 }
 
 .next-label {
@@ -383,9 +383,218 @@
 .next-text {
   min-width: 0;
   flex: 1;
-  color: #0F6A4A;
+  color: #1B7A56;
   font-size: 24rpx;
   line-height: 1.35;
   font-weight: 800;
   text-align: right;
+}
+
+/* UI 4.3 · 客户库跟进看板 */
+.customers-page {
+  background: #F7F8F4;
+  overflow-x: hidden;
+}
+
+.page-header {
+  margin-top: 0;
+}
+
+.customer-flow-panel,
+.search-bar,
+.customer-card,
+.customer-empty {
+  border: 1rpx solid rgba(27, 122, 86, 0.07);
+  border-radius: 26rpx;
+  box-shadow: 0 12rpx 34rpx rgba(31, 45, 38, 0.045);
+}
+
+.customer-flow-panel {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FBFCF8 100%);
+}
+
+.customer-flow-head {
+  gap: 16rpx;
+}
+
+.customer-flow-action {
+  border-radius: 16rpx;
+}
+
+.customer-stat-row {
+  gap: 10rpx;
+}
+
+.customer-stat-item {
+  border-radius: 18rpx;
+  background: #F4F8F5;
+}
+
+.customer-stat-label {
+  word-break: keep-all;
+}
+
+.customer-focus-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.customer-focus-item {
+  min-width: 0;
+  padding: 18rpx 20rpx;
+  border-radius: 18rpx;
+  background: #1B7A56;
+  color: #FFFFFF;
+}
+
+.customer-focus-item:nth-child(2) {
+  background: #FFF8E1;
+  color: #8A5A00;
+}
+
+.customer-focus-label {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 21rpx;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.customer-focus-item:nth-child(2) .customer-focus-label {
+  color: rgba(138, 90, 0, 0.72);
+}
+
+.customer-focus-value {
+  margin-top: 8rpx;
+  overflow: hidden;
+  font-size: 26rpx;
+  line-height: 1.25;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-bar {
+  height: 84rpx;
+  border-radius: 22rpx;
+}
+
+.stage-filter {
+  margin-bottom: 22rpx;
+}
+
+.stage-filter-inner {
+  gap: 12rpx;
+}
+
+.customer-list {
+  gap: 18rpx;
+}
+
+.customer-card {
+  padding: 26rpx 64rpx 26rpx 26rpx;
+}
+
+.customer-card-head {
+  align-items: flex-start;
+}
+
+.customer-title-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-width: 0;
+  flex: 1;
+}
+
+.customer-avatar {
+  flex-shrink: 0;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 18rpx;
+  background: #E8F5EE;
+  color: #1B7A56;
+  font-size: 28rpx;
+  line-height: 64rpx;
+  font-weight: 900;
+  text-align: center;
+}
+
+.customer-name {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 31rpx;
+  line-height: 1.28;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.customer-card .tag {
+  flex-shrink: 0;
+  max-width: 144rpx;
+  overflow: hidden;
+  border-radius: 14rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customer-info-row {
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-left: 80rpx;
+}
+
+.customer-info-item {
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.customer-next-box {
+  margin-left: 80rpx;
+  border-radius: 18rpx;
+  background: #F4F8F5;
+}
+
+.next-text {
+  word-break: break-word;
+  white-space: normal;
+}
+
+.customer-delete-btn {
+  margin-left: 80rpx;
+  border-radius: 16rpx;
+}
+
+.customer-card-arrow {
+  right: 24rpx;
+  color: #1B7A56;
+}
+
+.fab {
+  width: 108rpx;
+  height: 108rpx;
+  box-shadow: 0 12rpx 28rpx rgba(27, 122, 86, 0.22);
+}
+
+@media (max-width: 360px) {
+  .customer-stat-row,
+  .customer-focus-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .customer-card {
+    padding-right: 26rpx;
+  }
+
+  .customer-card-arrow {
+    display: none;
+  }
+
+  .customer-info-row,
+  .customer-next-box,
+  .customer-delete-btn {
+    margin-left: 0;
+  }
 }

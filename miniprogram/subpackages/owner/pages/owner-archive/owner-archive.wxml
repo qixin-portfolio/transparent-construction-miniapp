@@ -1,0 +1,190 @@
+<view class="lifecycle-page">
+  <!-- 模块1：顶部档案头图区 -->
+  <view class="lifecycle-hero">
+    <view class="lifecycle-eyebrow">我的家装档案</view>
+    <view class="lifecycle-title">{{project.name || '我的家'}}</view>
+    <view class="hero-meta">
+      <view wx:if="{{archive.houseInfo.community}}" class="hero-meta-item">{{archive.houseInfo.community}}</view>
+      <view class="hero-pill">{{project.status || '已交付'}}</view>
+    </view>
+    <view wx:if="{{archive.houseInfo.deliveredAt}}" class="hero-date">交付日期：{{archive.houseInfo.deliveredAt}}</view>
+    <view class="lifecycle-desc">房屋信息、图纸资料、施工节点和完工资料都保存在这里。</view>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="lifecycle-card empty-block">
+    <view class="empty-title">正在加载档案...</view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:elif="{{showEmpty}}" class="lifecycle-card empty-block">
+    <view class="empty-title">档案待整理</view>
+    <view class="empty-desc">完工资料整理后，会在这里展示房屋信息、服务团队、施工节点、图纸资料和完工照片。</view>
+    <button class="button-primary" bindtap="callService">联系晟景客服</button>
+  </view>
+
+  <!-- 有数据 -->
+  <block wx:else>
+    <!-- 模块2：档案完整度卡 -->
+    <view class="lifecycle-card completeness-card">
+      <view class="lifecycle-card-title">档案整理进度</view>
+      <view class="completeness-stats">
+        <view class="stat-item">
+          <view class="stat-num">{{archive.archivedCount || 0}}</view>
+          <view class="stat-label">已归档</view>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <view class="stat-num">{{archive.missingCount || 0}}</view>
+          <view class="stat-label">待补充</view>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <view class="stat-num">{{archive.completenessPercent || 0}}%</view>
+          <view class="stat-label">完整度</view>
+        </view>
+      </view>
+      <view class="completeness-bar">
+        <view class="completeness-bar-fill" style="width: {{archive.completenessPercent || 0}}%"></view>
+      </view>
+      <view class="completeness-status">
+        <view class="status-pill {{archive.archiveStatus === 'completed' ? 'pill-green' : 'pill-yellow'}}">{{archive.statusText}}</view>
+        <view wx:if="{{archive.lastUpdatedAt}}" class="completeness-time">最近更新：{{archive.lastUpdatedAt}}</view>
+      </view>
+      <view class="completeness-desc">
+        <block wx:if="{{archive.archiveStatus === 'pending'}}">档案待整理，完工资料整理后会在这里展示房屋信息、节点照片和团队信息。</block>
+        <block wx:elif="{{archive.archiveStatus === 'organizing'}}">档案整理中，部分资料已归档，后续会继续补充图纸、照片和验收记录。</block>
+        <block wx:elif="{{archive.archiveStatus === 'completed'}}">档案已整理完成，您可以随时查看房屋信息、施工节点、完工照片和相关资料。</block>
+      </view>
+    </view>
+
+    <!-- 模块3：房屋信息卡 -->
+    <view class="lifecycle-card">
+      <view class="lifecycle-card-title">房屋信息</view>
+      <view class="info-grid">
+        <view class="info-cell">
+          <view class="info-cell-label">小区名称</view>
+          <view class="info-cell-value">{{archive.houseInfo.community || '暂未填写'}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-cell-label">楼栋房号</view>
+          <view class="info-cell-value">{{archive.houseInfo.building ? archive.houseInfo.building + '栋' : ''}}{{archive.houseInfo.room ? archive.houseInfo.room + '室' : (archive.houseInfo.building ? '' : '暂未填写')}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-cell-label">户型</view>
+          <view class="info-cell-value">{{archive.houseInfo.layout || '暂未填写'}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-cell-label">面积</view>
+          <view class="info-cell-value">{{archive.houseInfo.area ? archive.houseInfo.area + '㎡' : '暂未填写'}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-cell-label">装修风格</view>
+          <view class="info-cell-value">{{archive.houseInfo.style || '暂未填写'}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-cell-label">开工日期</view>
+          <view class="info-cell-value">{{archive.houseInfo.startDate || '暂未填写'}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-cell-label">竣工日期</view>
+          <view class="info-cell-value">{{archive.houseInfo.completedAt || '暂未填写'}}</view>
+        </view>
+        <view class="info-cell">
+          <view class="info-cell-label">交付日期</view>
+          <view class="info-cell-value">{{archive.houseInfo.deliveredAt || '暂未填写'}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 模块4：服务团队卡 -->
+    <view class="lifecycle-card">
+      <view class="lifecycle-card-title">服务团队</view>
+      <view class="team-list">
+        <view wx:if="{{archive.teamInfo.designer.name}}" class="team-item">
+          <view class="team-avatar">{{archive.teamInfo.designer.role[0]}}</view>
+          <view class="team-info">
+            <view class="team-name">{{archive.teamInfo.designer.name}}</view>
+            <view class="team-role">{{archive.teamInfo.designer.role}}</view>
+          </view>
+          <view wx:if="{{archive.teamInfo.designer.phone}}" class="team-phone" bindtap="callService">联系</view>
+        </view>
+        <view wx:if="{{archive.teamInfo.projectManager.name}}" class="team-item">
+          <view class="team-avatar">{{archive.teamInfo.projectManager.role[0]}}</view>
+          <view class="team-info">
+            <view class="team-name">{{archive.teamInfo.projectManager.name}}</view>
+            <view class="team-role">{{archive.teamInfo.projectManager.role}}</view>
+          </view>
+          <view wx:if="{{archive.teamInfo.projectManager.phone}}" class="team-phone" bindtap="callService">联系</view>
+        </view>
+        <view wx:if="{{archive.teamInfo.foreman.name}}" class="team-item">
+          <view class="team-avatar">{{archive.teamInfo.foreman.role[0]}}</view>
+          <view class="team-info">
+            <view class="team-name">{{archive.teamInfo.foreman.name}}</view>
+            <view class="team-role">{{archive.teamInfo.foreman.role}}</view>
+          </view>
+          <view wx:if="{{archive.teamInfo.foreman.phone}}" class="team-phone" bindtap="callService">联系</view>
+        </view>
+        <view wx:if="{{!archive.teamInfo.designer.name && !archive.teamInfo.foreman.name && !archive.teamInfo.projectManager.name}}" class="empty-desc">暂未填写团队信息</view>
+      </view>
+      <button class="button-secondary" bindtap="callService">联系晟景客服</button>
+    </view>
+
+    <!-- 模块5：资料分类入口 -->
+    <view class="lifecycle-card">
+      <view class="lifecycle-card-title">归档资料</view>
+      <view class="section-grid">
+        <view wx:for="{{sectionsList}}" wx:key="key" class="section-entry {{item.hasData ? '' : (item.canSupplement ? 'section-supplement' : 'section-empty')}}" data-key="{{item.key}}" bindtap="goSection">
+          <view class="section-icon">{{item.icon}}</view>
+          <view class="section-title">{{item.title}}</view>
+          <view class="section-desc">{{item.desc}}</view>
+          <view class="section-count {{item.hasData ? 'count-active' : (item.canSupplement ? 'count-supplement' : '')}}">{{item.countText}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 模块6：关键施工节点 -->
+    <view class="lifecycle-card">
+      <view class="lifecycle-card-title">关键施工节点</view>
+      <view wx:if="{{archive.milestones.length}}" class="milestone-list">
+        <view wx:for="{{archive.milestones}}" wx:key="_id" class="milestone-item">
+          <view class="milestone-dot"></view>
+          <view class="milestone-content">
+            <view class="milestone-head">
+              <view class="milestone-title">{{item.title}}</view>
+              <view class="milestone-status">{{item.status}}</view>
+            </view>
+            <view class="milestone-date">{{item.date}}</view>
+            <view wx:if="{{item.description}}" class="milestone-desc">{{item.description}}</view>
+            <view wx:if="{{item.photos.length}}" class="milestone-photos">
+              <image wx:for="{{item.photos}}" wx:for-item="photo" wx:key="*this" class="milestone-photo" src="{{photo}}" mode="aspectFill" data-current="{{photo}}" data-urls="{{item.photos}}" bindtap="previewPhoto"></image>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="empty-desc">暂无施工节点记录，晟景工作人员上传后会在这里展示。</view>
+      <button wx:if="{{archive.milestones.length}}" class="button-secondary" bindtap="goTimeline">查看完整施工时间线</button>
+    </view>
+
+    <!-- 模块7：完工照片 -->
+    <view class="lifecycle-card">
+      <view class="lifecycle-card-title">完工照片</view>
+      <view wx:if="{{archive.completionPhotos.length}}" class="photo-wall">
+        <image wx:for="{{archive.completionPhotos}}" wx:key="*this" class="photo-thumb" src="{{item}}" mode="aspectFill" data-current="{{item}}" data-urls="{{archive.completionPhotos}}" bindtap="previewPhoto"></image>
+      </view>
+      <view wx:else class="empty-desc">完工照片待补充，晟景整理后会展示在这里。</view>
+    </view>
+
+    <!-- 模块8：资料补充提示 -->
+    <view class="lifecycle-card supplement-card">
+      <block wx:if="{{archive.missingCount > 0}}">
+        <view class="supplement-text">部分资料正在整理中，如需补充图纸、照片或交付资料，可联系晟景客服。</view>
+        <button class="button-primary" bindtap="callService">联系晟景客服</button>
+      </block>
+      <block wx:else>
+        <view class="supplement-text">您的家装档案已整理完成，如需售后服务，可返回完工服务页面选择对应功能。</view>
+        <button class="button-primary" bindtap="goBack">返回完工服务</button>
+      </block>
+    </view>
+  </block>
+</view>

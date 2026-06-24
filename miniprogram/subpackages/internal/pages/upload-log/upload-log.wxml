@@ -1,50 +1,106 @@
 <view class="upload-page">
   <!-- 标题区 -->
   <view class="page-header">
+    <view class="page-kicker">透明工地日报</view>
     <view class="page-title">上传工序日报</view>
     <view class="muted">{{projectName || '当前工地'}}</view>
   </view>
 
-  <view class="report-flow-card">
-    <view class="report-flow-title">提交后进入审核</view>
-    <view class="report-flow-desc">工长上传现场内容，管理员审核通过后，业主端才会展示。</view>
-    <view class="report-flow-steps">
-      <view class="report-flow-step active">上传</view>
-      <view class="report-flow-line"></view>
-      <view class="report-flow-step">审核</view>
-      <view class="report-flow-line"></view>
-      <view class="report-flow-step">业主可见</view>
-    </view>
+  <view class="report-tip-card">
+    <view class="report-tip-title">先选工序节点，再录入日报</view>
+    <view class="report-tip-desc">提交后进入审核，审核通过后业主端可见。</view>
   </view>
 
   <!-- 工地信息卡 + 阶段选择 -->
-  <view class="card form-card">
-    <view class="form-label">工序节点</view>
-    <picker mode="selector" range="{{stages}}" range-key="name" value="{{stageIndex}}" bindchange="onStageChange">
-      <view class="picker">
-        <text>{{stages[stageIndex].name}}</text>
-        <text class="picker-arrow">进度 {{stages[stageIndex].progress}}%</text>
+  <view class="card form-card stage-card top-stage-card">
+    <view class="stage-card-head">
+      <view>
+        <view class="form-label">工序节点</view>
+        <view class="stage-card-desc">同一节点可多日提交，今天本人已提交的节点不可重复选择</view>
+      </view>
+      <view class="stage-change-hint">{{stageLoading ? '同步中' : '可选择'}}</view>
+    </view>
+    <picker wx:if="{{stages.length}}" mode="selector" range="{{stages}}" range-key="name" value="{{stageIndex}}" bindchange="onStageChange">
+      <view class="stage-picker-card">
+        <view class="stage-picker-main">
+          <view class="stage-picker-kicker">当前节点</view>
+          <view class="stage-picker-name">{{stages[stageIndex].name}}</view>
+        </view>
+        <view class="stage-picker-side">
+          <view class="stage-progress-pill">进度 {{stages[stageIndex].progress}}%</view>
+          <view class="picker-arrow">更换 ›</view>
+        </view>
       </view>
     </picker>
+    <view wx:else class="stage-picker-card disabled">
+      <view class="stage-picker-main">
+        <view class="stage-picker-kicker">当前节点</view>
+        <view class="stage-picker-name">今天可选节点已提交</view>
+      </view>
+      <view class="stage-picker-side">
+        <view class="stage-progress-pill muted-pill">不可选择</view>
+      </view>
+    </view>
+    <view wx:if="{{submittedStageStats.length}}" class="completed-stage-list">
+      <text class="completed-stage-label">历史记录：</text>
+      <text wx:for="{{submittedStageStats}}" wx:key="*this" class="completed-stage-chip">{{item}}</text>
+    </view>
+  </view>
+
+  <view class="card ai-draft-card">
+    <view class="ai-draft-head">
+      <view>
+        <view class="sub-title">语音/文字快速录入</view>
+        <view class="muted">微信语音识别转文字，AI 自动整理成可编辑日报。</view>
+      </view>
+      <view wx:if="{{draftLoaded}}" class="tag tag-info">草稿 {{draftSavedAtText}}</view>
+    </view>
+    <view class="quick-step-row">
+      <view class="quick-step active">1 录音</view>
+      <view class="quick-step">2 拍照</view>
+      <view class="quick-step">3 AI 回填</view>
+    </view>
+    <textarea class="textarea quick-note" placeholder="可选：补一句现场情况，例如：水电开槽完成，厨房插座位置需要和业主确认。" value="{{quickNote}}" bindinput="onQuickNoteInput"></textarea>
+    <view class="quick-actions">
+      <button class="button-secondary" disabled="{{recording || aiGenerating || voiceUploading}}" bindtap="startRecording">{{voiceTempPath ? '重新录制' : '开始录制'}}</button>
+      <button class="button-secondary" disabled="{{!recording || aiGenerating || voiceUploading}}" bindtap="stopRecording">停止录制</button>
+      <button class="button-secondary" bindtap="saveDraft">保存草稿</button>
+      <button class="button-primary" loading="{{aiGenerating || voiceUploading}}" disabled="{{aiGenerating || voiceUploading}}" bindtap="generateAiReport">{{aiGenerating ? '识别整理中' : 'AI 识别并整理'}}</button>
+    </view>
+    <view wx:if="{{voiceTempPath}}" class="voice-status">
+      <view class="voice-dot"></view>
+      <view class="voice-text">已录入 {{voiceDuration || 1}} 秒语音备注，{{voiceTranscript ? '已完成文字识别。' : (voiceUploaded ? '已上传云端归档。' : '提交时会上传归档。')}}</view>
+      <view class="voice-remove" bindtap="removeVoice">移除</view>
+    </view>
+    <view wx:if="{{recording}}" class="recording-tip">正在录音，点击“停止录制”结束。</view>
+    <view wx:if="{{voiceTranscript}}" class="ai-result-card">
+      <view class="ai-result-title">语音识别原文</view>
+      <view class="ai-result-text">{{voiceTranscript}}</view>
+    </view>
+    <view wx:if="{{ownerSummary}}" class="ai-result-card owner-preview">
+      <view class="ai-result-title">业主端友好文案</view>
+      <view class="ai-result-text">{{ownerSummary}}</view>
+    </view>
+    <view wx:if="{{aiWarning}}" class="ai-warning">{{aiWarning}}</view>
   </view>
 
   <!-- 表单内容 -->
-  <view class="card form-card">
-    <view class="form-label">今日完成</view>
-    <textarea class="textarea" placeholder="今天完成了哪些工序..." value="{{form.workContent}}" data-key="workContent" bindinput="onInput"></textarea>
+  <view class="card form-card work-card">
+    <view class="form-label">今日完成 <text wx:if="{{sourceType !== 'manual'}}" class="form-label-hint">（AI 已整理，可修改）</text></view>
+    <textarea class="textarea" placeholder="录音后点击 AI 识别并整理，会自动回填这里。" value="{{form.workContent}}" data-key="workContent" bindinput="onInput"></textarea>
   </view>
 
-  <view class="card form-card">
-    <view class="form-label">现场问题 <text class="form-label-hint">（没有可不填）</text></view>
-    <textarea class="textarea" placeholder="现场遇到的问题..." value="{{form.issue}}" data-key="issue" bindinput="onInput"></textarea>
+  <view class="card form-card risk-card">
+    <view class="form-label">现场问题 <text class="form-label-hint">（AI 会自动提取，没有可不填）</text></view>
+    <textarea class="textarea" placeholder="有问题就保留，没有问题可写“暂无明显现场问题”。" value="{{form.issue}}" data-key="issue" bindinput="onInput"></textarea>
   </view>
 
-  <view class="card form-card">
+  <view class="card form-card confirm-card">
     <view class="form-label">需要确认 <text class="form-label-hint">（业主或内部确认）</text></view>
     <textarea class="textarea" placeholder="需要业主或内部确认的事项..." value="{{form.needConfirm}}" data-key="needConfirm" bindinput="onInput"></textarea>
   </view>
 
-  <view class="card form-card">
+  <view class="card form-card plan-card">
     <view class="form-label">明日计划</view>
     <textarea class="textarea" placeholder="明天计划施工内容..." value="{{form.tomorrowPlan}}" data-key="tomorrowPlan" bindinput="onInput"></textarea>
   </view>
@@ -56,6 +112,12 @@
       <view class="tag tag-info">{{images.length}}/9</view>
     </view>
     <view class="photo-tip">建议上传关键工艺和现场全景，方便审核后给业主建立信任。</view>
+    <view class="photo-guide-row">
+      <view class="photo-guide-chip">关键工艺</view>
+      <view class="photo-guide-chip">现场全景</view>
+      <view class="photo-guide-chip">问题位置</view>
+      <view class="photo-guide-chip">收口细节</view>
+    </view>
     <view class="photo-grid">
       <view wx:for="{{images}}" wx:key="*this" class="photo-wrap" data-index="{{index}}" bindtap="removeImage">
         <image class="photo" src="{{item}}" mode="aspectFill"></image>
@@ -70,7 +132,10 @@
 
   <!-- 提交按钮 -->
   <view class="submit-area">
-    <view class="submit-note">提交后状态为“待审核”，不会直接展示给业主。</view>
-    <button class="button-primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">提交给老齐审核</button>
+    <view class="submit-note">提交前可继续修改 AI 内容；提交后进入审核，不会直接展示给业主。</view>
+    <view class="submit-actions">
+      <button class="button-secondary" disabled="{{submitting}}" bindtap="clearDraft">清空草稿</button>
+      <button class="button-primary" loading="{{submitting || voiceUploading}}" disabled="{{submitting || voiceUploading}}" bindtap="submit">提交给老齐审核</button>
+    </view>
   </view>
 </view>

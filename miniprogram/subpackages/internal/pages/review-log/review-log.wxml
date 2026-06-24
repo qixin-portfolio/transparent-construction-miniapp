@@ -24,15 +24,29 @@
         <view class="review-meta-item">{{item.dateText || '待确认时间'}}</view>
       </view>
 
+      <view class="review-diagnostic-row">
+        <view class="review-diagnostic-pill pending">待发布</view>
+        <view class="review-diagnostic-pill {{item.issue ? 'risk' : ''}}">{{item.issue ? '有现场问题' : '无现场问题'}}</view>
+        <view class="review-diagnostic-pill {{item.needConfirm ? 'confirm' : ''}}">{{item.needConfirm ? '需确认' : '无需确认'}}</view>
+        <view class="review-diagnostic-pill evidence">{{item.photoFileIDs.length}} 张照片</view>
+        <view wx:if="{{item.aiGenerated}}" class="review-diagnostic-pill ai">AI整理</view>
+      </view>
+
       <!-- 日报内容 -->
       <view class="review-content">
         <view class="form-label">今日完成</view>
         <view class="review-text">{{item.workContent}}</view>
       </view>
 
+      <view wx:if="{{item.reviewFocus}}" class="review-focus-box">审核重点：{{item.reviewFocus}}</view>
+      <view wx:if="{{item.ownerSummaryText}}" class="owner-summary-box">业主端文案：{{item.ownerSummaryText}}</view>
       <view wx:if="{{item.issue}}" class="risk-box">⚠ 现场问题：{{item.issue}}</view>
       <view wx:if="{{item.needConfirm}}" class="confirm-box">需确认：{{item.needConfirm}}</view>
       <view wx:if="{{item.tomorrowPlan}}" class="tomorrow-box">明日计划：{{item.tomorrowPlan}}</view>
+      <view wx:if="{{item.voiceTranscriptText}}" class="voice-transcript-box">
+        <view class="voice-transcript-title">语音识别原文</view>
+        <view class="voice-transcript-text">{{item.voiceTranscriptText}}</view>
+      </view>
 
       <!-- 现场照片 -->
       <view wx:if="{{item.photoFileIDs.length}}" class="review-photos">
@@ -61,7 +75,21 @@
 
   <!-- 空状态 -->
   <view wx:else class="card empty review-empty">
+    <view class="review-empty-icon">✓</view>
     <view class="empty-title">{{loading ? '正在加载' : '暂无待审核'}}</view>
     <view class="muted">{{loading ? '待审核日报加载中...' : '所有日报已审核完毕'}}</view>
+    <view wx:if="{{!loading}}" class="review-empty-note">工长提交新日报后，会自动出现在这里。</view>
+  </view>
+
+  <view wx:if="{{rejectDialogVisible}}" class="reject-mask" bindtap="hideRejectDialog">
+    <view class="reject-panel" catchtap="noop">
+      <view class="reject-title">退回原因</view>
+      <view class="reject-desc">填写清楚需要修改的地方，工长重新提交时能直接对照处理。</view>
+      <textarea class="textarea reject-textarea" maxlength="120" placeholder="例如：照片缺少水电定位全景，请补拍后重新提交。" value="{{rejectReason}}" bindinput="onRejectReasonInput"></textarea>
+      <view class="reject-actions">
+        <button class="button-secondary" bindtap="hideRejectDialog" disabled="{{reviewingId}}">取消</button>
+        <button class="button-primary" loading="{{!!reviewingId}}" disabled="{{!!reviewingId}}" bindtap="confirmReject">确认退回</button>
+      </view>
+    </view>
   </view>
 </view>

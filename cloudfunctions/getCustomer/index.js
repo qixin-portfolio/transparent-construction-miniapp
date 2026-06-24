@@ -4,11 +4,18 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
 const CUSTOMER_ROLES = ['admin', 'boss_qi', 'boss_hu', 'designer', 'sales']
+const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
+const DEFAULT_TENANT_NAME = '晟景装饰'
 
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
-  return { openid: OPENID, user: res.data[0] || null }
+  const user = res.data[0] || null
+  if (user && !user.tenantId) {
+    user.tenantId = DEFAULT_TENANT_ID
+    user.tenantName = DEFAULT_TENANT_NAME
+  }
+  return { openid: OPENID, user }
 }
 
 function assertRole(user, roles) {
@@ -29,6 +36,10 @@ exports.main = async (event) => {
     const customer = res.data
     if (!customer || customer.deleted === true) {
       throw new Error('客户不存在或已删除')
+    }
+    const tenantId = user.tenantId || DEFAULT_TENANT_ID
+    if (customer.tenantId && customer.tenantId !== tenantId) {
+      throw new Error('无权查看该客户')
     }
 
     // 非管理员只能看自己创建的客户

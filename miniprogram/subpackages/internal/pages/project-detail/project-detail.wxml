@@ -17,13 +17,23 @@
           <view class="manager-progress-label">总体进度</view>
         </view>
         <view class="manager-stage-panel">
-          <view class="manager-stage-label">当前节点</view>
-          <view class="manager-stage-name">{{project.currentStage || stats.latestStage || '未设置'}}</view>
+          <view class="manager-stage-ring" style="background: conic-gradient(#FFFFFF {{animatedProgressDeg}}deg, rgba(255, 255, 255, 0.28) 0deg);">
+            <view class="manager-stage-ring-inner">
+              <view class="manager-stage-name">{{project.currentStage || stats.latestStage || '未设置'}}</view>
+            </view>
+          </view>
         </view>
       </view>
 
       <view class="manager-progress">
-        <view class="manager-progress-bar" style="width: {{project.progress || 0}}%;"></view>
+        <view class="manager-progress-bar" style="width: {{animatedProgress || 0}}%;"></view>
+      </view>
+
+      <view class="manager-hero-actions">
+        <view wx:if="{{canUpload}}" class="manager-hero-action primary" bindtap="goUpload">写今日日报</view>
+        <view class="manager-hero-action" bindtap="goDesignDrawings">查看图纸</view>
+        <view wx:if="{{canManageOwner}}" class="manager-hero-action" bindtap="createBindCode">绑定业主</view>
+        <view wx:if="{{canManageWorkerBind}}" class="manager-hero-action" bindtap="createWorkerBindCode">绑定工长</view>
       </view>
 
       <view class="manager-metrics">
@@ -54,6 +64,21 @@
       </view>
       <view class="muted">当前节点：{{project.currentStage || '未设置'}} · {{project.progress || 0}}%</view>
     </view>
+
+    <view wx:if="{{canViewManagementDetail}}" class="diagnostic-strip">
+      <view class="diagnostic-cell diagnostic-pending" bindtap="goTimelineDiagnostic">
+        <view class="diagnostic-value">{{diagnostics.pendingCount}}</view>
+        <view class="diagnostic-label">待审核</view>
+      </view>
+      <view class="diagnostic-cell diagnostic-risk" bindtap="goTimelineDiagnostic">
+        <view class="diagnostic-value">{{diagnostics.issueCount}}</view>
+        <view class="diagnostic-label">现场问题</view>
+      </view>
+      <view class="diagnostic-cell diagnostic-confirm" bindtap="goTimelineDiagnostic">
+        <view class="diagnostic-value">{{diagnostics.confirmCount}}</view>
+        <view class="diagnostic-label">需确认</view>
+      </view>
+    </view>
   </block>
 
   <!-- 快捷操作 -->
@@ -69,6 +94,14 @@
     <view wx:if="{{canManageOwner}}" class="detail-action-cell" bindtap="createBindCode">
       <view class="detail-action-icon">🔗</view>
       <view class="detail-action-text">绑定业主</view>
+    </view>
+    <view wx:if="{{canManageWorkerBind}}" class="detail-action-cell" bindtap="createWorkerBindCode">
+      <view class="detail-action-icon">工</view>
+      <view class="detail-action-text">绑定工长</view>
+    </view>
+    <view wx:if="{{project && canDeliverProject && project.statusCode !== 'delivered' && project.status !== '已交付'}}" class="detail-action-cell action-deliver" bindtap="confirmDeliverProject">
+      <view class="detail-action-icon">交</view>
+      <view class="detail-action-text">确认竣工交付</view>
     </view>
     <view class="detail-action-cell" bindtap="toggleTimeline">
       <view class="detail-action-icon">🧾</view>
@@ -116,16 +149,64 @@
   <view wx:if="{{project && canManageOwner}}" class="card bind-section">
     <view class="row">
       <view class="sub-title">业主绑定</view>
-      <view class="tag {{project.ownerOpenid ? 'tag-success' : 'tag-info'}}">{{project.ownerOpenid ? '已绑定' : '未绑定'}}</view>
+      <view class="tag {{flowStatus.ownerClass ? 'tag-success' : 'tag-info'}}">{{flowStatus.ownerBound}}</view>
     </view>
-    <view wx:if="{{bindCodeText}}" class="bind-code-wrap">
-      <view class="bind-code">{{bindCodeText}}</view>
+
+    <view class="bind-desc">一个工地最多绑定 2 位业主，适合夫妻双方同时查看施工进度。</view>
+
+    <view wx:if="{{bindCodes.length}}" class="bind-code-grid">
+      <view
+        wx:for="{{bindCodes}}"
+        wx:key="code"
+        class="bind-code-card">
+        <view class="bind-code-head">
+          <view>
+            <view class="bind-code-label">{{item.label}}</view>
+            <view class="bind-code-slot">{{item.slotText}}</view>
+          </view>
+          <view class="tag tag-warning">{{item.statusText}}</view>
+        </view>
+        <view class="bind-code" data-code="{{item.code}}" bindtap="copySingleBindCode">{{item.code}}</view>
+        <view wx:if="{{item.expiresAtText}}" class="muted">有效期至：{{item.expiresAtText}}</view>
+        <view class="bind-code-tip">点击号码可单独复制</view>
+      </view>
+    </view>
+
+    <view wx:elif="{{bindCodeText}}" class="bind-code-wrap">
+      <view class="bind-code" data-code="{{bindCodeText}}" bindtap="copySingleBindCode">{{bindCodeText}}</view>
       <view wx:if="{{bindCodeExpiresAtText}}" class="muted">有效期至：{{bindCodeExpiresAtText}}</view>
+    </view>
+
+    <view wx:if="{{bindCodeSummary}}" class="bind-summary">
+      {{bindCodeSummary}}
     </view>
     <view class="bind-actions">
       <button class="button-secondary" loading="{{bindCodeLoading}}" disabled="{{bindCodeLoading}}" bindtap="createBindCode">生成绑定码</button>
-      <button class="button-primary" disabled="{{!bindCodeText}}" bindtap="copyBindCode">复制文案</button>
-      <button class="button-share" open-type="share" disabled="{{!bindCodeText}}">分享给业主</button>
+      <button class="button-primary" disabled="{{!bindCodeText && !bindCodes.length}}" bindtap="copyBindCode">复制文案</button>
+      <button class="button-share" open-type="share" disabled="{{!bindCodeText && !bindCodes.length}}">分享给业主</button>
+    </view>
+  </view>
+
+  <!-- 工长绑定 -->
+  <view wx:if="{{project && canManageWorkerBind}}" class="card bind-section worker-bind-section">
+    <view class="row">
+      <view class="sub-title">工长绑定</view>
+      <view class="tag tag-info">按工地发码</view>
+    </view>
+
+    <view class="bind-desc">用于工长或项目经理中途进场：先激活内部员工身份，再输入该码绑定本工地。多个工地需要分别发码。</view>
+
+    <view wx:if="{{workerBindCodeText}}" class="bind-code-wrap worker-bind-code-wrap">
+      <view class="bind-code" data-code="{{workerBindCodeText}}" bindtap="copySingleBindCode">{{workerBindCodeText}}</view>
+      <view wx:if="{{workerBindCodeExpiresAtText}}" class="muted">有效期至：{{workerBindCodeExpiresAtText}}</view>
+    </view>
+
+    <view wx:if="{{workerBindCodeSummary}}" class="bind-summary">
+      {{workerBindCodeSummary}}
+    </view>
+    <view class="bind-actions worker-bind-actions">
+      <button class="button-secondary" loading="{{workerBindCodeLoading}}" disabled="{{workerBindCodeLoading}}" bindtap="createWorkerBindCode">生成工长码</button>
+      <button class="button-primary" disabled="{{!workerBindCodeText}}" bindtap="copyWorkerBindCode">复制文案</button>
     </view>
   </view>
 
@@ -134,8 +215,11 @@
     <!-- 现场照片 -->
     <view class="section photo-section">
       <view class="section-head">
-        <view class="sub-title">现场照片</view>
-        <view class="muted">{{stats.photoCount}} 张</view>
+        <view>
+          <view class="section-kicker">现场证据</view>
+          <view class="sub-title">现场照片</view>
+        </view>
+        <view class="section-count">{{stats.photoCount}} 张</view>
       </view>
 
       <view wx:if="{{photoStages.length > 1}}" class="stage-filter">
@@ -165,15 +249,18 @@
 
       <view wx:else class="card empty">
         <view class="empty-title">暂无现场照片</view>
-        <view class="muted">上传日报时添加现场照片</view>
+        <view class="muted">上传日报时添加现场照片，建议包含全景、关键工艺和问题位置。</view>
       </view>
     </view>
 
     <!-- 施工时间线 -->
-    <view wx:if="{{logs.length}}" class="section timeline-section">
+    <view wx:if="{{logs.length}}" id="manager-timeline-section" class="section timeline-section">
       <view class="section-head">
-        <view class="sub-title">施工时间线</view>
-        <view class="muted">全部日报</view>
+        <view>
+          <view class="section-kicker">审核后业主可见</view>
+          <view class="sub-title">施工时间线</view>
+        </view>
+        <view class="section-count">共 {{logs.length}} 条</view>
       </view>
 
       <view class="timeline">
@@ -192,6 +279,7 @@
           <view class="log-content">{{item.workContent || '未填写今日完成'}}</view>
           <view wx:if="{{item.issue}}" class="risk-box">⚠ 现场问题：{{item.issue}}</view>
           <view wx:if="{{item.needConfirm}}" class="confirm-box">需确认：{{item.needConfirm}}</view>
+          <view wx:if="{{item.rejectReason}}" class="reject-box">退回原因：{{item.rejectReason}}</view>
           <view wx:if="{{item.tomorrowPlan}}" class="muted plan-text">明日计划：{{item.tomorrowPlan}}</view>
           <view wx:if="{{item.photos.length}}" class="inline-photos">
             <image
@@ -207,6 +295,9 @@
               bindtap="previewTimelinePhoto"
               lazy-load></image>
           </view>
+          <view wx:if="{{item.reviewStatus === 'rejected' && canUpload}}" class="timeline-actions">
+            <button class="button-secondary small" data-id="{{item._id}}" bindtap="resubmitRejectedLog">带原内容重新提交</button>
+          </view>
         </view>
       </view>
 
@@ -218,7 +309,7 @@
 
     <view wx:elif="{{!loading}}" class="card empty">
       <view class="empty-title">暂无日报</view>
-      <view class="muted">上传第一条工序日报</view>
+      <view class="muted">上传第一条工序日报后，会在这里形成施工时间线。</view>
     </view>
   </block>
 
