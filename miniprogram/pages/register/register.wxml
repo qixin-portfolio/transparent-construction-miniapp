@@ -1,0 +1,48 @@
+<view class="register-page">
+  <view class="register-head">
+    <view class="register-eyebrow">透明工地 SaaS</view>
+    <view class="register-title">开通透明工地小程序</view>
+    <view class="register-desc">填写公司信息，免费试用 3 个项目 / 3 名员工。</view>
+  </view>
+
+  <view class="register-card">
+    <view class="field-group">
+      <view class="field-label">公司名称</view>
+      <input class="input" placeholder="例如：某某装饰" value="{{form.companyName}}" data-field="companyName" bindinput="onInput" />
+    </view>
+
+    <view class="field-group">
+      <view class="field-label">老板姓名</view>
+      <input class="input" placeholder="填写负责人姓名" value="{{form.bossName}}" data-field="bossName" bindinput="onInput" />
+    </view>
+
+    <view class="field-group">
+      <view class="field-label">手机号</view>
+      <input class="input" type="number" maxlength="11" placeholder="用于账号联系" value="{{form.phone}}" data-field="phone" bindinput="onInput" />
+    </view>
+
+    <view class="field-group">
+      <view class="field-label">所在城市</view>
+      <input class="input" placeholder="例如：杭州" value="{{form.city}}" data-field="city" bindinput="onInput" />
+    </view>
+
+    <view class="field-group">
+      <view class="field-label">主营业务</view>
+      <input class="input" placeholder="可选，例如：整装 / 旧房翻新" value="{{form.mainBusiness}}" data-field="mainBusiness" bindinput="onInput" />
+    </view>
+
+    <button
+      class="button-primary register-submit"
+      loading="{{submitting}}"
+      disabled="{{submitting || !form.companyName || !form.bossName || form.phone.length < 11 || !form.city}}"
+      bindtap="submitRegister">免费开通</button>
+  </view>
+
+  <view class="register-secondary" bindtap="goInviteFlow">
+    <view>
+      <view class="register-secondary-title">已有员工邀请码</view>
+      <view class="register-secondary-desc">进入工作台输入 6 位邀请码</view>
+    </view>
+    <view class="register-secondary-arrow">›</view>
+  </view>
+</view>

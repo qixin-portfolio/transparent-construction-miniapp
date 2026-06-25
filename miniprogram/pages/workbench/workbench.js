@@ -1,5 +1,16 @@
 const { call, showError } = require('../../services/cloud')
 const { isProjectInProgress } = require('../../utils/status')
+const { DEFAULT_TENANT_ID } = require('../../config/tenant-defaults')
+
+const SHENGJING_SLOGAN = {
+  primary: '交城 28 年老品牌',
+  secondary: '每个工地都留痕'
+}
+
+const TENANT_SLOGAN = {
+  primary: '客户看得见进度',
+  secondary: '每个节点都留痕'
+}
 
 Page({
   data: {
@@ -52,7 +63,9 @@ Page({
     workerCheckingIn: false,
     workerProjectCodeVisible: false,
     workerProjectCode: '',
-    workerProjectBinding: false
+    workerProjectBinding: false,
+    workbenchSloganPrimary: SHENGJING_SLOGAN.primary,
+    workbenchSloganSecondary: SHENGJING_SLOGAN.secondary
   },
 
   onShow() {
@@ -71,7 +84,8 @@ Page({
         }
         this.loadStaffDashboard()
       })
-      .catch(() => {
+      .catch((error) => {
+        if (error && error.needRegister) return
         this.setData({ authReady: true })
         this.loadStaffDashboard()
       })
@@ -84,13 +98,21 @@ Page({
     tabBar.setData({ selected: 0 })
   },
 
+  getWorkbenchSlogan(user) {
+    const isShengjingTenant = !user || !user.tenantId || user.tenantId === DEFAULT_TENANT_ID
+    return isShengjingTenant ? SHENGJING_SLOGAN : TENANT_SLOGAN
+  },
+
   setAccess(user) {
     const app = getApp()
     const displayUser = app.normalizeUser ? app.normalizeUser(user || null) : (user || null)
     user = displayUser
     const role = user && user.role
+    const slogan = this.getWorkbenchSlogan(user)
     this.setData({
       user: user || null,
+      workbenchSloganPrimary: slogan.primary,
+      workbenchSloganSecondary: slogan.secondary,
       canReview: ['admin', 'boss_qi', 'boss_hu'].indexOf(role) !== -1,
       canCreateProject: ['admin', 'boss_qi', 'boss_hu', 'designer', 'sales'].indexOf(role) !== -1,
       canUploadLog: ['admin', 'boss_qi', 'boss_hu', 'designer', 'worker', 'project_manager'].indexOf(role) !== -1,

@@ -33,9 +33,61 @@ App({
     })
   },
 
+  getCurrentRoute() {
+    const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
+    const current = pages[pages.length - 1] || {}
+    return current.route || ''
+  },
+
+  shouldAllowGuestFlow(options = {}) {
+    if (options.allowGuestFlow) return true
+
+    const route = this.getCurrentRoute()
+    const publicRoutes = [
+      'pages/projects/projects',
+      'subpackages/owner/pages/owner/owner',
+      'subpackages/owner/pages/projects/projects',
+      'subpackages/owner/pages/case-list/case-list',
+      'subpackages/owner/pages/case-detail/case-detail',
+      'subpackages/owner/pages/completed-home/completed-home'
+    ]
+    if (publicRoutes.indexOf(route) !== -1) return true
+
+    const inviteFlow = !!wx.getStorageSync('saasInviteFlow')
+    if (inviteFlow && ['pages/workbench/workbench', 'pages/projects/projects'].indexOf(route) !== -1) {
+      wx.removeStorageSync('saasInviteFlow')
+      return true
+    }
+
+    return false
+  },
+
+  redirectToRegister() {
+    const route = this.getCurrentRoute()
+    if (route === 'pages/register/register') return
+    wx.redirectTo({
+      url: '/pages/register/register'
+    })
+  },
+
+  makeNeedRegisterError() {
+    const error = new Error('need_register')
+    error.needRegister = true
+    error.silent = true
+    return error
+  },
+
   ensureLogin(options = {}) {
     const force = !!options.force
+    const allowGuestFlow = this.shouldAllowGuestFlow(options)
+
     if (this.globalData.user && !force) {
+      if (!this.globalData.user.tenantId && !allowGuestFlow) {
+        if (!options.skipRegisterRedirect) {
+          this.redirectToRegister()
+        }
+        return Promise.reject(this.makeNeedRegisterError())
+      }
       return Promise.resolve(this.globalData.user)
     }
 
@@ -44,11 +96,21 @@ App({
     }
 
     this.globalData.loginPromise = wx.cloud.callFunction({
-      name: 'login'
+      name: 'login',
+      data: {
+        allowGuestFlow
+      }
     }).then((res) => {
       const result = res.result || {}
       if (result.error) {
         throw new Error(result.error.message || result.error)
+      }
+      if (result.needRegister) {
+        this.globalData.user = null
+        if (!options.skipRegisterRedirect) {
+          this.redirectToRegister()
+        }
+        throw this.makeNeedRegisterError()
       }
       return this.hydrateUser(result.user || null)
     }).finally(() => {

@@ -68,7 +68,10 @@
     </view>
 
     <view wx:elif="{{historicalCustomer}}" class="owner-bind-card">
-      <view class="owner-bind-icon">询</view>
+      <view class="owner-douyin-qrcodes">
+        <image class="owner-douyin-qrcode" src="/images/douyin-qrcode-weiyi.png" mode="aspectFit" show-menu-by-longpress="{{true}}"></image>
+        <image class="owner-douyin-qrcode" src="/images/douyin-qrcode-huxiufen.png" mode="aspectFit" show-menu-by-longpress="{{true}}"></image>
+      </view>
       <view class="owner-bind-title">欢迎继续了解晟景装饰</view>
       <view class="owner-bind-desc">已记录您的咨询信息，如需查看施工进度，请在签约后绑定专属工地。</view>
       <button class="button-primary owner-bind-action" bindtap="goProjects">查看门店与预约</button>
@@ -119,9 +122,9 @@
         <view class="date-today">今日</view>
       </view>
       <view class="staff-hero-tagline-wrap">
-        <view class="staff-hero-tagline">交城 28 年老品牌</view>
+        <view class="staff-hero-tagline">{{workbenchSloganPrimary}}</view>
         <view class="staff-hero-dot"></view>
-        <view class="staff-hero-tagline">每个工地都留痕</view>
+        <view class="staff-hero-tagline">{{workbenchSloganSecondary}}</view>
       </view>
       <view wx:if="{{user && !user.hasWechatProfile}}" class="staff-profile-tip" bindtap="goProfile">完善微信头像昵称</view>
     </view>

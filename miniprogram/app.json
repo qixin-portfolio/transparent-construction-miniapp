@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/workbench/workbench",
+    "pages/register/register",
     "pages/projects/projects",
     "pages/customers/customers",
     "pages/profile/profile"
