@@ -30,6 +30,89 @@ async function setDoc(collectionName, id, data) {
   await db.collection(collectionName).doc(id).set({ data })
 }
 
+async function findTenantByPhone(phone) {
+  const res = await db.collection('tenants')
+    .where({ contactPhone: phone })
+    .limit(1)
+    .get()
+  return res.data[0] || null
+}
+
+async function findTenantByPhoneAndOpenid(phone, openid) {
+  const res = await db.collection('tenants')
+    .where({ contactPhone: phone, createdByOpenid: openid })
+    .limit(1)
+    .get()
+  return res.data[0] || null
+}
+
+function getTenantId(tenant) {
+  return tenant ? (tenant.tenantId || tenant._id || '') : ''
+}
+
+function getTenantName(tenant, fallback) {
+  return tenant ? (tenant.tenantName || tenant.name || fallback || '') : (fallback || '')
+}
+
+async function upsertAdminMembership(options) {
+  const { users, existingUser, openid, tenantId, tenantName, form, now } = options
+  let userId = existingUser ? existingUser._id : ''
+  const userPatch = {
+    openid,
+    tenantId,
+    tenantName,
+    name: form.bossName,
+    phone: form.phone,
+    role: 'admin',
+    userType: 'admin',
+    status: 'active',
+    updatedAt: now
+  }
+
+  if (existingUser) {
+    await users.doc(existingUser._id).update({ data: userPatch })
+  } else {
+    const addRes = await users.add({
+      data: Object.assign({}, userPatch, {
+        createdAt: now
+      })
+    })
+    userId = addRes._id
+  }
+
+  const tenantUsers = db.collection('tenant_users')
+  const existingTenantUser = await tenantUsers
+    .where({ tenantId, openid })
+    .limit(1)
+    .get()
+
+  const tenantUserData = {
+    tenantId,
+    tenantName,
+    userId,
+    openid,
+    name: form.bossName,
+    phone: form.phone,
+    role: 'admin',
+    status: 'active',
+    updatedAt: now
+  }
+
+  if (existingTenantUser.data.length) {
+    await tenantUsers.doc(existingTenantUser.data[0]._id).update({
+      data: tenantUserData
+    })
+  } else {
+    await tenantUsers.add({
+      data: Object.assign({}, tenantUserData, {
+        createdAt: now
+      })
+    })
+  }
+
+  return Object.assign({ _id: userId }, existingUser || {}, userPatch)
+}
+
 function validateForm(form) {
   if (!form.companyName) throw new Error('请填写公司名称')
   if (!form.bossName) throw new Error('请填写老板姓名')
@@ -69,6 +152,43 @@ exports.main = async (event = {}) => {
       mainBusiness: cleanText(event.mainBusiness, 80)
     }
     validateForm(form)
+
+    const currentTenantWithSamePhone = await findTenantByPhoneAndOpenid(form.phone, OPENID)
+    if (currentTenantWithSamePhone) {
+      const samePhoneTenantId = getTenantId(currentTenantWithSamePhone)
+      const samePhoneTenantName = getTenantName(currentTenantWithSamePhone, form.companyName)
+
+      if (!samePhoneTenantId) {
+        throw new Error('手机号已开通过公司，请联系管理员处理')
+      }
+
+      const now = db.serverDate()
+      const user = await upsertAdminMembership({
+        users,
+        existingUser,
+        openid: OPENID,
+        tenantId: samePhoneTenantId,
+        tenantName: samePhoneTenantName,
+        form,
+        now
+      })
+
+      return {
+        success: true,
+        existing: true,
+        tenantId: samePhoneTenantId,
+        plan: currentTenantWithSamePhone.plan || 'free',
+        role: 'admin',
+        message: '当前手机号已开通过公司',
+        redirectUrl: WORKBENCH_URL,
+        user
+      }
+    }
+
+    const tenantWithSamePhone = await findTenantByPhone(form.phone)
+    if (tenantWithSamePhone) {
+      throw new Error('该手机号已开通过公司，请使用原微信登录或联系管理员处理')
+    }
 
     const tenantId = makeTenantId(OPENID)
     const existedTenant = await getDoc('tenants', tenantId)
@@ -132,58 +252,15 @@ exports.main = async (event = {}) => {
       updatedAt: now
     })
 
-    let userId = existingUser ? existingUser._id : ''
-    const userPatch = {
+    const user = await upsertAdminMembership({
+      users,
+      existingUser,
       openid: OPENID,
       tenantId,
       tenantName,
-      name: form.bossName,
-      phone: form.phone,
-      role: 'admin',
-      userType: 'admin',
-      status: 'active',
-      updatedAt: now
-    }
-
-    if (existingUser) {
-      await users.doc(existingUser._id).update({ data: userPatch })
-    } else {
-      const addRes = await users.add({
-        data: Object.assign({}, userPatch, {
-          createdAt: now
-        })
-      })
-      userId = addRes._id
-    }
-
-    const existingTenantUser = await db.collection('tenant_users')
-      .where({ tenantId, openid: OPENID })
-      .limit(1)
-      .get()
-
-    const tenantUserData = {
-      tenantId,
-      tenantName,
-      userId,
-      openid: OPENID,
-      name: form.bossName,
-      phone: form.phone,
-      role: 'admin',
-      status: 'active',
-      updatedAt: now
-    }
-
-    if (existingTenantUser.data.length) {
-      await db.collection('tenant_users').doc(existingTenantUser.data[0]._id).update({
-        data: tenantUserData
-      })
-    } else {
-      await db.collection('tenant_users').add({
-        data: Object.assign({}, tenantUserData, {
-          createdAt: now
-        })
-      })
-    }
+      form,
+      now
+    })
 
     return {
       success: true,
@@ -192,7 +269,7 @@ exports.main = async (event = {}) => {
       plan: 'free',
       role: 'admin',
       redirectUrl: WORKBENCH_URL,
-      user: Object.assign({ _id: userId }, userPatch)
+      user
     }
   } catch (error) {
     return {
