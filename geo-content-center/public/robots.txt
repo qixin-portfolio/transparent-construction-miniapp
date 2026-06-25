@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://shengjingjc.cn/sitemap.xml
+Sitemap: https://shengjingjc.com/sitemap.xml

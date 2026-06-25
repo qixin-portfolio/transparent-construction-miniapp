@@ -16,6 +16,7 @@ Page({
     bindOwnerCount: 0,
     bindMaxOwners: 2,
     bindCodeLoading: false,
+    ownerList: [],
     workerBindCodeText: '',
     workerBindCodeExpiresAtText: '',
     workerBindCodeSummary: '',
@@ -74,6 +75,12 @@ Page({
       })
   },
 
+  onShow() {
+    if (this.data.projectId && this.data.project && !this.data.loading) {
+      this.loadDetail()
+    }
+  },
+
   setAccess(user) {
     const role = user && user.role
     this.setData({
@@ -124,6 +131,7 @@ Page({
           workerBindCodeSummary: ''
         }, () => {
           this.playProgressMotion((project || {}).progress)
+          this.buildOwnerList()
         })
       })
       .catch((error) => {
@@ -430,6 +438,13 @@ Page({
     wx.previewImage({ current, urls })
   },
 
+  onPhotoImageError(event) {
+    console.warn('[project-detail] photo image load failed', {
+      url: event.currentTarget.dataset.url || '',
+      detail: event.detail || {}
+    })
+  },
+
   previewTimelinePhoto(event) {
     const photos = event.currentTarget.dataset.photos || []
     const index = event.currentTarget.dataset.index || 0
@@ -593,6 +608,65 @@ Page({
     const projectName = (this.data.project || {}).name || '工地'
     const text = `【晟景装饰】${projectName} 工长工地绑定邀请\n工长绑定码：${this.data.workerBindCodeText}\n请先用员工邀请码激活为工长或项目经理，再在小程序「工地」页输入该码绑定本工地。`
     wx.setClipboardData({ data: text })
+  },
+
+  buildOwnerList() {
+    const project = this.data.project || {}
+    const openids = Array.isArray(project.ownerOpenids) ? project.ownerOpenids : []
+    const names   = Array.isArray(project.ownerNames)   ? project.ownerNames   : []
+    const list = openids.map((oid, i) => ({
+      openid:  oid,
+      name:    names[i] || ('业主' + (i + 1)),
+      index:   i
+    }))
+    this.setData({ ownerList: list })
+  },
+
+  unbindOwner(event) {
+    const ownerOpenid = event.currentTarget.dataset.openid || ''
+    const ownerName   = event.currentTarget.dataset.name   || '该业主'
+    if (!ownerOpenid) return
+    wx.showModal({
+      title: '确认解绑',
+      content: `解绑「${ownerName}」后，对方将无法查看此工地进度，确认继续？`,
+      confirmText: '解绑',
+      confirmColor: '#EF4444',
+      success: (res) => {
+        if (!res.confirm) return
+        call('unbindOwner', {
+          projectId:   this.data.projectId,
+          ownerOpenid
+        }).then((result) => {
+          if (result.error) {
+            showError(result.error.message || '解绑失败')
+            return
+          }
+          wx.showToast({ title: '已解绑', icon: 'success' })
+          // 更新本地 project 数据中的 owner 数组
+          const project = this.data.project || {}
+          const newOpenids = Array.isArray(result.ownerOpenids) ? result.ownerOpenids : []
+          const newNames   = Array.isArray(result.ownerNames)   ? result.ownerNames   : []
+          const newUserIds = Array.isArray(result.ownerUserIds) ? result.ownerUserIds : []
+          this.setData({
+            project: Object.assign({}, project, {
+              ownerOpenids: newOpenids,
+              ownerNames:   newNames,
+              ownerUserIds: newUserIds,
+              ownerOpenid:  newOpenids[0] || '',
+              ownerName:    newNames[0]   || ''
+            })
+          }, () => {
+            this.buildOwnerList()
+            // 同步更新 flowStatus
+            this.setData({
+              flowStatus: this.makeFlowStatus(this.data.project, this.data.logs)
+            })
+          })
+        }).catch((error) => {
+          showError('解绑失败', error)
+        })
+      }
+    })
   },
 
   onShareAppMessage() {

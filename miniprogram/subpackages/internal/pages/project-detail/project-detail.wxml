@@ -187,6 +187,31 @@
     </view>
   </view>
 
+  <!-- 已绑定业主列表 -->
+  <view wx:if="{{project && canManageOwner && ownerList.length}}" class="card owner-manage-section">
+    <view class="section-head">
+      <view class="sub-title">已绑定业主</view>
+      <view class="muted">{{ownerList.length}}/{{bindMaxOwners || 2}} 位</view>
+    </view>
+    <view class="owner-manage-list">
+      <view
+        wx:for="{{ownerList}}"
+        wx:key="openid"
+        class="owner-manage-item">
+        <view class="owner-manage-avatar">{{item.name[0] || '?'}}</view>
+        <view class="owner-manage-info">
+          <view class="owner-manage-name">{{item.name}}</view>
+          <view class="owner-manage-id">{{item.openid}}</view>
+        </view>
+        <view
+          class="owner-manage-del"
+          data-openid="{{item.openid}}"
+          data-name="{{item.name}}"
+          bindtap="unbindOwner">解绑</view>
+      </view>
+    </view>
+  </view>
+
   <!-- 工长绑定 -->
   <view wx:if="{{project && canManageWorkerBind}}" class="card bind-section worker-bind-section">
     <view class="row">
@@ -242,7 +267,7 @@
           class="photo-tile"
           data-url="{{item.url}}"
           bindtap="previewPhoto">
-          <image class="photo" src="{{item.url}}" mode="aspectFill" lazy-load></image>
+          <image class="photo" src="{{item.url}}" mode="aspectFill" lazy-load data-url="{{item.url}}" binderror="onPhotoImageError"></image>
           <view class="photo-caption">{{item.stage}}</view>
         </view>
       </view>
@@ -291,8 +316,10 @@
               src="{{photo}}"
               mode="aspectFill"
               data-photos="{{item.photos}}"
+              data-url="{{photo}}"
               data-index="{{idx}}"
               bindtap="previewTimelinePhoto"
+              binderror="onPhotoImageError"
               lazy-load></image>
           </view>
           <view wx:if="{{item.reviewStatus === 'rejected' && canUpload}}" class="timeline-actions">

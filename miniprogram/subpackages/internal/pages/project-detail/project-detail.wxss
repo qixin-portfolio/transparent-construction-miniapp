@@ -1463,3 +1463,77 @@
     grid-column: auto;
   }
 }
+
+
+/* 已绑定业主管理列表 */
+.owner-manage-section {
+  margin-bottom: 24rpx;
+}
+
+.owner-manage-list {
+  margin-top: 20rpx;
+}
+
+.owner-manage-item {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.owner-manage-item:last-child {
+  border-bottom: none;
+}
+
+.owner-manage-avatar {
+  flex-shrink: 0;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #E8F5EE;
+  color: #1B7A56;
+  font-size: 28rpx;
+  font-weight: 800;
+  line-height: 64rpx;
+  text-align: center;
+}
+
+.owner-manage-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.owner-manage-name {
+  color: #111827;
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.owner-manage-id {
+  color: #9CA3AF;
+  font-size: 20rpx;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-manage-del {
+  flex-shrink: 0;
+  padding: 10rpx 24rpx;
+  border-radius: 20rpx;
+  background: #FEF2F2;
+  color: #DC2626;
+  font-size: 24rpx;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.owner-manage-del:active {
+  opacity: 0.75;
+}

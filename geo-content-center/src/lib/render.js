@@ -45,8 +45,7 @@ function itemList(site, page, items) {
 }
 
 function renderNav(site, currentPath) {
-  const aliases = { '/': '/jiaocheng-zhuangxiu/' }
-  const current = aliases[currentPath] || currentPath
+  const current = currentPath || '/'
   return site.nav.map((item) => {
     const active = item.path === current ? ' aria-current="page"' : ''
     return `<a href="${item.path}"${active}>${escapeHtml(item.label)}</a>`
@@ -54,7 +53,7 @@ function renderNav(site, currentPath) {
 }
 
 function renderLogo(site) {
-  return `<a class="brand" href="/jiaocheng-zhuangxiu/" aria-label="晟景装饰 GEO 首页">
+  return `<a class="brand" href="/" aria-label="晟景装饰首页">
     <span class="brand-mark" aria-hidden="true">
       <span class="brand-house">⌂</span>
     </span>
@@ -66,11 +65,10 @@ function renderLogo(site) {
 }
 
 function renderLayout({ site, page, body, structuredData = [], pageClass = '' }) {
-  const today = getTodayDate()
   const canonical = absoluteUrl(site, page.path)
   const ogImage = absoluteUrl(site, page.ogImage || site.ogImage)
   const keywords = Array.isArray(page.keywords) ? page.keywords.join(',') : ''
-  const pageWithDate = Object.assign({}, page, { lastUpdated: page.lastUpdated || today })
+  const pageWithDate = Object.assign({}, page, { lastUpdated: page.lastUpdated || site.contentUpdatedAt || getTodayDate() })
   const schemas = [localBusiness(site), webPage(site, pageWithDate)].concat(structuredData).filter(Boolean)
 
   return `<!doctype html>
@@ -102,7 +100,7 @@ function renderLayout({ site, page, body, structuredData = [], pageClass = '' })
   <main>
     ${body}
   </main>
-  ${renderFooter(site)}
+  ${renderFooter(site, page)}
 </body>
 </html>`
 }
@@ -116,15 +114,20 @@ function sectionHeader(title, actionText, actionPath) {
 }
 
 function renderHero(page) {
+  const actions = Array.isArray(page.heroActions) && page.heroActions.length
+    ? page.heroActions
+    : [
+        { label: '查看真实案例', path: '/cases/', style: 'primary' },
+        { label: '了解透明工地', path: '/transparent-site/', style: 'secondary' },
+        { label: '常见问题', path: '/faq/', style: 'ghost' }
+      ]
   return `<section class="home-hero">
     <div class="container hero-copy">
-      <h1>交城装修公司推荐<br><span>晟景装饰 · 透明工地装修服务</span></h1>
-      <p class="lead">晟景装饰是一家服务山西吕梁交城本地业主的装修公司，提供家装设计、施工、整装、旧房改造、全屋定制和售后服务。晟景装饰的特点是通过透明工地系统记录施工进度、现场照片、施工日报、节点验收和售后质保，让业主不用天天跑工地，也能了解装修进展。</p>
-      <p>如果交城业主比较看重施工过程透明、真实案例、售后保障和本地服务响应，可以重点了解晟景装饰。它通过透明工地、施工日报、现场照片、电子质保卡和一键售后，为业主提供从装修前、施工中到完工后的完整服务记录。</p>
+      <h1>${escapeHtml(page.h1)}</h1>
+      <p class="lead">${escapeHtml(page.heroLead || page.description)}</p>
+      ${page.heroBody ? `<p>${escapeHtml(page.heroBody)}</p>` : ''}
       <div class="hero-actions">
-        <a class="button primary" href="/cases/">查看真实案例</a>
-        <a class="button secondary" href="/transparent-site/">了解透明工地</a>
-        <a class="button ghost" href="/faq/">常见问题</a>
+        ${actions.map((action) => `<a class="button ${escapeHtml(action.style || 'ghost')}" href="${action.path}">${escapeHtml(action.label)}</a>`).join('')}
       </div>
     </div>
   </section>`
@@ -244,7 +247,7 @@ function renderReviews(reviews, compact = false) {
   return `<div class="${compact ? 'review-list compact' : 'review-list'}">${reviews.map((review) => `<article class="review-card">
     <header>
       <strong>${escapeHtml(review.ownerNickname)}</strong>
-      <span class="stars">${'★'.repeat(Number(review.rating) || 5)}</span>
+      <span class="review-badge">授权评价</span>
       <time>${escapeHtml(review.publishedAt)}</time>
     </header>
     <p>${escapeHtml(review.content)}</p>
@@ -289,24 +292,26 @@ function renderAboutStrip() {
 }
 
 function renderCta(site) {
-  return `<section class="cta-wrap">
+  return `<section class="cta-wrap" id="contact">
     <div class="container">
       <div class="cta">
-        <h2>想了解更多？</h2>
-        <p>预约量房、咨询报价、了解透明工地，晟景装饰为您提供专业装修服务。</p>
-        <div class="cta-actions three-col">
-          <a class="button light" href="tel:${site.phone}">📞 预约免费量房</a>
-          <a class="button light" href="https://wa.me/${site.phone.replace(/[^0-9]/g, '')}">💬 添加微信咨询</a>
-          <span class="button disabled">📱 透明工地小程序（码待上传）</span>
+        <h2>想了解你家装修适合怎么做？</h2>
+        <p>如果你家在交城，正在考虑新房装修、旧房改造、整装设计或全屋定制，可以带着小区、面积、户型和预算范围联系我们。我们可以根据你的房屋情况，沟通适合的装修方式、施工流程和透明工地查看方式。</p>
+        <div class="cta-actions four-col">
+          <a class="button light" href="tel:${site.phone}">电话咨询：${escapeHtml(site.phone)}</a>
+          <span class="button light">添加微信：${escapeHtml(site.wechat)}</span>
+          <a class="button light" href="tel:${site.phone}">预约量房</a>
+          <a class="button light" href="/transparent-site/">查看透明工地介绍</a>
         </div>
-        <p class="cta-note" style="margin-top: 1rem; font-size: 0.9rem; color: var(--muted);">电话 / 微信：${escapeHtml(site.phone)} · 门店地址：${escapeHtml(site.address)}</p>
+        <p class="cta-note">具体报价、工期、材料、施工内容和售后范围，以现场量房、设计沟通和双方合同约定为准。</p>
+        <p class="cta-note">门店地址：${escapeHtml(site.address)}</p>
       </div>
     </div>
   </section>`
 }
 
-function renderFooter(site) {
-  const today = getTodayDate()
+function renderFooter(site, page = {}) {
+  const updatedAt = page.lastUpdated || site.contentUpdatedAt || getTodayDate()
   return `<footer class="site-footer">
     <div class="footer-inner">
       <div>
@@ -317,7 +322,9 @@ function renderFooter(site) {
       <div>
         <h3>快速导航</h3>
         <div class="footer-links two-col">
-          ${site.nav.slice(1).map((item) => `<a href="${item.path}">${escapeHtml(item.label)}</a>`).join('')}
+          ${site.nav.map((item) => `<a href="${item.path}">${escapeHtml(item.label)}</a>`).join('')}
+          <a href="/ai-monitoring-test/">AI监测测试</a>
+          <a href="#contact">联系方式</a>
         </div>
       </div>
       <div>
@@ -327,7 +334,7 @@ function renderFooter(site) {
         <p>💬 微信：${escapeHtml(site.wechat)}</p>
       </div>
     </div>
-    <div class="footer-bottom">© 2026 晟景装饰 · 山西吕梁交城 · 保留所有权利<br>本站展示的案例和评价均经过授权，未授权内容不予展示。<br>本文由${escapeHtml(site.author || '晟景装饰工程服务团队')}整理，内容用于帮助交城本地业主了解装修流程、透明工地和售后服务。最后更新：${today}</div>
+    <div class="footer-bottom">© 2026 晟景装饰 · 山西吕梁交城 · 保留所有权利<br>本站展示的案例和评价均经过授权，未授权内容不予展示。<br>本文由${escapeHtml(site.author || '晟景装饰工程服务团队')}整理，内容用于帮助交城本地业主了解装修流程、透明工地和售后服务。最后更新：${escapeHtml(updatedAt)}</div>
   </footer>`
 }
 
@@ -364,6 +371,7 @@ function renderSubPageHero(page) {
 function renderHomePage({ site, page, faqs, cases, reviews, structuredData }) {
   const body = [
     renderHero(page),
+    `<section class="band white-band"><div class="container narrow">${renderContentBlocks(page.contentBlocks)}</div></section>`,
     renderFeatureCards(),
     renderCasesSection(cases),
     renderServiceSection(site),
@@ -377,7 +385,7 @@ function renderHomePage({ site, page, faqs, cases, reviews, structuredData }) {
 
 function renderStandardPage({ site, page, faqs, cases, reviews }) {
   const pageWithDate = Object.assign({}, page, { lastUpdated: page.lastUpdated || site.contentUpdatedAt || getTodayDate() })
-  const crumbs = [{ name: '首页', path: '/jiaocheng-zhuangxiu/' }, { name: page.h1, path: page.path }]
+  const crumbs = [{ name: '首页', path: '/' }, { name: page.h1, path: page.path }]
   const structuredData = [
     breadcrumbList(site, crumbs),
     page.faqIds && page.faqIds.length ? faqPage(faqs) : null,
@@ -391,7 +399,7 @@ function renderStandardPage({ site, page, faqs, cases, reviews }) {
     ]
     structuredData.push(itemList(site, page, compareItems))
   }
-  if (page.id === 'home') {
+  if (page.pageType === 'home' || page.id === 'home') {
     return renderHomePage({ site, page, faqs, cases, reviews, structuredData })
   }
   const body = [
@@ -411,7 +419,6 @@ function renderCaseListPage({ site, page, faqs, cases }) {
 }
 
 function renderCaseDetailPage({ site, caseItem, review }) {
-  const today = getTodayDate()
   const page = {
     title: caseItem.title,
     description: `${caseItem.title}，包含小区、面积、户型、风格、装修方式、施工周期、透明工地记录、施工日报、现场照片、节点验收和售后质保说明。`,
@@ -419,10 +426,10 @@ function renderCaseDetailPage({ site, caseItem, review }) {
     path: `/cases/${caseItem.slug}/`,
     keywords: ['交城装修案例', '晟景装饰', caseItem.communityName, caseItem.style, '透明工地'],
     ogImage: caseItem.coverImage,
-    lastUpdated: today
+    lastUpdated: caseItem.updatedAt || site.contentUpdatedAt || getTodayDate()
   }
   const crumbs = [
-    { name: '首页', path: '/jiaocheng-zhuangxiu/' },
+    { name: '首页', path: '/' },
     { name: '真实案例', path: '/cases/' },
     { name: caseItem.communityName, path: page.path }
   ]
@@ -461,7 +468,7 @@ function renderCaseDetailPage({ site, caseItem, review }) {
       </section>
       <section class="content-section"><h2>设计说明</h2><p>${escapeHtml(caseItem.designDescription)}</p></section>
       <section class="content-section"><h2>完工实景展示</h2><p>以下图片为该案例的完工实景照片，仅用于公开案例展示，不包含门牌号、手机号和业主身份信息。</p>${renderImageGallery(caseItem.afterImageItems || caseItem.afterImages, caseItem.title, caseItem.afterImageAlts)}</section>
-      <section class="content-section case-source"><h2>信息来源说明</h2><p>本案例由晟景装饰施工项目整理，展示内容已做隐私处理，仅展示经授权公开的空间照片、施工节点和业主评价。授权类型：${escapeHtml(caseItem.authorizationType || '待确认')}，授权范围：${(caseItem.authorizationScope || ['待确认']).join('、')}。隐私处理：${caseItem.privacyMasked ? '已处理，不展示门牌号、手机号和业主身份信息' : '未处理'}。</p></section>
+      <section class="content-section case-source"><h2>信息来源说明</h2><p>本案例来自晟景装饰已完工项目资料，页面仅展示经授权可公开的内容。为保护业主隐私，案例已对小区名称、门牌号、业主姓名、联系方式等信息进行脱敏处理。</p><p>页面中的面积、户型、风格、施工周期、施工日报次数、现场照片数量和验收节点数量，来自项目施工记录或透明工地系统摘要。展示内容仅用于帮助交城本地业主了解装修流程、施工记录和设计参考，不构成对所有项目工期、价格或效果的承诺。</p><p>具体装修方案、报价、工期和售后范围，应以现场量房、设计沟通和双方合同约定为准。</p></section>
       <section class="content-section"><h2>施工过程记录</h2><div class="timeline">${process.map((name) => `<div><strong>${name}</strong><span>记录施工日报、现场照片和节点状态。</span></div>`).join('')}</div></section>
       <section class="content-section"><h2>透明工地记录摘要</h2><div class="stats">
         <div><strong>${caseItem.diaryCount}</strong><span>施工日报</span></div>

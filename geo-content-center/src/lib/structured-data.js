@@ -12,7 +12,7 @@ function localBusiness(site) {
     name: site.brandName,
     legalName: site.legalName,
     description: site.defaultDescription,
-    url: absoluteUrl(site, '/jiaocheng-zhuangxiu/'),
+    url: absoluteUrl(site, '/'),
     telephone: site.phone,
     image: absoluteUrl(site, site.ogImage),
     address: {
@@ -111,12 +111,6 @@ function reviewSchema(site, review) {
     author: {
       '@type': 'Person',
       name: review.isAnonymous ? review.ownerNickname : '授权业主'
-    },
-    reviewRating: {
-      '@type': 'Rating',
-      ratingValue: review.rating,
-      bestRating: 5,
-      worstRating: 1
     },
     itemReviewed: {
       '@id': `${absoluteUrl(site, '/') }#localbusiness`,

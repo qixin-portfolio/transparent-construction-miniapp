@@ -5,8 +5,11 @@
   "description": "Static GEO/AEO content center for Shengjing Decoration.",
   "scripts": {
     "build": "node scripts/build.js",
+    "build:prod": "node scripts/build.js --prod",
     "serve": "python3 -m http.server 4173 --directory public",
-    "check": "node scripts/build.js --check"
+    "check": "node scripts/build.js --check",
+    "check:prod": "node scripts/prod-check.js",
+    "package:prod": "node scripts/package-prod.js"
   },
   "engines": {
     "node": ">=16"

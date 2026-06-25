@@ -282,25 +282,29 @@ Page({
     }, 80)
   },
 
-  bindProject() {
-    const code = String(this.data.bindCode || '').replace(/\s/g, '')
-    if (!code) {
-      showError('请输入绑定码')
-      return
-    }
-
+  doBindProject(code) {
     this.setData({ binding: true })
     getApp().ensureLogin()
       .then(() => call('bindOwnerProject', { code }))
       .then(() => {
         wx.showToast({
-          title: '已绑定',
+          title: '绑定成功',
           icon: 'success'
         })
-        this.setData({ bindCode: '' })
+        // 强制重置订阅状态，确保横幅可见让用户手动开启通知
+        wx.setStorageSync('ownerSubscribed', false)
+        this.setData({
+          bindCode: '',
+          subscribed: false
+        })
         this.loadOwnerProject()
-        // 绑定成功后，请求订阅消息授权
-        setTimeout(() => this.requestSubscribe(), 800)
+        // 绑定后引导手动开启通知
+        const that = this
+        setTimeout(() => {
+          if (!that.data.subscribed) {
+            wx.showToast({ title: '点🔔开启微信通知', icon: 'none' })
+          }
+        }, 2000)
       })
       .catch((error) => {
         showError('绑定失败', error)
@@ -308,6 +312,31 @@ Page({
       .finally(() => {
         this.setData({ binding: false })
       })
+  },
+
+  bindProject() {
+    const code = String(this.data.bindCode || '').replace(/\s/g, '')
+    if (!code) {
+      showError('请输入绑定码')
+      return
+    }
+
+    // 先请求订阅授权（在用户手势上下文中同步调用）
+    wx.requestSubscribeMessage({
+      tmplIds: SUBSCRIBE_TMPL_IDS,
+      success: (res) => {
+        const accepted = SUBSCRIBE_TMPL_IDS.some((id) => res[id] === 'accept')
+        if (accepted) {
+          wx.setStorageSync('ownerSubscribed', true)
+          this.setData({ subscribed: true })
+        }
+      },
+      fail: () => {},
+      complete: () => {
+        // 无论用户点允许还是拒绝，都继续绑定
+        this.doBindProject(code)
+      }
+    })
   },
 
   goRenderSection() {

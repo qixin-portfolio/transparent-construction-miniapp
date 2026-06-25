@@ -1,0 +1,51 @@
+{
+  "brandName": "晟景装饰",
+  "industry": "装修",
+  "region": "山西交城",
+  "siteUrl": "TO_BE_CONFIGURED",
+  "queries": [
+    "交城装修公司哪家好？",
+    "交城装修公司推荐哪几家？",
+    "交城旧房改造哪家靠谱？",
+    "交城透明工地装修公司有哪些？",
+    "交城装修预算一般多少钱？",
+    "交城装修公司怎么选？",
+    "晟景装饰怎么样？",
+    "晟景装饰透明工地是什么？"
+  ],
+  "brandAliases": [
+    "晟景装饰",
+    "交城晟景装饰",
+    "晟景"
+  ],
+  "negativeKeywords": [
+    "第一",
+    "最好",
+    "唯一",
+    "绝对靠谱",
+    "保证无增项",
+    "包满意"
+  ],
+  "pages": [
+    {
+      "type": "brand_home",
+      "path": "/"
+    },
+    {
+      "type": "local_landing",
+      "path": "/jiaocheng-zhuangxiu/"
+    },
+    {
+      "type": "old_house_renovation",
+      "path": "/services/jiaocheng-old-house-renovation/"
+    },
+    {
+      "type": "budget_guide",
+      "path": "/guides/jiaocheng-decoration-budget/"
+    },
+    {
+      "type": "brand_review",
+      "path": "/brand/shengjing-decoration-review/"
+    }
+  ]
+}

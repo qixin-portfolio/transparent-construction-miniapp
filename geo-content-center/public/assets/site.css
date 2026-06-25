@@ -418,9 +418,13 @@ p {
   font-size: 17px;
 }
 
-.stars {
-  color: #f5b23d;
-  letter-spacing: 0;
+.review-badge {
+  padding: 3px 9px;
+  border-radius: 5px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .review-card time {
@@ -519,17 +523,24 @@ details p {
   color: rgba(255, 255, 255, 0.75);
 }
 
+.cta .cta-note {
+  margin-top: 14px;
+  margin-bottom: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 14px;
+}
+
 .cta-actions {
   justify-content: center;
 }
 
-.cta-actions.three-col {
+.cta-actions.four-col {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
 
-.cta-actions.three-col .button {
+.cta-actions.four-col .button {
   text-align: center;
   padding: 14px 12px;
   font-size: 15px;
@@ -761,6 +772,7 @@ details p {
   .feature-grid,
   .service-grid,
   .case-grid,
+  .cta-actions.four-col,
   .footer-inner,
   .image-gallery {
     grid-template-columns: repeat(2, 1fr);
@@ -797,6 +809,7 @@ details p {
   .feature-grid,
   .service-grid,
   .case-grid,
+  .cta-actions.four-col,
   .footer-inner,
   .image-gallery,
   .stats {

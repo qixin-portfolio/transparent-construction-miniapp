@@ -25,6 +25,16 @@
       <input class="input bind-input" type="number" maxlength="6" placeholder="输入 6 位绑定码" value="{{bindCode}}" bindinput="onBindCodeInput" />
       <button class="button-primary" loading="{{binding}}" disabled="{{binding || !bindCode}}" bindtap="bindProject">绑定并查看进度</button>
     </view>
+
+    <!-- 兜底：绑定前也可手动开启通知 -->
+    <view class="subscribe-banner" bindtap="requestSubscribe" style="margin-top:20rpx;">
+      <view class="subscribe-icon">🔔</view>
+      <view class="subscribe-text">
+        <text class="subscribe-title">开启微信通知</text>
+        <text class="subscribe-desc">工地进度更新即时提醒，不必反复查看</text>
+      </view>
+      <view class="subscribe-arrow">›</view>
+    </view>
   </view>
 
   <!-- ========== 业主进度展示 ========== -->

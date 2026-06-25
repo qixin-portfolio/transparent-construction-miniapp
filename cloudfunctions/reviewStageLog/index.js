@@ -80,15 +80,18 @@ exports.main = async (event) => {
       }
       await db.collection('projects').doc(log.projectId).update({ data: projectData })
 
-      // 发送订阅消息通知业主（不阻断审核流程）
+      // 发送订阅消息通知业主（不阻断审核流程，结果仍会记录日志）
       try {
-        await cloud.callFunction({
+        const noticeRes = await cloud.callFunction({
           name: 'sendOwnerNotice',
           data: {
             projectId: log.projectId,
             stageLogId
           }
         })
+        if (noticeRes && noticeRes.result && !noticeRes.result.ok) {
+          console.warn('[sendOwnerNotice 未成功通知业主]', JSON.stringify(noticeRes.result))
+        }
       } catch (_) {
         // 通知发送失败不影响审核结果
       }
