@@ -41,7 +41,7 @@ exports.main = async () => {
     const projectIds = Array.from(new Set(items.map((item) => item.projectId).filter(Boolean)))
     let projectMap = {}
     if (projectIds.length) {
-      const projects = await db.collection('projects').where({ _id: _.in(projectIds) }).limit(100).get()
+      const projects = await db.collection('projects').where({ _id: _.in(projectIds), tenantId }).limit(100).get()
       projectMap = projects.data.reduce((map, item) => {
         map[item._id] = item
         return map
