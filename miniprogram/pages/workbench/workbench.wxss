@@ -306,6 +306,24 @@ page {
   margin-bottom: 24rpx;
 }
 
+.owner-douyin-qrcodes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24rpx;
+  margin-bottom: 28rpx;
+}
+
+.owner-douyin-qrcode {
+  display: block;
+  width: 240rpx;
+  height: 240rpx;
+  border: 1rpx solid #F3F4F6;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 24rpx rgba(13, 77, 54, 0.06);
+}
+
 .owner-bind-title {
   color: #1A1A1A;
   font-size: 36rpx;
