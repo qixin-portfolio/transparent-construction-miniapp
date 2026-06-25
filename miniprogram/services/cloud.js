@@ -40,6 +40,7 @@ function uploadImage(filePath, projectId, stageCode) {
 }
 
 function showError(title, error) {
+  if (error && error.silent) return
   const message = error && error.message ? error.message : String(error || '请稍后再试')
   wx.showToast({
     title: title || message,

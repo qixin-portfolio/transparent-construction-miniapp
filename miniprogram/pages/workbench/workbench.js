@@ -71,7 +71,8 @@ Page({
         }
         this.loadStaffDashboard()
       })
-      .catch(() => {
+      .catch((error) => {
+        if (error && error.needRegister) return
         this.setData({ authReady: true })
         this.loadStaffDashboard()
       })

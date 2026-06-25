@@ -1,0 +1,98 @@
+const { call, showError } = require('../../services/cloud')
+
+Page({
+  data: {
+    submitting: false,
+    form: {
+      companyName: '',
+      bossName: '',
+      phone: '',
+      city: '',
+      mainBusiness: ''
+    }
+  },
+
+  onLoad() {
+    const app = getApp()
+    const user = app.globalData.user || null
+    if (user && user.tenantId) {
+      this.goWorkbench()
+    }
+  },
+
+  onInput(event) {
+    const field = event.currentTarget.dataset.field
+    if (!field) return
+
+    let value = event.detail.value || ''
+    if (field === 'phone') {
+      value = String(value).replace(/\D/g, '').slice(0, 11)
+    }
+
+    this.setData({
+      [`form.${field}`]: value
+    })
+  },
+
+  validateForm() {
+    const form = this.data.form
+    if (!String(form.companyName || '').trim()) throw new Error('请填写公司名称')
+    if (!String(form.bossName || '').trim()) throw new Error('请填写老板姓名')
+    if (!/^1\d{10}$/.test(String(form.phone || '').trim())) throw new Error('请填写正确手机号')
+    if (!String(form.city || '').trim()) throw new Error('请填写所在城市')
+  },
+
+  submitRegister() {
+    if (this.data.submitting) return
+
+    try {
+      this.validateForm()
+    } catch (error) {
+      showError(error.message)
+      return
+    }
+
+    const form = this.data.form
+    this.setData({ submitting: true })
+    call('registerTenant', {
+      companyName: String(form.companyName || '').trim(),
+      bossName: String(form.bossName || '').trim(),
+      phone: String(form.phone || '').trim(),
+      city: String(form.city || '').trim(),
+      mainBusiness: String(form.mainBusiness || '').trim()
+    })
+      .then((res) => {
+        const app = getApp()
+        const userTask = res.user
+          ? app.hydrateUser(res.user)
+          : app.ensureLogin({ force: true, skipRegisterRedirect: true })
+        return userTask.then(() => res)
+      })
+      .then((res) => {
+        wx.showToast({
+          title: res.existing ? '已开通过' : '开通成功',
+          icon: 'success'
+        })
+        this.goWorkbench()
+      })
+      .catch((error) => {
+        showError('开通失败', error)
+      })
+      .finally(() => {
+        this.setData({ submitting: false })
+      })
+  },
+
+  goInviteFlow() {
+    wx.setStorageSync('saasInviteFlow', true)
+    wx.switchTab({
+      url: '/pages/workbench/workbench'
+    })
+  },
+
+  goWorkbench() {
+    wx.switchTab({
+      url: '/pages/workbench/workbench'
+    })
+  }
+})
