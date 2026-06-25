@@ -119,9 +119,9 @@
         <view class="date-today">今日</view>
       </view>
       <view class="staff-hero-tagline-wrap">
-        <view class="staff-hero-tagline">交城 28 年老品牌</view>
+        <view class="staff-hero-tagline">{{workbenchSloganPrimary}}</view>
         <view class="staff-hero-dot"></view>
-        <view class="staff-hero-tagline">每个工地都留痕</view>
+        <view class="staff-hero-tagline">{{workbenchSloganSecondary}}</view>
       </view>
       <view wx:if="{{user && !user.hasWechatProfile}}" class="staff-profile-tip" bindtap="goProfile">完善微信头像昵称</view>
     </view>

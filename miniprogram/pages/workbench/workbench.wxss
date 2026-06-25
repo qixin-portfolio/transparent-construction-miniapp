@@ -2,11 +2,20 @@
    工作台 · 员工端 + 业主端 · UI 3.0
    渐变 Hero + 底部消融过渡 + Bento Grid
    ================================================================ */
+page {
+  width: 100%;
+  overflow-x: hidden;
+  background: #FAFBFC;
+}
+
 .workbench-page {
+  width: 100%;
+  max-width: 100vw;
   min-height: 100vh;
   padding: 0 0 calc(148rpx + env(safe-area-inset-bottom));
   background: #FAFBFC;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* ================================================================
@@ -19,7 +28,7 @@
   border-radius: 0;
   background: linear-gradient(150deg, #0D4D36 0%, #1B7A56 50%, #2AA876 100%);
   color: #FFFFFF;
-  overflow: visible;
+  overflow: hidden;
   z-index: 1;
 }
 
@@ -467,7 +476,7 @@
   position: relative;
   padding: 48rpx 0 120rpx;
   background: linear-gradient(150deg, #0D4D36 0%, #1B7A56 50%, #2AA876 100%);
-  overflow: visible;
+  overflow: hidden;
   z-index: 1;
 }
 
@@ -1052,20 +1061,25 @@
   align-items: center;
   justify-content: center;
   gap: 14rpx;
+  max-width: calc(100% - 64rpx);
   margin: 26rpx 32rpx 0;
   padding: 12rpx 22rpx;
   border: 1rpx solid rgba(255, 255, 255, 0.18);
   border-radius: 999rpx;
   background: rgba(255, 255, 255, 0.1);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .staff-hero-tagline {
+  min-width: 0;
   margin-top: 0;
   color: rgba(255, 255, 255, 0.88);
   font-size: 24rpx;
   line-height: 1.3;
   font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
