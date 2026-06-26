@@ -3,8 +3,11 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
+const _ = db.command
 
 const INVITABLE_ROLES = ['worker', 'project_manager', 'designer', 'sales', 'boss_qi', 'boss_hu']
+const STAFF_LIMIT_ROLES = ['manager', 'foreman', 'designer', 'worker', 'project_manager', 'sales']
+const PLAN_MODULES = ['project', 'daily_report', 'owner_view']
 
 const ROLE_LABELS = {
   worker: '工长',
@@ -26,6 +29,87 @@ async function getCurrentUser() {
     user.tenantName = DEFAULT_TENANT_NAME
   }
   return { openid: OPENID, user }
+}
+
+function normalizeLimit(value, fallback) {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? number : fallback
+}
+
+async function getOptionalDoc(collectionName, id) {
+  try {
+    const res = await db.collection(collectionName).doc(id).get()
+    return res.data || null
+  } catch (_) {
+    return null
+  }
+}
+
+function isActivePlan(plan) {
+  const status = plan && (plan.status || plan.subscriptionStatus)
+  return !status || ['trial', 'active'].indexOf(status) !== -1
+}
+
+async function getTenantPlan(tenantId) {
+  const subRes = await db.collection('subscriptions')
+    .where({
+      tenantId,
+      status: _.in(['trial', 'active'])
+    })
+    .limit(1)
+    .get()
+    .catch(() => ({ data: [] }))
+
+  let source = subRes.data[0] || null
+  if (!source) {
+    const subscription = await getOptionalDoc('subscriptions', tenantId)
+    if (subscription && isActivePlan(subscription)) source = subscription
+  }
+
+  if (!source) {
+    const tenant = await getOptionalDoc('tenants', tenantId)
+    source = tenant || {}
+  }
+
+  return {
+    plan: source.plan || source.subscriptionPlan || 'free',
+    status: source.status || source.subscriptionStatus || 'trial',
+    maxProjects: normalizeLimit(source.maxProjects, 3),
+    maxStaff: normalizeLimit(source.maxStaff || source.maxUsers, 3),
+    enabledModules: source.enabledModules || PLAN_MODULES
+  }
+}
+
+function staffTenantWhere(tenantId) {
+  if (tenantId === DEFAULT_TENANT_ID) {
+    return _.in([tenantId, '', null])
+  }
+  return tenantId
+}
+
+function createPlanLimitError(code, message) {
+  const error = new Error(message)
+  error.code = code
+  return error
+}
+
+async function assertStaffLimit(tenantId) {
+  const plan = await getTenantPlan(tenantId)
+  const countRes = await db.collection('users')
+    .where({
+      tenantId: staffTenantWhere(tenantId),
+      status: 'active',
+      role: _.in(STAFF_LIMIT_ROLES)
+    })
+    .count()
+  const currentCount = countRes.total || 0
+  if (currentCount >= plan.maxStaff) {
+    throw createPlanLimitError(
+      'PLAN_STAFF_LIMIT_REACHED',
+      `当前套餐最多可添加 ${plan.maxStaff} 名员工，请升级套餐后继续添加`
+    )
+  }
+  return plan
 }
 
 exports.main = async (event) => {
@@ -71,6 +155,11 @@ exports.main = async (event) => {
     const now = db.serverDate()
     const tenantId = inviteCode.tenantId || user.tenantId || DEFAULT_TENANT_ID
     const tenantName = inviteCode.tenantName || user.tenantName || DEFAULT_TENANT_NAME
+
+    if (STAFF_LIMIT_ROLES.indexOf(inviteCode.role) !== -1) {
+      await assertStaffLimit(tenantId)
+    }
+
     // 更新用户角色
     await db.collection('users').doc(user._id).update({
       data: {
@@ -105,6 +194,7 @@ exports.main = async (event) => {
   } catch (error) {
     return {
       error: {
+        code: error.code || '',
         message: error.message || '激活内部员工角色失败'
       }
     }

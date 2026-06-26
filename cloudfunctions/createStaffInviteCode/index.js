@@ -13,6 +13,8 @@ const MANAGE_ROLES = ['admin', 'boss_qi', 'boss_hu']
 const CODE_EXPIRES_IN = 7 * 24 * 60 * 60 * 1000
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
+const PLAN_MODULES = ['project', 'daily_report', 'owner_view']
+const STAFF_LIMIT_ROLES = ['manager', 'foreman', 'designer', 'worker', 'project_manager', 'sales']
 
 const ROLE_LABELS = {
   worker: '工长',
@@ -50,6 +52,87 @@ async function makeUniqueCode() {
   throw new Error('邀请码生成失败，请稍后再试')
 }
 
+function normalizeLimit(value, fallback) {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? number : fallback
+}
+
+async function getOptionalDoc(collectionName, id) {
+  try {
+    const res = await db.collection(collectionName).doc(id).get()
+    return res.data || null
+  } catch (_) {
+    return null
+  }
+}
+
+function isActivePlan(plan) {
+  const status = plan && (plan.status || plan.subscriptionStatus)
+  return !status || ['trial', 'active'].indexOf(status) !== -1
+}
+
+async function getTenantPlan(tenantId) {
+  const subRes = await db.collection('subscriptions')
+    .where({
+      tenantId,
+      status: _.in(['trial', 'active'])
+    })
+    .limit(1)
+    .get()
+    .catch(() => ({ data: [] }))
+
+  let source = subRes.data[0] || null
+  if (!source) {
+    const subscription = await getOptionalDoc('subscriptions', tenantId)
+    if (subscription && isActivePlan(subscription)) source = subscription
+  }
+
+  if (!source) {
+    const tenant = await getOptionalDoc('tenants', tenantId)
+    source = tenant || {}
+  }
+
+  return {
+    plan: source.plan || source.subscriptionPlan || 'free',
+    status: source.status || source.subscriptionStatus || 'trial',
+    maxProjects: normalizeLimit(source.maxProjects, 3),
+    maxStaff: normalizeLimit(source.maxStaff || source.maxUsers, 3),
+    enabledModules: source.enabledModules || PLAN_MODULES
+  }
+}
+
+function staffTenantWhere(tenantId) {
+  if (tenantId === DEFAULT_TENANT_ID) {
+    return _.in([tenantId, '', null])
+  }
+  return tenantId
+}
+
+function createPlanLimitError(code, message) {
+  const error = new Error(message)
+  error.code = code
+  return error
+}
+
+async function assertStaffLimit(tenantId) {
+  const plan = await getTenantPlan(tenantId)
+  const countRes = await db.collection('users')
+    .where({
+      tenantId: staffTenantWhere(tenantId),
+      status: 'active',
+      role: _.in(STAFF_LIMIT_ROLES)
+    })
+    .count()
+  const currentCount = countRes.total || 0
+  if (currentCount >= plan.maxStaff) {
+    throw createPlanLimitError(
+      'PLAN_STAFF_LIMIT_REACHED',
+      `当前套餐最多可添加 ${plan.maxStaff} 名员工，请升级套餐后继续添加`
+    )
+  }
+  return plan
+}
+
 exports.main = async (event) => {
   try {
     const role = String(event.role || '').trim()
@@ -66,6 +149,10 @@ exports.main = async (event) => {
     }
     const tenantId = user.tenantId || DEFAULT_TENANT_ID
     const tenantName = user.tenantName || DEFAULT_TENANT_NAME
+
+    if (STAFF_LIMIT_ROLES.indexOf(role) !== -1) {
+      await assertStaffLimit(tenantId)
+    }
 
     const now = Date.now()
     // 同一角色若有未过期的有效邀请码，直接复用返回
@@ -116,6 +203,7 @@ exports.main = async (event) => {
   } catch (error) {
     return {
       error: {
+        code: error.code || '',
         message: error.message || '生成内部员工邀请码失败'
       }
     }
