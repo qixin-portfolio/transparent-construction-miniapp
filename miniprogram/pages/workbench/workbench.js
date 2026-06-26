@@ -31,15 +31,16 @@ Page({
     isBoss: false,
     isOwner: false,
     isWorker: false,
-    bossDashboard: null,
-    bossMetrics: {
-      todayUploadedCount: 0,
-      staleProjectCount: 0,
-      issueLogCount: 0,
-      newCustomerCount: 0,
-      signedCustomerCount: 0,
-      conversionRate: 0
-    },
+   bossDashboard: null,
+    tenantPlan: null,
+   bossMetrics: {
+     todayUploadedCount: 0,
+     staleProjectCount: 0,
+     issueLogCount: 0,
+     newCustomerCount: 0,
+     signedCustomerCount: 0,
+     conversionRate: 0
+   },
     bossAlerts: [],
     staffRank: [],
     recentActivities: [],
@@ -174,16 +175,18 @@ Page({
           .catch(() => 0)
       : Promise.resolve(0)
 
-    if (this.data.isBoss) {
-      Promise.all([call('getBossDashboard'), afterSalesTask])
-        .then(([res, afterSalesCount]) => {
+   if (this.data.isBoss) {
+      Promise.all([call('getBossDashboard'), afterSalesTask, call('getCurrentTenantPlan').catch(() => null)])
+        .then(([res, afterSalesCount, planRes]) => {
           const dashboard = res.dashboard || null
           const metrics = dashboard && dashboard.metrics ? dashboard.metrics : {}
+          const tenantPlan = planRes && planRes.success ? planRes : null
           this.setData({
             pendingCount: metrics.pendingReviewCount || 0,
             projectCount: metrics.projectCount || 0,
             activeProjectCount: metrics.activeProjectCount || 0,
             afterSalesPendingCount: afterSalesCount,
+            tenantPlan,
             bossDashboard: dashboard,
             bossMetrics: Object.assign({}, this.data.bossMetrics, metrics),
             bossAlerts: dashboard ? (dashboard.alerts || []) : [],
@@ -197,6 +200,7 @@ Page({
             projectCount: 0,
             activeProjectCount: 0,
             afterSalesPendingCount: 0,
+            tenantPlan: null,
             bossDashboard: null,
             bossAlerts: [],
             staffRank: [],
