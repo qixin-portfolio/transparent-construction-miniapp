@@ -34,7 +34,16 @@ Page({
   },
 
   onShow() {
-    this.loadProjects()
+    getApp().ensureLogin({ allowGuestFlow: true })
+      .then(() => this.loadProjects())
+      .catch((error) => {
+        this.setData({
+          items: [],
+          sections: SECTION_CONFIG.map((item) => Object.assign({}, item, { items: [] })),
+          stats: { total: 0, inProgress: 0, delivered: 0, afterSales: 0, others: 0 },
+          loadError: error && error.message ? error.message : '项目加载失败，可先输入绑定码'
+        })
+      })
   },
 
   onBindCodeInput(event) {

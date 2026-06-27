@@ -61,7 +61,7 @@ Page({
       authLoading: true,
       subscribed: !!wx.getStorageSync('ownerSubscribed')
     })
-    getApp().ensureLogin()
+    getApp().ensureLogin({ allowGuestFlow: true })
       .then(() => {
         this.loadOwnerProject()
       })
@@ -284,7 +284,7 @@ Page({
 
   doBindProject(code) {
     this.setData({ binding: true })
-    getApp().ensureLogin()
+    getApp().ensureLogin({ allowGuestFlow: true })
       .then(() => call('bindOwnerProject', { code }))
       .then(() => {
         wx.showToast({

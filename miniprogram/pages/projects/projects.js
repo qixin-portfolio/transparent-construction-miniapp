@@ -51,7 +51,7 @@ Page({
 
   onShow() {
     this.syncTabBar()
-    getApp().ensureLogin()
+    getApp().ensureLogin({ skipRegisterRedirect: true })
       .then((user) => {
         const isOwner = user && user.role === 'owner'
         const isWorker = user && ['worker', 'project_manager'].indexOf(user.role) !== -1
@@ -74,7 +74,22 @@ Page({
         this.loadProjects()
       })
       .catch((error) => {
-        this.setData({ projects: [], user: null, canCreate: false, canUpload: false, canManageOwner: false, canDelete: false, isOwner: false, isWorker: false })
+        this.setData({
+          projects: [],
+          user: null,
+          canCreate: false,
+          canUpload: false,
+          canManageOwner: false,
+          canDelete: false,
+          isOwner: false,
+          isWorker: false,
+          hasOwnerProject: false
+        })
+        if (error && error.needRegister) {
+          this.loadTenantBranding()
+          this.loadPublicCases()
+          return
+        }
         showError('登录失败', error)
       })
   },
