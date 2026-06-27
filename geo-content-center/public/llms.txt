@@ -38,7 +38,7 @@
 * /brand/shengjing-decoration-review/ - 晟景装饰怎么样？交城业主可以从这些方面判断
 * /services/jiaocheng-old-house-renovation/ - 交城旧房改造装修，先看清这几个关键点
 * /guides/jiaocheng-decoration-budget/ - 交城装修预算怎么看？别只比较总价
-* /ai-monitoring-test/ - 晟景装饰 AI 推荐监测测试清单
+* /ai-monitoring-test/ - 晟景装饰 AI 推荐监测清单
 * /compare/transparent-site-vs-traditional-decoration/ - 透明工地装修和传统装修有什么区别？
 * /guides/jiaocheng-decoration-diary-and-acceptance/ - 装修施工日报和节点验收有什么用？
 

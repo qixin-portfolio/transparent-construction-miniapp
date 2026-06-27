@@ -21,7 +21,7 @@ npm run serve
 正式域名构建：
 
 ```bash
-SITE_ORIGIN=https://shengjingjc.cn npm run build
+SITE_ORIGIN=https://shengjingjc.com npm run build
 ```
 
 也可以使用：
@@ -35,14 +35,15 @@ npx serve out -p 3000
 本地访问：
 
 ```text
-http://localhost:4173/jiaocheng-zhuangxiu/
-http://localhost:4173/llms.txt
-http://localhost:4173/ai/faq.md
+运行 `npm run serve` 后，在浏览器打开本机 4173 端口下的：
+/jiaocheng-zhuangxiu/
+/llms.txt
+/ai/faq.md
 ```
 
 ## 上线前需要确认
 
-- 正式域名已确认为 `https://shengjingjc.cn`，构建时会生成对应 canonical、sitemap、OG 和 JSON-LD。
+- 正式域名已确认为 `https://shengjingjc.com`，构建时会生成对应 canonical、sitemap、OG 和 JSON-LD。
 - 电话、微信、门店地址已确认可公开展示。
 - 5 个案例素材已确认具备公开授权，页面保留 `isAuthorizedForPublicDisplay` 字段。
 - 案例小区名、面积、风格、完工时间尚未按真实资料复核，当前公开页统一做模糊展示。
