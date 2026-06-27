@@ -24,6 +24,8 @@ const PUBLIC_ENTRY_ROUTES = [
 
 const WORKBENCH_JOIN_OPTION_KEYS = ['inviteCode', 'staffInviteCode', 'workerBindCode']
 const PROJECT_PUBLIC_OPTION_KEYS = ['bindCode', 'ownerBindCode', 'scene']
+const ENTRY_CONTEXT_KEY = 'saasEntryContext'
+const ENTRY_CONTEXT_TTL = 3 * 60 * 1000
 
 function hasAnyOption(options, keys) {
   return keys.some((key) => {
@@ -32,14 +34,44 @@ function hasAnyOption(options, keys) {
   })
 }
 
+function parseScene(scene) {
+  const decoded = decodeURIComponent(String(scene || '').trim())
+  if (!decoded) return {}
+  if (/^\d{6}$/.test(decoded)) return { bindCode: decoded }
+  return decoded.split('&').reduce((query, part) => {
+    const pieces = part.split('=')
+    const key = decodeURIComponent(pieces[0] || '').trim()
+    const value = decodeURIComponent(pieces.slice(1).join('=') || '').trim()
+    if (key) query[key] = value
+    return query
+  }, {})
+}
+
+function cleanQuery(rawQuery = {}) {
+  const query = Object.assign({}, rawQuery)
+  if (query.scene) {
+    Object.assign(query, parseScene(query.scene))
+  }
+  return query
+}
+
+function firstCode(query, keys) {
+  for (let i = 0; i < keys.length; i += 1) {
+    const value = String((query || {})[keys[i]] || '').replace(/\s/g, '')
+    if (/^\d{6}$/.test(value)) return value
+  }
+  return ''
+}
+
 App({
   globalData: {
     envId: 'cloud1-d4g7zh8kpca0e26d5',
     user: null,
-    loginPromise: null
+    loginPromise: null,
+    entryContext: null
   },
 
-  onLaunch() {
+  onLaunch(options = {}) {
     if (!wx.cloud) {
       wx.showModal({
         title: '当前微信版本过低',
@@ -54,6 +86,67 @@ App({
       env,
       traceUser: true
     })
+    this.captureEntryContext(options)
+  },
+
+  onShow(options = {}) {
+    this.captureEntryContext(options)
+  },
+
+  makeEntryContext(path = '', rawQuery = {}) {
+    const query = cleanQuery(rawQuery)
+    const bindCode = firstCode(query, ['bindCode', 'ownerBindCode'])
+    const staffInviteCode = firstCode(query, ['staffInviteCode', 'inviteCode'])
+    const workerBindCode = firstCode(query, ['workerBindCode'])
+    const entry = String(query.entry || '')
+    const from = String(query.from || '')
+
+    if (bindCode) {
+      return { type: 'owner_bind', bindCode, createdAt: Date.now() }
+    }
+    if (staffInviteCode || entry === 'staff_join') {
+      return { type: 'staff_join', staffInviteCode, createdAt: Date.now() }
+    }
+    if (workerBindCode || entry === 'worker_bind') {
+      return { type: 'worker_bind', workerBindCode, createdAt: Date.now() }
+    }
+    if (
+      PUBLIC_ENTRY_ROUTES.indexOf(path) !== -1 ||
+      (path === 'pages/projects/projects' && (entry === 'public' || entry === 'owner_bind' || from === 'share' || hasAnyOption(query, PROJECT_PUBLIC_OPTION_KEYS)))
+    ) {
+      return { type: 'public', createdAt: Date.now() }
+    }
+    return null
+  },
+
+  captureEntryContext(options = {}) {
+    const path = options.path || ''
+    const query = options.query || options || {}
+    const context = this.makeEntryContext(path, query)
+    if (!context) return null
+    this.globalData.entryContext = context
+    wx.setStorageSync(ENTRY_CONTEXT_KEY, context)
+    return context
+  },
+
+  getEntryContext() {
+    const context = this.globalData.entryContext || wx.getStorageSync(ENTRY_CONTEXT_KEY) || null
+    if (!context || !context.createdAt || Date.now() - context.createdAt > ENTRY_CONTEXT_TTL) {
+      this.clearEntryContext()
+      return null
+    }
+    return context
+  },
+
+  clearEntryContext() {
+    this.globalData.entryContext = null
+    wx.removeStorageSync(ENTRY_CONTEXT_KEY)
+  },
+
+  consumeEntryContext() {
+    const context = this.getEntryContext()
+    this.clearEntryContext()
+    return context
   },
 
   getCurrentPageInfo() {
@@ -78,10 +171,7 @@ App({
 
     const entry = String(pageOptions.entry || '')
     const inviteFlow = !!wx.getStorageSync('saasInviteFlow')
-    if (inviteFlow) {
-      wx.removeStorageSync('saasInviteFlow')
-      return true
-    }
+    if (inviteFlow) return true
 
     return entry === 'staff_join' ||
       entry === 'worker_bind' ||
@@ -103,6 +193,10 @@ App({
 
   shouldAllowGuestFlow(options = {}) {
     if (options.allowGuestFlow) return true
+    const entryContext = this.getEntryContext()
+    if (entryContext && ['owner_bind', 'staff_join', 'worker_bind', 'public'].indexOf(entryContext.type) !== -1) {
+      return true
+    }
 
     const pageInfo = this.getCurrentPageInfo()
     const route = pageInfo.route

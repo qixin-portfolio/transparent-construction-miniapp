@@ -10,6 +10,22 @@ const SPACE_NAMES = {
   entrance: '玄关', balcony: '阳台', study: '书房'
 }
 
+function getBindCodeFromOptions(options = {}) {
+  const directCode = String(options.bindCode || options.ownerBindCode || '').replace(/\s/g, '')
+  if (/^\d{6}$/.test(directCode)) return directCode
+
+  const scene = decodeURIComponent(String(options.scene || '').trim())
+  if (/^\d{6}$/.test(scene)) return scene
+  const sceneParts = scene.split('&').reduce((query, part) => {
+    const pieces = part.split('=')
+    const key = decodeURIComponent(pieces[0] || '').trim()
+    const value = decodeURIComponent(pieces.slice(1).join('=') || '').trim()
+    if (key) query[key] = value
+    return query
+  }, {})
+  return String(sceneParts.bindCode || sceneParts.ownerBindCode || '').replace(/\s/g, '')
+}
+
 Page({
   data: {
     loading: false,
@@ -42,7 +58,7 @@ Page({
 
   onLoad(options) {
     this.setData({ projectId: String(options.projectId || '').trim() })
-    const bindCode = String(options.bindCode || '').replace(/\s/g, '')
+    const bindCode = getBindCodeFromOptions(options)
     if (bindCode && /^\d{6}$/.test(bindCode)) {
       this.setData({
         bindCode,
@@ -286,6 +302,13 @@ Page({
     this.setData({ binding: true })
     getApp().ensureLogin({ allowGuestFlow: true })
       .then(() => call('bindOwnerProject', { code }))
+      .then((res) => {
+        const app = getApp()
+        const syncUser = res && res.user && app.hydrateUser
+          ? app.hydrateUser(res.user)
+          : Promise.resolve()
+        return syncUser.then(() => res)
+      })
       .then(() => {
         wx.showToast({
           title: '绑定成功',

@@ -1,3 +1,8 @@
 {
-  "navigationBarTitleText": "透明工地"
+  "navigationBarTitleText": "透明工地",
+  "navigationBarBackgroundColor": "#1B7A56",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#1B7A56",
+  "backgroundColorTop": "#1B7A56",
+  "backgroundColorBottom": "#FAFBFC"
 }
