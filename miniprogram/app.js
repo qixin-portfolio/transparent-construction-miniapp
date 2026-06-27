@@ -9,6 +9,29 @@ const ROLE_LABELS = {
   boss_hu: '老板（老胡）'
 }
 
+const OWNER_ENTRY_ROUTES = [
+  'subpackages/owner/pages/owner/owner',
+  'subpackages/owner/pages/projects/projects'
+]
+
+const PUBLIC_ENTRY_ROUTES = [
+  'subpackages/owner/pages/case-list/case-list',
+  'subpackages/owner/pages/case-detail/case-detail',
+  'subpackages/owner/pages/completed-home/completed-home',
+  'subpackages/owner/pages/completion-album/completion-album',
+  'subpackages/owner/pages/owner-archive/owner-archive'
+]
+
+const WORKBENCH_JOIN_OPTION_KEYS = ['inviteCode', 'staffInviteCode', 'workerBindCode']
+const PROJECT_PUBLIC_OPTION_KEYS = ['bindCode', 'ownerBindCode', 'scene']
+
+function hasAnyOption(options, keys) {
+  return keys.some((key) => {
+    const value = options && options[key]
+    return value !== undefined && value !== null && String(value) !== ''
+  })
+}
+
 App({
   globalData: {
     envId: 'cloud1-d4g7zh8kpca0e26d5',
@@ -33,40 +56,68 @@ App({
     })
   },
 
-  getCurrentRoute() {
+  getCurrentPageInfo() {
     const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
     const current = pages[pages.length - 1] || {}
-    return current.route || ''
+    return {
+      route: current.route || '',
+      options: current.options || {}
+    }
+  },
+
+  getCurrentRoute() {
+    return this.getCurrentPageInfo().route
+  },
+
+  isOwnerEntryRoute(route) {
+    return OWNER_ENTRY_ROUTES.indexOf(route) !== -1
+  },
+
+  isStaffJoinEntryRoute(route, pageOptions = {}) {
+    if (route !== 'pages/workbench/workbench') return false
+
+    const entry = String(pageOptions.entry || '')
+    const inviteFlow = !!wx.getStorageSync('saasInviteFlow')
+    if (inviteFlow) {
+      wx.removeStorageSync('saasInviteFlow')
+      return true
+    }
+
+    return entry === 'staff_join' ||
+      entry === 'worker_bind' ||
+      hasAnyOption(pageOptions, WORKBENCH_JOIN_OPTION_KEYS)
+  },
+
+  isPublicEntryRoute(route, pageOptions = {}) {
+    if (PUBLIC_ENTRY_ROUTES.indexOf(route) !== -1) return true
+
+    if (route !== 'pages/projects/projects') return false
+
+    const entry = String(pageOptions.entry || '')
+    const from = String(pageOptions.from || '')
+    return entry === 'public' ||
+      entry === 'owner_bind' ||
+      from === 'share' ||
+      hasAnyOption(pageOptions, PROJECT_PUBLIC_OPTION_KEYS)
   },
 
   shouldAllowGuestFlow(options = {}) {
     if (options.allowGuestFlow) return true
 
-    const route = this.getCurrentRoute()
-    const publicRoutes = [
-      'pages/projects/projects',
-      'subpackages/owner/pages/owner/owner',
-      'subpackages/owner/pages/projects/projects',
-      'subpackages/owner/pages/case-list/case-list',
-      'subpackages/owner/pages/case-detail/case-detail',
-      'subpackages/owner/pages/completed-home/completed-home'
-    ]
-    if (publicRoutes.indexOf(route) !== -1) return true
+    const pageInfo = this.getCurrentPageInfo()
+    const route = pageInfo.route
+    const pageOptions = pageInfo.options || {}
 
-    const inviteFlow = !!wx.getStorageSync('saasInviteFlow')
-    if (inviteFlow && ['pages/workbench/workbench', 'pages/projects/projects'].indexOf(route) !== -1) {
-      wx.removeStorageSync('saasInviteFlow')
-      return true
-    }
-
-    return false
+    return this.isOwnerEntryRoute(route) ||
+      this.isStaffJoinEntryRoute(route, pageOptions) ||
+      this.isPublicEntryRoute(route, pageOptions)
   },
 
   redirectToRegister() {
     const route = this.getCurrentRoute()
     if (route === 'pages/register/register') return
     wx.redirectTo({
-      url: '/pages/register/register'
+      url: '/pages/register/register?entry=boss_register'
     })
   },
 
@@ -107,7 +158,7 @@ App({
       }
       if (result.needRegister) {
         this.globalData.user = null
-        if (!options.skipRegisterRedirect) {
+        if (!allowGuestFlow && !options.skipRegisterRedirect) {
           this.redirectToRegister()
         }
         throw this.makeNeedRegisterError()

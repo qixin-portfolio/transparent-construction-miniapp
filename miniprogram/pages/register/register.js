@@ -3,6 +3,7 @@ const { call, showError } = require('../../services/cloud')
 Page({
   data: {
     submitting: false,
+    isBossEntry: false,
     form: {
       companyName: '',
       bossName: '',
@@ -12,12 +13,37 @@ Page({
     }
   },
 
-  onLoad() {
+  onLoad(options = {}) {
+    const isBossEntry = options.entry === 'boss_register'
+    this.setData({ isBossEntry })
+    if (!isBossEntry) {
+      this.handleInvalidEntry()
+      return
+    }
+
     const app = getApp()
     const user = app.globalData.user || null
     if (user && user.tenantId) {
       this.goWorkbench()
     }
+  },
+
+  handleInvalidEntry() {
+    wx.showToast({
+      title: '请从装修公司注册入口进入',
+      icon: 'none'
+    })
+
+    setTimeout(() => {
+      const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
+      if (pages.length > 1) {
+        wx.navigateBack()
+        return
+      }
+      wx.reLaunch({
+        url: '/pages/projects/projects?entry=public'
+      })
+    }, 1200)
   },
 
   onInput(event) {
@@ -43,6 +69,11 @@ Page({
   },
 
   submitRegister() {
+    if (!this.data.isBossEntry) {
+      this.handleInvalidEntry()
+      return
+    }
+
     if (this.data.submitting) return
 
     try {
