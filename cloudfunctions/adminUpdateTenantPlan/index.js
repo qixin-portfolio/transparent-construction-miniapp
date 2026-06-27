@@ -5,7 +5,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 
-const ADMIN_ROLES = ['admin', 'boss_qi', 'boss_hu', 'platform_admin']
+const ADMIN_ROLES = ['admin', 'boss_qi', 'boss_hu', 'platform_admin', 'super_admin']
 const VALID_PLANS = ['free', 'starter', 'pro', 'enterprise']
 const VALID_STATUSES = ['trial', 'active', 'expired', 'disabled', 'suspended', 'cancelled']
 const VALID_MODULES = ['project', 'daily_report', 'owner_view']
