@@ -3,11 +3,12 @@
 ## 1. 基础状态
 
 - 当前分支：`saas-phase4-ai-owner-summary`
-- 当前 commit：`5ef88b8 docs: add phase4 AI owner summary deploy result`
-- 部署时间：`2026-06-28`
+- 当前 commit：`b831a02 docs: update phase4 AI owner summary deploy result`
+- 测试日期：`2026-06-28`
 - 部署环境：`cloud1-d4g7zh8kpca0e26d5`
 - 部署云函数：`aiGenerateOwnerSummary`
-- 工作区状态：部署前 clean
+- 云函数状态：`Active`
+- 云函数超时时间：`15` 秒
 - stash：仍保留 `stash@{0}: On saas-phase3-manual-plan-admin: wip unrelated files before phase3 merge`
 
 ## 2. 部署结果
@@ -77,21 +78,13 @@ AI_MODEL=deepseek-chat
 
 ## 4. AI_CONFIG_MISSING 测试
 
-状态：未完成真实调用测试。
+状态：未执行破坏性真实调用测试。
 
 原因：
 
-- 微信开发者工具 CLI 只提供 `list / info / deploy / download`，没有可用的云函数 `invoke` 命令。
-- `aiGenerateOwnerSummary` 必须通过 `cloud.getWXContext()` 获取真实 `OPENID`。
-- 需要真实待审核 `stageLogId` 和真实管理员账号上下文。
-
-待用户在云开发控制台或小程序端测试：
-
-```json
-{
-  "stageLogId": "真实待审核日报ID"
-}
-```
+- 当前 AI 环境变量已经配置完成。
+- 为避免影响当前已部署云函数的真实调用验收，本轮没有清空或改错环境变量。
+- 后续如需补测，可在明确维护窗口内临时移除或改错环境变量，测试后立即恢复。
 
 未配置 AI 环境变量时预期：
 
@@ -102,70 +95,77 @@ AI_MODEL=deepseek-chat
 }
 ```
 
-补充说明：
+## 5. 管理员真实调用测试
 
-- 当前环境变量已配置，因此未再清空环境变量做 `AI_CONFIG_MISSING` 破坏性测试。
-- 后续如需补测，可在不影响线上体验的前提下单独临时移除或改错环境变量，并测试后恢复。
+状态：已完成，真实调用成功。
 
-## 5. 管理员成功生成摘要测试
+测试方式：
 
-状态：未完成真实调用测试。
+- 使用微信开发者工具真实管理员登录态调用 `wx.cloud.callFunction`。
+- 入参只传 `stageLogId`。
+- `stageLogId` 来自 `stage_logs` 集合中真实 `reviewStatus: pending` 的日报。
+- 文档不公开记录具体 `stageLogId / projectId / tenantId`。
 
-待测前置：
-
-- 当前调用用户为 `admin / boss_qi / boss_hu`。
-- `stageLogId` 属于当前租户。
-- 已配置 AI 环境变量。
-- 云函数超时时间已调整到 `15` 秒。
-
-预期：
+调用结果：
 
 ```js
 {
   success: true,
-  summary: '业主可读摘要',
+  summary: '...',
   provider: 'openai-compatible',
-  model: '...'
+  model: 'deepseek-v4-flash'
 }
 ```
 
-摘要质量检查：
+摘要质量检查结果：通过。
 
-- 50-100 字左右。
-- 面向业主。
-- 通俗易懂。
-- 不包含手机号。
-- 不包含 `openid`。
-- 不包含 `tenantId`。
-- 不使用“绝对保证”“一定没问题”等承诺。
-- 不暴露内部管理问题。
-- 不直接说“返工 / 责任 / 失误”。
+检查项：
+
+- 50-100 字左右：通过。
+- 面向业主：通过。
+- 通俗易懂：通过。
+- 不包含手机号：通过。
+- 不包含 `openid`：通过。
+- 不包含 `tenantId`：通过。
+- 不包含完整详细地址：通过。
+- 不使用“绝对保证”“一定没问题”等承诺：通过。
+- 不暴露内部管理问题：通过。
+- 不直接说“返工 / 责任 / 失误”：通过。
+
+结论：
+
+- `aiGenerateOwnerSummary` 在管理员真实登录态下可以成功生成业主友好摘要。
+- AI 失败不会影响原日报审核流程的判断仍需在前端接入后继续验证。
 
 ## 6. 权限拒绝测试
 
-状态：未完成真实调用测试。
+状态：本轮未完成真实角色切换测试。
 
-需要分别测试：
+原因：
+
+- `aiGenerateOwnerSummary` 使用 `cloud.getWXContext()` 获取真实 `OPENID`。
+- 当前微信开发者工具登录态为管理员账号。
+- 自动化测试账号列表为空，无法在本地自动切换到 `manager / worker / owner`。
+- 本轮禁止修改数据库，不能通过篡改用户角色模拟权限测试。
+
+待真实账号测试角色：
 
 ```txt
+manager
 worker
+owner
+```
+
+扩展待测角色：
+
+```txt
 designer
 sales
 project_manager
-manager
-owner
 未注册用户
 ```
 
-最低测试要求：
-
-```txt
-manager
-worker
-owner
-```
-
-预期：
+预期返回：
 
 ```js
 {
@@ -180,9 +180,19 @@ owner
 ['admin', 'boss_qi', 'boss_hu']
 ```
 
+结论：
+
+- 代码侧权限白名单符合 Phase 4B 设计。
+- 真实 `manager / worker / owner` 拒绝测试尚未完成，进入 Phase 4C 前建议用真实角色账号补测。
+
 ## 7. 跨租户测试
 
-状态：未完成真实调用测试。
+状态：暂未执行。
+
+原因：
+
+- 当前本轮未提供第二测试租户的可用 `stageLogId`。
+- 本轮不通过数据库脚本造测试数据。
 
 待测方式：
 
@@ -202,9 +212,14 @@ owner
 - 前端不能传 `tenantId`。
 - 前端不能传 `projectId` 后被信任。
 
+结论：
+
+- 代码侧租户隔离逻辑符合 Phase 4B 设计。
+- 真实跨租户 stageLogId 验证尚未完成，后续有第二测试租户时补测。
+
 ## 8. 数据库写入检查
 
-状态：未完成真实调用后的控制台核验。
+状态：通过。
 
 代码侧检查结论：
 
@@ -213,12 +228,18 @@ owner
 - `aiGenerateOwnerSummary` 未调用 `remove()`。
 - `aiGenerateOwnerSummary` 未调用 `set()`。
 
-预期：
+控制台核验结论：
 
-- 调用后 `stage_logs.ownerSummary` 不会自动变化。
+- 管理员真实调用后，目标日报仍保持原有待审核数据。
+- 已观察字段 `aiDraft: null`、`aiGenerated: false` 未变化。
+- 未发现 `ownerSummary` 被 `aiGenerateOwnerSummary` 自动写入。
+
+结论：
+
 - 云函数只返回文本。
+- 本轮没有向 `stage_logs` 写入 `ownerSummary`。
 - 数据库没有新增 AI 调用记录。
-- 原日报审核流程不受影响。
+- 原日报审核流程未被修改。
 
 ## 9. 本轮未做事项
 
@@ -236,17 +257,13 @@ owner
 
 ## 10. 当前结论
 
-Phase 4B 云函数 `aiGenerateOwnerSummary` 已最小部署成功，云端状态为 `Active`。
+Phase 4B 云函数 `aiGenerateOwnerSummary` 已完成最小部署，并在真实管理员登录态下成功生成 AI 业主摘要。
 
-但真实调用验收尚未完成，原因是：
+当前可以认为管理员真实调用链路通过，摘要质量通过，数据库未写入通过。
 
-- CLI 不支持直接 invoke 云函数。
-- 当前没有可在终端安全使用的真实 `stageLogId`。
-- 权限、跨租户、摘要质量需要用真实微信账号和云开发控制台测试。
+仍需在进入 Phase 4C 前补齐：
 
-下一步建议：
+1. 真实 `manager / worker / owner` 账号权限拒绝测试。
+2. 第二测试租户的跨租户 `stageLogId` 验证。
 
-1. 使用真实管理员微信账号，在云开发控制台或开发者工具测试调用 `aiGenerateOwnerSummary`。
-2. 使用真实待审核日报 ID 作为 `stageLogId`。
-3. 检查摘要质量、权限拒绝、跨租户隔离和数据库未写入。
-4. 验收通过后再进入 Phase 4C 前端接入。
+本轮未上传体验版，未修改前端，未修改 `reviewStageLog`，未执行数据库脚本，未执行 `initSaasDefaults`，未进入 Phase 4C。
