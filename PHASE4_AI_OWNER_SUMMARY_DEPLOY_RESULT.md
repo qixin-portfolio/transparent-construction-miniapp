@@ -3,7 +3,7 @@
 ## 1. 基础状态
 
 - 当前分支：`saas-phase4-ai-owner-summary`
-- 当前 commit：`0dd42aa docs: add phase4 AI owner summary deployment docs`
+- 当前 commit：`5ef88b8 docs: add phase4 AI owner summary deploy result`
 - 部署时间：`2026-06-28`
 - 部署环境：`cloud1-d4g7zh8kpca0e26d5`
 - 部署云函数：`aiGenerateOwnerSummary`
@@ -36,26 +36,19 @@ packSize: 3.7 KB
 ```txt
 status: Active
 runtime: Nodejs16.13
-timeout: 3
+timeout: 15
 ```
 
 注意：
 
-- 当前云函数超时时间显示为 `3` 秒。
-- AI 调用可能需要更长时间。
-- 建议在真实 AI 测试前，通过微信云开发控制台把 `aiGenerateOwnerSummary` 超时时间调整到约 15 秒。
+- 已通过微信云开发控制台把 `aiGenerateOwnerSummary` 超时时间调整为 `15` 秒。
 - 本轮未部署其他云函数。
 
 ## 3. 环境变量配置状态
 
-本轮未配置真实 AI 环境变量。
+已在微信云开发控制台配置 AI 环境变量。
 
-原因：
-
-- 真实 `AI_API_KEY` 不能写入代码、文档或终端输出。
-- 需要由用户在微信云开发控制台配置。
-
-需要配置：
+已配置项：
 
 ```txt
 AI_API_KEY
@@ -63,11 +56,24 @@ AI_BASE_URL
 AI_MODEL
 ```
 
+安全说明：
+
+- 真实 `AI_API_KEY` 由用户手动输入控制台。
+- 真实 `AI_API_KEY` 未写入代码、文档或终端输出。
+- 本文档不记录、不展示真实 Key。
+
 当前代码 URL 规则：
 
 - 如果 `AI_BASE_URL` 是完整 `/v1/chat/completions` 地址，代码会直接使用。
 - 如果 `AI_BASE_URL` 是 `/v1` 地址，代码会追加 `/chat/completions`。
 - 如果 `AI_BASE_URL` 是 base url，代码会追加 `/v1/chat/completions`。
+
+本次 DeepSeek 配置按代码实际规则使用 base url：
+
+```txt
+AI_BASE_URL=https://api.deepseek.com
+AI_MODEL=deepseek-chat
+```
 
 ## 4. AI_CONFIG_MISSING 测试
 
@@ -96,6 +102,11 @@ AI_MODEL
 }
 ```
 
+补充说明：
+
+- 当前环境变量已配置，因此未再清空环境变量做 `AI_CONFIG_MISSING` 破坏性测试。
+- 后续如需补测，可在不影响线上体验的前提下单独临时移除或改错环境变量，并测试后恢复。
+
 ## 5. 管理员成功生成摘要测试
 
 状态：未完成真实调用测试。
@@ -105,7 +116,7 @@ AI_MODEL
 - 当前调用用户为 `admin / boss_qi / boss_hu`。
 - `stageLogId` 属于当前租户。
 - 已配置 AI 环境变量。
-- 建议先将云函数超时时间调整到约 15 秒。
+- 云函数超时时间已调整到 `15` 秒。
 
 预期：
 
@@ -231,13 +242,11 @@ Phase 4B 云函数 `aiGenerateOwnerSummary` 已最小部署成功，云端状态
 
 - CLI 不支持直接 invoke 云函数。
 - 当前没有可在终端安全使用的真实 `stageLogId`。
-- 当前没有由用户配置的真实 AI 环境变量。
 - 权限、跨租户、摘要质量需要用真实微信账号和云开发控制台测试。
 
 下一步建议：
 
-1. 在微信云开发控制台配置 `AI_API_KEY / AI_BASE_URL / AI_MODEL`。
-2. 将 `aiGenerateOwnerSummary` 超时时间调整到约 15 秒。
-3. 用真实管理员账号和真实待审核 `stageLogId` 测试。
-4. 完成 `AI_CONFIG_MISSING`、管理员成功、权限拒绝、跨租户、数据库未写入检查。
-5. 验收通过后再决定是否进入 Phase 4C。
+1. 使用真实管理员微信账号，在云开发控制台或开发者工具测试调用 `aiGenerateOwnerSummary`。
+2. 使用真实待审核日报 ID 作为 `stageLogId`。
+3. 检查摘要质量、权限拒绝、跨租户隔离和数据库未写入。
+4. 验收通过后再进入 Phase 4C 前端接入。
