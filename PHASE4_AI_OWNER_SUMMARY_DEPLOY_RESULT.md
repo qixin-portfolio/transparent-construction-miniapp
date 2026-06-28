@@ -3,7 +3,7 @@
 ## 1. 基础状态
 
 - 当前分支：`saas-phase4-ai-owner-summary`
-- 当前 commit：`b831a02 docs: update phase4 AI owner summary deploy result`
+- 当前 commit：`c4e542c docs: update phase4 AI owner summary real invocation result`
 - 测试日期：`2026-06-28`
 - 部署环境：`cloud1-d4g7zh8kpca0e26d5`
 - 部署云函数：`aiGenerateOwnerSummary`
@@ -104,7 +104,6 @@ AI_MODEL=deepseek-chat
 - 使用微信开发者工具真实管理员登录态调用 `wx.cloud.callFunction`。
 - 入参只传 `stageLogId`。
 - `stageLogId` 来自 `stage_logs` 集合中真实 `reviewStatus: pending` 的日报。
-- 文档不公开记录具体 `stageLogId / projectId / tenantId`。
 
 调用结果：
 
@@ -128,9 +127,9 @@ AI_MODEL=deepseek-chat
 - 不包含 `openid`：通过。
 - 不包含 `tenantId`：通过。
 - 不包含完整详细地址：通过。
-- 不使用“绝对保证”“一定没问题”等承诺：通过。
+- 不使用"绝对保证""一定没问题"等承诺：通过。
 - 不暴露内部管理问题：通过。
-- 不直接说“返工 / 责任 / 失误”：通过。
+- 不直接说"返工 / 责任 / 失误"：通过。
 
 结论：
 
@@ -139,21 +138,45 @@ AI_MODEL=deepseek-chat
 
 ## 6. 权限拒绝测试
 
-状态：本轮未完成真实角色切换测试。
+状态：真实角色切换测试因开发者账号限制无法完成。
 
 原因：
 
 - `aiGenerateOwnerSummary` 使用 `cloud.getWXContext()` 获取真实 `OPENID`。
-- 当前微信开发者工具登录态为管理员账号。
-- 自动化测试账号列表为空，无法在本地自动切换到 `manager / worker / owner`。
-- 本轮禁止修改数据库，不能通过篡改用户角色模拟权限测试。
+- 员工微信号不是小程序开发者，在开发者工具中无法使用 `wx.cloud`。
+- 当前微信开发者工具可登录的账号只有管理员（`admin / boss_qi / boss_hu`）。
+- 通过上传体验版使用员工/业主真机微信测试，在 Phase 4B 阶段不允许。
 
-待真实账号测试角色：
+代码侧确认逻辑：
+
+- 允许角色仅为：
+
+```js
+['admin', 'boss_qi', 'boss_hu']
+```
+
+- 数据库查询 `users` 集合时使用 `{ openid: OPENID, status: 'active' }`。
+- 不在白名单中的角色通过 `ALLOWED_ROLES.indexOf(user.role) === -1` 返回：
+
+```js
+{
+  success: false,
+  code: 'FORBIDDEN'
+}
+```
+
+代码路径确认：
+
+- worker 角色：`ALLOWED_ROLES.indexOf('worker')` 为 `-1`，返回 `FORBIDDEN`
+- owner 角色：`ALLOWED_ROLES.indexOf('owner')` 为 `-1`，返回 `FORBIDDEN`
+- manager 角色：`ALLOWED_ROLES.indexOf('manager')` 为 `-1`，返回 `FORBIDDEN`
+
+待进入 Phase 4C 后，通过上传体验版用以下真实账号补测：
 
 ```txt
-manager
 worker
 owner
+manager
 ```
 
 扩展待测角色：
@@ -165,25 +188,10 @@ project_manager
 未注册用户
 ```
 
-预期返回：
-
-```js
-{
-  success: false,
-  code: 'FORBIDDEN'
-}
-```
-
-代码侧已确认允许角色仅为：
-
-```js
-['admin', 'boss_qi', 'boss_hu']
-```
-
 结论：
 
-- 代码侧权限白名单符合 Phase 4B 设计。
-- 真实 `manager / worker / owner` 拒绝测试尚未完成，进入 Phase 4C 前建议用真实角色账号补测。
+- 代码侧权限白名单符合 Phase 4B 设计，逻辑明确。
+- 真实角色拒绝测试因开发者工具登录限制未能真机执行，需在 Phase 4C 体验版验收时补齐。
 
 ## 7. 跨租户测试
 
@@ -263,7 +271,7 @@ Phase 4B 云函数 `aiGenerateOwnerSummary` 已完成最小部署，并在真实
 
 仍需在进入 Phase 4C 前补齐：
 
-1. 真实 `manager / worker / owner` 账号权限拒绝测试。
+1. 真实 `manager / worker / owner` 账号权限拒绝测试（因开发者账号限制无法在开发者工具执行，需上体验版后用真机测试）。
 2. 第二测试租户的跨租户 `stageLogId` 验证。
 
 本轮未上传体验版，未修改前端，未修改 `reviewStageLog`，未执行数据库脚本，未执行 `initSaasDefaults`，未进入 Phase 4C。
