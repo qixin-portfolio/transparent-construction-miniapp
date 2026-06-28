@@ -16,6 +16,7 @@ Page({
   onLoad(options = {}) {
     const isBossEntry = options.entry === 'boss_register'
     this.setData({ isBossEntry })
+    if (this.routeEntryContext()) return
     if (!isBossEntry) {
       this.handleInvalidEntry()
       return
@@ -26,6 +27,63 @@ Page({
     if (user && user.tenantId) {
       this.goWorkbench()
     }
+  },
+
+  onShow() {
+    if (this.routeEntryContext()) return
+    this.routeExistingNonBossUser()
+  },
+
+  routeEntryContext() {
+    const app = getApp()
+    const context = app.getEntryContext ? app.getEntryContext() : null
+    if (!context) return false
+
+    if (context.type === 'owner_bind') {
+      const query = context.bindCode ? `?bindCode=${context.bindCode}` : ''
+      if (app.clearEntryContext) app.clearEntryContext()
+      wx.redirectTo({
+        url: `/subpackages/owner/pages/owner/owner${query}`
+      })
+      return true
+    }
+
+    if (context.type === 'staff_join' || context.type === 'worker_bind') {
+      wx.switchTab({
+        url: '/pages/workbench/workbench'
+      })
+      return true
+    }
+
+    if (context.type === 'public') {
+      if (app.clearEntryContext) app.clearEntryContext()
+      wx.reLaunch({
+        url: '/pages/projects/projects?entry=public'
+      })
+      return true
+    }
+
+    return false
+  },
+
+  routeExistingNonBossUser() {
+    const app = getApp()
+    const user = app.globalData.user || null
+    if (!user || !user.role) return false
+
+    if (user.role === 'owner') {
+      wx.redirectTo({
+        url: '/subpackages/owner/pages/projects/projects'
+      })
+      return true
+    }
+
+    if (['worker', 'project_manager', 'designer', 'sales'].indexOf(user.role) !== -1) {
+      this.goWorkbench()
+      return true
+    }
+
+    return false
   },
 
   handleInvalidEntry() {

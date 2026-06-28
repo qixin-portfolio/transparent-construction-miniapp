@@ -22,8 +22,8 @@ const PUBLIC_ENTRY_ROUTES = [
   'subpackages/owner/pages/owner-archive/owner-archive'
 ]
 
-const WORKBENCH_JOIN_OPTION_KEYS = ['inviteCode', 'staffInviteCode', 'workerBindCode']
-const PROJECT_PUBLIC_OPTION_KEYS = ['bindCode', 'ownerBindCode', 'scene']
+const WORKBENCH_JOIN_OPTION_KEYS = ['saasInviteFlow', 'inviteCode', 'staffInviteCode', 'workerBindCode']
+const PROJECT_PUBLIC_OPTION_KEYS = ['bindCode', 'ownerBindCode', 'scene', 'q']
 const ENTRY_CONTEXT_KEY = 'saasEntryContext'
 const ENTRY_CONTEXT_TTL = 3 * 60 * 1000
 
@@ -34,21 +34,46 @@ function hasAnyOption(options, keys) {
   })
 }
 
-function parseScene(scene) {
-  const decoded = decodeURIComponent(String(scene || '').trim())
-  if (!decoded) return {}
-  if (/^\d{6}$/.test(decoded)) return { bindCode: decoded }
-  return decoded.split('&').reduce((query, part) => {
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(String(value || '').trim())
+  } catch (error) {
+    return String(value || '').trim()
+  }
+}
+
+function parseQueryPairs(text) {
+  return String(text || '').split('&').reduce((query, part) => {
     const pieces = part.split('=')
-    const key = decodeURIComponent(pieces[0] || '').trim()
-    const value = decodeURIComponent(pieces.slice(1).join('=') || '').trim()
+    const key = safeDecode(pieces[0] || '').trim()
+    const value = safeDecode(pieces.slice(1).join('=') || '').trim()
     if (key) query[key] = value
     return query
   }, {})
 }
 
+function parseScene(scene) {
+  const decoded = safeDecode(scene)
+  if (!decoded) return {}
+  if (/^\d{6}$/.test(decoded)) return { bindCode: decoded }
+  return parseQueryPairs(decoded)
+}
+
+function parseQ(q) {
+  const decoded = safeDecode(q)
+  if (!decoded) return {}
+  if (/^\d{6}$/.test(decoded)) return { bindCode: decoded }
+  const queryText = decoded.indexOf('?') !== -1
+    ? decoded.slice(decoded.indexOf('?') + 1)
+    : decoded
+  return parseQueryPairs(queryText.split('#')[0])
+}
+
 function cleanQuery(rawQuery = {}) {
   const query = Object.assign({}, rawQuery)
+  if (query.q) {
+    Object.assign(query, parseQ(query.q))
+  }
   if (query.scene) {
     Object.assign(query, parseScene(query.scene))
   }
@@ -68,6 +93,7 @@ App({
     envId: 'cloud1-d4g7zh8kpca0e26d5',
     user: null,
     loginPromise: null,
+    loginPromiseAllowGuestFlow: false,
     entryContext: null
   },
 
@@ -90,7 +116,8 @@ App({
   },
 
   onShow(options = {}) {
-    this.captureEntryContext(options)
+    const context = this.captureEntryContext(options)
+    this.routeEntryContextIfNeeded(context)
   },
 
   makeEntryContext(path = '', rawQuery = {}) {
@@ -100,11 +127,12 @@ App({
     const workerBindCode = firstCode(query, ['workerBindCode'])
     const entry = String(query.entry || '')
     const from = String(query.from || '')
+    const saasInviteFlow = ['1', 'true', 'staff_join'].indexOf(String(query.saasInviteFlow || '')) !== -1
 
     if (bindCode) {
       return { type: 'owner_bind', bindCode, createdAt: Date.now() }
     }
-    if (staffInviteCode || entry === 'staff_join') {
+    if (staffInviteCode || entry === 'staff_join' || saasInviteFlow) {
       return { type: 'staff_join', staffInviteCode, createdAt: Date.now() }
     }
     if (workerBindCode || entry === 'worker_bind') {
@@ -127,6 +155,37 @@ App({
     this.globalData.entryContext = context
     wx.setStorageSync(ENTRY_CONTEXT_KEY, context)
     return context
+  },
+
+  routeEntryContextIfNeeded(context) {
+    if (!context) return
+    setTimeout(() => {
+      const route = this.getCurrentRoute()
+      if (route !== 'pages/register/register') return
+
+      if (context.type === 'owner_bind') {
+        const query = context.bindCode ? `?bindCode=${context.bindCode}` : ''
+        this.clearEntryContext()
+        wx.redirectTo({
+          url: `/subpackages/owner/pages/owner/owner${query}`
+        })
+        return
+      }
+
+      if (context.type === 'staff_join' || context.type === 'worker_bind') {
+        wx.switchTab({
+          url: '/pages/workbench/workbench'
+        })
+        return
+      }
+
+      if (context.type === 'public') {
+        this.clearEntryContext()
+        wx.reLaunch({
+          url: '/pages/projects/projects?entry=public'
+        })
+      }
+    }, 0)
   },
 
   getEntryContext() {
@@ -210,6 +269,7 @@ App({
   redirectToRegister() {
     const route = this.getCurrentRoute()
     if (route === 'pages/register/register') return
+    if (this.shouldAllowGuestFlow()) return
     wx.redirectTo({
       url: '/pages/register/register?entry=boss_register'
     })
@@ -237,9 +297,14 @@ App({
     }
 
     if (this.globalData.loginPromise && !force) {
-      return this.globalData.loginPromise
+      if (allowGuestFlow && !this.globalData.loginPromiseAllowGuestFlow) {
+        this.globalData.loginPromise = null
+      } else {
+        return this.globalData.loginPromise
+      }
     }
 
+    this.globalData.loginPromiseAllowGuestFlow = allowGuestFlow
     this.globalData.loginPromise = wx.cloud.callFunction({
       name: 'login',
       data: {
@@ -252,7 +317,7 @@ App({
       }
       if (result.needRegister) {
         this.globalData.user = null
-        if (!allowGuestFlow && !options.skipRegisterRedirect) {
+        if (!this.shouldAllowGuestFlow(options) && !options.skipRegisterRedirect) {
           this.redirectToRegister()
         }
         throw this.makeNeedRegisterError()
@@ -260,6 +325,7 @@ App({
       return this.hydrateUser(result.user || null)
     }).finally(() => {
       this.globalData.loginPromise = null
+      this.globalData.loginPromiseAllowGuestFlow = false
     })
 
     return this.globalData.loginPromise

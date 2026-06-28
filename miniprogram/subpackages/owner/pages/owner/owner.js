@@ -10,19 +10,39 @@ const SPACE_NAMES = {
   entrance: '玄关', balcony: '阳台', study: '书房'
 }
 
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(String(value || '').trim())
+  } catch (error) {
+    return String(value || '').trim()
+  }
+}
+
+function parseQueryPairs(text) {
+  return String(text || '').split('&').reduce((query, part) => {
+    const pieces = part.split('=')
+    const key = safeDecode(pieces[0] || '').trim()
+    const value = safeDecode(pieces.slice(1).join('=') || '').trim()
+    if (key) query[key] = value
+    return query
+  }, {})
+}
+
 function getBindCodeFromOptions(options = {}) {
   const directCode = String(options.bindCode || options.ownerBindCode || '').replace(/\s/g, '')
   if (/^\d{6}$/.test(directCode)) return directCode
 
-  const scene = decodeURIComponent(String(options.scene || '').trim())
+  const q = safeDecode(options.q || '')
+  if (q) {
+    const qText = q.indexOf('?') !== -1 ? q.slice(q.indexOf('?') + 1) : q
+    const qParts = parseQueryPairs(qText.split('#')[0])
+    const qCode = String(qParts.bindCode || qParts.ownerBindCode || '').replace(/\s/g, '')
+    if (/^\d{6}$/.test(qCode)) return qCode
+  }
+
+  const scene = safeDecode(options.scene || '')
   if (/^\d{6}$/.test(scene)) return scene
-  const sceneParts = scene.split('&').reduce((query, part) => {
-    const pieces = part.split('=')
-    const key = decodeURIComponent(pieces[0] || '').trim()
-    const value = decodeURIComponent(pieces.slice(1).join('=') || '').trim()
-    if (key) query[key] = value
-    return query
-  }, {})
+  const sceneParts = parseQueryPairs(scene)
   return String(sceneParts.bindCode || sceneParts.ownerBindCode || '').replace(/\s/g, '')
 }
 
