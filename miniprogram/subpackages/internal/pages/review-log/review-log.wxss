@@ -537,3 +537,61 @@
 .reject-panel {
   border-radius: 30rpx 30rpx 0 0;
 }
+
+/* Phase 4C · AI 业主摘要区域 */
+.owner-summary-section {
+  margin-bottom: 16rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 18rpx;
+  background: #F6FBF8;
+}
+
+.owner-summary-input {
+  min-height: 140rpx;
+  font-size: 26rpx;
+  color: #1A1A1A;
+  border: 1rpx solid #D1D5DB;
+  border-radius: 14rpx;
+  padding: 16rpx;
+  box-sizing: border-box;
+  background: #FFFFFF;
+  line-height: 1.55;
+}
+
+.ai-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+
+.button-ai-summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 14rpx 24rpx;
+  border-radius: 10rpx;
+  background: #1B7A56;
+  color: #FFFFFF;
+  font-size: 24rpx;
+  font-weight: 800;
+  line-height: 1.2;
+  border: none;
+  transition: background 0.15s ease;
+}
+
+.button-ai-summary:active {
+  background: #0D4D36;
+}
+
+.button-ai-summary[disabled] {
+  opacity: 0.5;
+}
+
+.ai-summary-hint {
+  color: #6B7280;
+  font-size: 22rpx;
+  line-height: 1.4;
+  flex: 1;
+}

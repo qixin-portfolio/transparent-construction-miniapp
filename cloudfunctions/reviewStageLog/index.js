@@ -43,25 +43,27 @@ exports.main = async (event) => {
     if (log.tenantId && log.tenantId !== tenantId) throw new Error('无权审核该日报')
     const now = db.serverDate()
 
-    await db.collection('stage_logs').doc(stageLogId).update({
-      data: {
-        reviewStatus: approved ? 'approved' : 'rejected',
-        ownerVisible: approved,
-        rejectReason: approved ? '' : rejectReason,
-        auditComment: approved ? '' : rejectReason,
-        reviewRecords: _.push({
-          action,
-          rejectReason,
-          reviewedByOpenid: openid,
-          reviewedByName: user.name || '',
-          reviewedAt: now
-        }),
+    const updateData = {
+      reviewStatus: approved ? 'approved' : 'rejected',
+      ownerVisible: approved,
+      rejectReason: approved ? '' : rejectReason,
+      auditComment: approved ? '' : rejectReason,
+      reviewRecords: _.push({
+        action,
+        rejectReason,
         reviewedByOpenid: openid,
         reviewedByName: user.name || '',
-        reviewedAt: now,
-        updatedAt: now
-      }
-    })
+        reviewedAt: now
+      }),
+      reviewedByOpenid: openid,
+      reviewedByName: user.name || '',
+      reviewedAt: now,
+      updatedAt: now
+    }
+    if (approved && event.ownerSummary) {
+      updateData.ownerSummary = String(event.ownerSummary).trim().slice(0, 200)
+    }
+    await db.collection('stage_logs').doc(stageLogId).update({ data: updateData })
 
     await db.collection('photos').where({ stageLogId, tenantId: _.in([tenantId, '', null]) }).update({
       data: {
