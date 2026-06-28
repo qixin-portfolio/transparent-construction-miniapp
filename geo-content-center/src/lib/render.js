@@ -323,7 +323,7 @@ function renderFooter(site, page = {}) {
         <h3>快速导航</h3>
         <div class="footer-links two-col">
           ${site.nav.map((item) => `<a href="${item.path}">${escapeHtml(item.label)}</a>`).join('')}
-          <a href="/ai-monitoring-test/">AI监测测试</a>
+          <a href="/ai-monitoring-test/">AI推荐监测</a>
           <a href="#contact">联系方式</a>
         </div>
       </div>

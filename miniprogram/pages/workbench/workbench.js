@@ -31,15 +31,16 @@ Page({
     isBoss: false,
     isOwner: false,
     isWorker: false,
-    bossDashboard: null,
-    bossMetrics: {
-      todayUploadedCount: 0,
-      staleProjectCount: 0,
-      issueLogCount: 0,
-      newCustomerCount: 0,
-      signedCustomerCount: 0,
-      conversionRate: 0
-    },
+   bossDashboard: null,
+    tenantPlan: null,
+   bossMetrics: {
+     todayUploadedCount: 0,
+     staleProjectCount: 0,
+     issueLogCount: 0,
+     newCustomerCount: 0,
+     signedCustomerCount: 0,
+     conversionRate: 0
+   },
     bossAlerts: [],
     staffRank: [],
     recentActivities: [],
@@ -68,16 +69,47 @@ Page({
     workbenchSloganSecondary: SHENGJING_SLOGAN.secondary
   },
 
+  onLoad(options = {}) {
+    this.entryOptions = options || {}
+    const app = getApp()
+    if (app.captureEntryContext) {
+      app.captureEntryContext({
+        path: 'pages/workbench/workbench',
+        query: options || {}
+      })
+    }
+  },
+
   onShow() {
     this.syncTabBar()
     const app = getApp()
+    const entryContext = this.getWorkbenchEntryContext()
+    if (this.routeOwnerEntry(entryContext)) return
+
+    const isStaffEntry = entryContext && entryContext.type === 'staff_join'
+    const isWorkerEntry = entryContext && entryContext.type === 'worker_bind'
+    if (isStaffEntry || isWorkerEntry) {
+      wx.removeStorageSync('saasInviteFlow')
+      if (app.clearEntryContext) app.clearEntryContext()
+      this.setData({
+        staffActivateVisible: isStaffEntry,
+        staffCode: isStaffEntry ? (entryContext.staffInviteCode || '') : '',
+        workerProjectCodeVisible: isWorkerEntry,
+        workerProjectCode: isWorkerEntry ? (entryContext.workerBindCode || '') : ''
+      })
+    }
+
     const user = app.globalData.user || null
     this.setAccess(user)
     this.setData({ authReady: false, pendingCount: 0 })
-    app.ensureLogin()
+    app.ensureLogin(isStaffEntry || isWorkerEntry ? { allowGuestFlow: true } : {})
       .then((loginUser) => {
         this.setAccess(loginUser)
         this.setData({ authReady: true })
+        if ((isStaffEntry || isWorkerEntry) && loginUser && loginUser.role === 'owner') {
+          this.setData({ isOwner: false, loading: false })
+          return
+        }
         if (loginUser && loginUser.role === 'owner') {
           this.loadOwnerHome()
           return
@@ -89,6 +121,31 @@ Page({
         this.setData({ authReady: true })
         this.loadStaffDashboard()
       })
+  },
+
+  getWorkbenchEntryContext() {
+    const app = getApp()
+    const options = this.entryOptions || {}
+    const optionContext = app.makeEntryContext
+      ? app.makeEntryContext('pages/workbench/workbench', options)
+      : null
+    if (optionContext) return optionContext
+
+    if (wx.getStorageSync('saasInviteFlow')) {
+      return { type: 'staff_join', staffInviteCode: '' }
+    }
+    return app.getEntryContext ? app.getEntryContext() : null
+  },
+
+  routeOwnerEntry(entryContext) {
+    if (!entryContext || entryContext.type !== 'owner_bind') return false
+    const app = getApp()
+    if (app.clearEntryContext) app.clearEntryContext()
+    const query = entryContext.bindCode ? `?bindCode=${entryContext.bindCode}` : ''
+    wx.navigateTo({
+      url: `/subpackages/owner/pages/owner/owner${query}`
+    })
+    return true
   },
 
   syncTabBar() {
@@ -174,16 +231,18 @@ Page({
           .catch(() => 0)
       : Promise.resolve(0)
 
-    if (this.data.isBoss) {
-      Promise.all([call('getBossDashboard'), afterSalesTask])
-        .then(([res, afterSalesCount]) => {
+   if (this.data.isBoss) {
+      Promise.all([call('getBossDashboard'), afterSalesTask, call('getCurrentTenantPlan').catch(() => null)])
+        .then(([res, afterSalesCount, planRes]) => {
           const dashboard = res.dashboard || null
           const metrics = dashboard && dashboard.metrics ? dashboard.metrics : {}
+          const tenantPlan = planRes && planRes.success ? planRes : null
           this.setData({
             pendingCount: metrics.pendingReviewCount || 0,
             projectCount: metrics.projectCount || 0,
             activeProjectCount: metrics.activeProjectCount || 0,
             afterSalesPendingCount: afterSalesCount,
+            tenantPlan,
             bossDashboard: dashboard,
             bossMetrics: Object.assign({}, this.data.bossMetrics, metrics),
             bossAlerts: dashboard ? (dashboard.alerts || []) : [],
@@ -197,6 +256,7 @@ Page({
             projectCount: 0,
             activeProjectCount: 0,
             afterSalesPendingCount: 0,
+            tenantPlan: null,
             bossDashboard: null,
             bossAlerts: [],
             staffRank: [],

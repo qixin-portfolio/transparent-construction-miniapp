@@ -308,8 +308,39 @@
               </view>
             </view>
           </view>
-          <view wx:else class="boss-empty">暂无新动态</view>
+         <view wx:else class="boss-empty">暂无新动态</view>
+       </view>
+     </view>
+
+      <!-- 当前套餐卡片 -->
+      <view wx:if="{{tenantPlan}}" class="boss-plan-card">
+        <view class="boss-plan-head">
+          <view class="boss-plan-title">当前套餐</view>
+          <view class="boss-plan-badge {{tenantPlan.status}}">{{tenantPlan.planName}}</view>
         </view>
+        <view class="boss-plan-status-row">
+          <view class="boss-plan-status-label">套餐状态</view>
+          <view class="boss-plan-status-value {{tenantPlan.status}}">{{tenantPlan.statusText}}</view>
+        </view>
+        <view class="boss-plan-metric-row">
+          <view class="boss-plan-metric-label">项目额度</view>
+          <view class="boss-plan-metric-bar-wrap">
+            <view class="boss-plan-metric-bar">
+              <view class="boss-plan-metric-fill {{tenantPlan.isProjectAtLimit ? 'danger' : tenantPlan.isProjectNearLimit ? 'warn' : ''}}" style="width: {{tenantPlan.projectPercent}}%;"></view>
+            </view>
+            <view class="boss-plan-metric-text">已用 {{tenantPlan.usedProjects}} / 共 {{tenantPlan.maxProjects}}</view>
+          </view>
+        </view>
+        <view class="boss-plan-metric-row">
+          <view class="boss-plan-metric-label">员工额度</view>
+          <view class="boss-plan-metric-bar-wrap">
+            <view class="boss-plan-metric-bar">
+              <view class="boss-plan-metric-fill {{tenantPlan.isStaffAtLimit ? 'danger' : tenantPlan.isStaffNearLimit ? 'warn' : ''}}" style="width: {{tenantPlan.staffPercent}}%;"></view>
+            </view>
+            <view class="boss-plan-metric-text">已用 {{tenantPlan.usedStaff}} / 共 {{tenantPlan.maxStaff}}</view>
+          </view>
+        </view>
+        <view wx:if="{{tenantPlan.limitMessage}}" class="boss-plan-tip">{{tenantPlan.limitMessage}}</view>
       </view>
     </view>
 

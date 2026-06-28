@@ -9,14 +9,95 @@ const ROLE_LABELS = {
   boss_hu: '老板（老胡）'
 }
 
+const OWNER_ENTRY_ROUTES = [
+  'subpackages/owner/pages/owner/owner',
+  'subpackages/owner/pages/projects/projects'
+]
+
+const PUBLIC_ENTRY_ROUTES = [
+  'subpackages/owner/pages/case-list/case-list',
+  'subpackages/owner/pages/case-detail/case-detail',
+  'subpackages/owner/pages/completed-home/completed-home',
+  'subpackages/owner/pages/completion-album/completion-album',
+  'subpackages/owner/pages/owner-archive/owner-archive'
+]
+
+const WORKBENCH_JOIN_OPTION_KEYS = ['saasInviteFlow', 'inviteCode', 'staffInviteCode', 'workerBindCode']
+const PROJECT_PUBLIC_OPTION_KEYS = ['bindCode', 'ownerBindCode', 'scene', 'q']
+const ENTRY_CONTEXT_KEY = 'saasEntryContext'
+const ENTRY_CONTEXT_TTL = 3 * 60 * 1000
+
+function hasAnyOption(options, keys) {
+  return keys.some((key) => {
+    const value = options && options[key]
+    return value !== undefined && value !== null && String(value) !== ''
+  })
+}
+
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(String(value || '').trim())
+  } catch (error) {
+    return String(value || '').trim()
+  }
+}
+
+function parseQueryPairs(text) {
+  return String(text || '').split('&').reduce((query, part) => {
+    const pieces = part.split('=')
+    const key = safeDecode(pieces[0] || '').trim()
+    const value = safeDecode(pieces.slice(1).join('=') || '').trim()
+    if (key) query[key] = value
+    return query
+  }, {})
+}
+
+function parseScene(scene) {
+  const decoded = safeDecode(scene)
+  if (!decoded) return {}
+  if (/^\d{6}$/.test(decoded)) return { bindCode: decoded }
+  return parseQueryPairs(decoded)
+}
+
+function parseQ(q) {
+  const decoded = safeDecode(q)
+  if (!decoded) return {}
+  if (/^\d{6}$/.test(decoded)) return { bindCode: decoded }
+  const queryText = decoded.indexOf('?') !== -1
+    ? decoded.slice(decoded.indexOf('?') + 1)
+    : decoded
+  return parseQueryPairs(queryText.split('#')[0])
+}
+
+function cleanQuery(rawQuery = {}) {
+  const query = Object.assign({}, rawQuery)
+  if (query.q) {
+    Object.assign(query, parseQ(query.q))
+  }
+  if (query.scene) {
+    Object.assign(query, parseScene(query.scene))
+  }
+  return query
+}
+
+function firstCode(query, keys) {
+  for (let i = 0; i < keys.length; i += 1) {
+    const value = String((query || {})[keys[i]] || '').replace(/\s/g, '')
+    if (/^\d{6}$/.test(value)) return value
+  }
+  return ''
+}
+
 App({
   globalData: {
     envId: 'cloud1-d4g7zh8kpca0e26d5',
     user: null,
-    loginPromise: null
+    loginPromise: null,
+    loginPromiseAllowGuestFlow: false,
+    entryContext: null
   },
 
-  onLaunch() {
+  onLaunch(options = {}) {
     if (!wx.cloud) {
       wx.showModal({
         title: '当前微信版本过低',
@@ -31,42 +112,166 @@ App({
       env,
       traceUser: true
     })
+    this.captureEntryContext(options)
+  },
+
+  onShow(options = {}) {
+    const context = this.captureEntryContext(options)
+    this.routeEntryContextIfNeeded(context)
+  },
+
+  makeEntryContext(path = '', rawQuery = {}) {
+    const query = cleanQuery(rawQuery)
+    const bindCode = firstCode(query, ['bindCode', 'ownerBindCode'])
+    const staffInviteCode = firstCode(query, ['staffInviteCode', 'inviteCode'])
+    const workerBindCode = firstCode(query, ['workerBindCode'])
+    const entry = String(query.entry || '')
+    const from = String(query.from || '')
+    const saasInviteFlow = ['1', 'true', 'staff_join'].indexOf(String(query.saasInviteFlow || '')) !== -1
+
+    if (bindCode) {
+      return { type: 'owner_bind', bindCode, createdAt: Date.now() }
+    }
+    if (staffInviteCode || entry === 'staff_join' || saasInviteFlow) {
+      return { type: 'staff_join', staffInviteCode, createdAt: Date.now() }
+    }
+    if (workerBindCode || entry === 'worker_bind') {
+      return { type: 'worker_bind', workerBindCode, createdAt: Date.now() }
+    }
+    if (
+      PUBLIC_ENTRY_ROUTES.indexOf(path) !== -1 ||
+      (path === 'pages/projects/projects' && (entry === 'public' || entry === 'owner_bind' || from === 'share' || hasAnyOption(query, PROJECT_PUBLIC_OPTION_KEYS)))
+    ) {
+      return { type: 'public', createdAt: Date.now() }
+    }
+    return null
+  },
+
+  captureEntryContext(options = {}) {
+    const path = options.path || ''
+    const query = options.query || options || {}
+    const context = this.makeEntryContext(path, query)
+    if (!context) return null
+    this.globalData.entryContext = context
+    wx.setStorageSync(ENTRY_CONTEXT_KEY, context)
+    return context
+  },
+
+  routeEntryContextIfNeeded(context) {
+    if (!context) return
+    setTimeout(() => {
+      const route = this.getCurrentRoute()
+      if (route !== 'pages/register/register') return
+
+      if (context.type === 'owner_bind') {
+        const query = context.bindCode ? `?bindCode=${context.bindCode}` : ''
+        this.clearEntryContext()
+        wx.redirectTo({
+          url: `/subpackages/owner/pages/owner/owner${query}`
+        })
+        return
+      }
+
+      if (context.type === 'staff_join' || context.type === 'worker_bind') {
+        wx.switchTab({
+          url: '/pages/workbench/workbench'
+        })
+        return
+      }
+
+      if (context.type === 'public') {
+        this.clearEntryContext()
+        wx.reLaunch({
+          url: '/pages/projects/projects?entry=public'
+        })
+      }
+    }, 0)
+  },
+
+  getEntryContext() {
+    const context = this.globalData.entryContext || wx.getStorageSync(ENTRY_CONTEXT_KEY) || null
+    if (!context || !context.createdAt || Date.now() - context.createdAt > ENTRY_CONTEXT_TTL) {
+      this.clearEntryContext()
+      return null
+    }
+    return context
+  },
+
+  clearEntryContext() {
+    this.globalData.entryContext = null
+    wx.removeStorageSync(ENTRY_CONTEXT_KEY)
+  },
+
+  consumeEntryContext() {
+    const context = this.getEntryContext()
+    this.clearEntryContext()
+    return context
+  },
+
+  getCurrentPageInfo() {
+    const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
+    const current = pages[pages.length - 1] || {}
+    return {
+      route: current.route || '',
+      options: current.options || {}
+    }
   },
 
   getCurrentRoute() {
-    const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
-    const current = pages[pages.length - 1] || {}
-    return current.route || ''
+    return this.getCurrentPageInfo().route
+  },
+
+  isOwnerEntryRoute(route) {
+    return OWNER_ENTRY_ROUTES.indexOf(route) !== -1
+  },
+
+  isStaffJoinEntryRoute(route, pageOptions = {}) {
+    if (route !== 'pages/workbench/workbench') return false
+
+    const entry = String(pageOptions.entry || '')
+    const inviteFlow = !!wx.getStorageSync('saasInviteFlow')
+    if (inviteFlow) return true
+
+    return entry === 'staff_join' ||
+      entry === 'worker_bind' ||
+      hasAnyOption(pageOptions, WORKBENCH_JOIN_OPTION_KEYS)
+  },
+
+  isPublicEntryRoute(route, pageOptions = {}) {
+    if (PUBLIC_ENTRY_ROUTES.indexOf(route) !== -1) return true
+
+    if (route !== 'pages/projects/projects') return false
+
+    const entry = String(pageOptions.entry || '')
+    const from = String(pageOptions.from || '')
+    return entry === 'public' ||
+      entry === 'owner_bind' ||
+      from === 'share' ||
+      hasAnyOption(pageOptions, PROJECT_PUBLIC_OPTION_KEYS)
   },
 
   shouldAllowGuestFlow(options = {}) {
     if (options.allowGuestFlow) return true
-
-    const route = this.getCurrentRoute()
-    const publicRoutes = [
-      'pages/projects/projects',
-      'subpackages/owner/pages/owner/owner',
-      'subpackages/owner/pages/projects/projects',
-      'subpackages/owner/pages/case-list/case-list',
-      'subpackages/owner/pages/case-detail/case-detail',
-      'subpackages/owner/pages/completed-home/completed-home'
-    ]
-    if (publicRoutes.indexOf(route) !== -1) return true
-
-    const inviteFlow = !!wx.getStorageSync('saasInviteFlow')
-    if (inviteFlow && ['pages/workbench/workbench', 'pages/projects/projects'].indexOf(route) !== -1) {
-      wx.removeStorageSync('saasInviteFlow')
+    const entryContext = this.getEntryContext()
+    if (entryContext && ['owner_bind', 'staff_join', 'worker_bind', 'public'].indexOf(entryContext.type) !== -1) {
       return true
     }
 
-    return false
+    const pageInfo = this.getCurrentPageInfo()
+    const route = pageInfo.route
+    const pageOptions = pageInfo.options || {}
+
+    return this.isOwnerEntryRoute(route) ||
+      this.isStaffJoinEntryRoute(route, pageOptions) ||
+      this.isPublicEntryRoute(route, pageOptions)
   },
 
   redirectToRegister() {
     const route = this.getCurrentRoute()
     if (route === 'pages/register/register') return
+    if (this.shouldAllowGuestFlow()) return
     wx.redirectTo({
-      url: '/pages/register/register'
+      url: '/pages/register/register?entry=boss_register'
     })
   },
 
@@ -92,9 +297,14 @@ App({
     }
 
     if (this.globalData.loginPromise && !force) {
-      return this.globalData.loginPromise
+      if (allowGuestFlow && !this.globalData.loginPromiseAllowGuestFlow) {
+        this.globalData.loginPromise = null
+      } else {
+        return this.globalData.loginPromise
+      }
     }
 
+    this.globalData.loginPromiseAllowGuestFlow = allowGuestFlow
     this.globalData.loginPromise = wx.cloud.callFunction({
       name: 'login',
       data: {
@@ -107,7 +317,7 @@ App({
       }
       if (result.needRegister) {
         this.globalData.user = null
-        if (!options.skipRegisterRedirect) {
+        if (!this.shouldAllowGuestFlow(options) && !options.skipRegisterRedirect) {
           this.redirectToRegister()
         }
         throw this.makeNeedRegisterError()
@@ -115,6 +325,7 @@ App({
       return this.hydrateUser(result.user || null)
     }).finally(() => {
       this.globalData.loginPromise = null
+      this.globalData.loginPromiseAllowGuestFlow = false
     })
 
     return this.globalData.loginPromise

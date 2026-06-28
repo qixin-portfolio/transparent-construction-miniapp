@@ -10,6 +10,42 @@ const SPACE_NAMES = {
   entrance: '玄关', balcony: '阳台', study: '书房'
 }
 
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(String(value || '').trim())
+  } catch (error) {
+    return String(value || '').trim()
+  }
+}
+
+function parseQueryPairs(text) {
+  return String(text || '').split('&').reduce((query, part) => {
+    const pieces = part.split('=')
+    const key = safeDecode(pieces[0] || '').trim()
+    const value = safeDecode(pieces.slice(1).join('=') || '').trim()
+    if (key) query[key] = value
+    return query
+  }, {})
+}
+
+function getBindCodeFromOptions(options = {}) {
+  const directCode = String(options.bindCode || options.ownerBindCode || '').replace(/\s/g, '')
+  if (/^\d{6}$/.test(directCode)) return directCode
+
+  const q = safeDecode(options.q || '')
+  if (q) {
+    const qText = q.indexOf('?') !== -1 ? q.slice(q.indexOf('?') + 1) : q
+    const qParts = parseQueryPairs(qText.split('#')[0])
+    const qCode = String(qParts.bindCode || qParts.ownerBindCode || '').replace(/\s/g, '')
+    if (/^\d{6}$/.test(qCode)) return qCode
+  }
+
+  const scene = safeDecode(options.scene || '')
+  if (/^\d{6}$/.test(scene)) return scene
+  const sceneParts = parseQueryPairs(scene)
+  return String(sceneParts.bindCode || sceneParts.ownerBindCode || '').replace(/\s/g, '')
+}
+
 Page({
   data: {
     loading: false,
@@ -42,7 +78,7 @@ Page({
 
   onLoad(options) {
     this.setData({ projectId: String(options.projectId || '').trim() })
-    const bindCode = String(options.bindCode || '').replace(/\s/g, '')
+    const bindCode = getBindCodeFromOptions(options)
     if (bindCode && /^\d{6}$/.test(bindCode)) {
       this.setData({
         bindCode,
@@ -61,7 +97,7 @@ Page({
       authLoading: true,
       subscribed: !!wx.getStorageSync('ownerSubscribed')
     })
-    getApp().ensureLogin()
+    getApp().ensureLogin({ allowGuestFlow: true })
       .then(() => {
         this.loadOwnerProject()
       })
@@ -284,8 +320,15 @@ Page({
 
   doBindProject(code) {
     this.setData({ binding: true })
-    getApp().ensureLogin()
+    getApp().ensureLogin({ allowGuestFlow: true })
       .then(() => call('bindOwnerProject', { code }))
+      .then((res) => {
+        const app = getApp()
+        const syncUser = res && res.user && app.hydrateUser
+          ? app.hydrateUser(res.user)
+          : Promise.resolve()
+        return syncUser.then(() => res)
+      })
       .then(() => {
         wx.showToast({
           title: '绑定成功',
