@@ -103,3 +103,53 @@ Phase 4C 已完成最小闭环：审核页 AI 生成业主摘要、可编辑、�
 当前可以进入等待合并 master 的阶段。
 
 在合并前不继续新增功能，不进入下一阶段。
+
+## 9. worker / owner 权限补测结果
+
+测试方式：体验版 4.0.0 真机扫码验证
+
+| 角色 | AI 按钮可见 | 能否调用 AI 生成 | 结果 |
+|------|------------|-----------------|------|
+| worker（员工/工长） | 否 | 否（前端已隐藏按钮） | 通过 |
+| owner（业主） | 否 | 否（前端已隐藏按钮） | 通过 |
+| manager | 未测试 | 未测试 | 待补 |
+
+前端控制逻辑：
+
+- 按钮仅在 `userRole === 'admin'` 或 `userRole === 'boss_qi'` 或 `userRole === 'boss_hu'` 时显示
+- worker / owner 角色不匹配，按钮不渲染
+- 后端云函数另有 `ALLOWED_ROLES = ['admin', 'boss_qi', 'boss_hu']` 白名单兜底
+- 即使前端绕过，调用云函数仍返回 `FORBIDDEN`
+
+数据库写入检查：补测过程中未向 `stage_logs` 写入 `ownerSummary`
+
+结论：前端和后端双层权限控制均符合 Phase 4C 设计。
+
+## 10. 照片显示问题归因
+
+状态：**与 Phase 4C 改动无关**，为已知预存问题。
+
+排查依据：
+
+| 检查项 | 结论 |
+|--------|------|
+| `review-log.js` 照片相关代码（`photoFileIDs`、`previewPhoto`） | 未改动 |
+| `review-log.wxml` 照片 grid 结构 | 未改动 |
+| `review-log.wxss` 照片相关样式 | 未改动 |
+| `reviewStageLog` 照片逻辑 | 未改动 |
+| Phase 4C 仅新增 `owner-summary-section` 区域（位于照片区域之前） | 不影响后续 DOM |
+
+处理策略：
+
+- 本轮不修复
+- 不作为 Phase 4 合并阻塞项
+- 后续单独开任务排查
+- 已知可能原因：云存储 fileID 过期、基础库版本兼容性、VPN/网络环境
+
+## 11. 当前体验版版本
+
+```txt
+版本号：4.0.0
+```
+
+未因照片问题重新上传，照片问题非 Phase 4C 引起。
