@@ -25,6 +25,24 @@ function assertReviewRole(user) {
   }
 }
 
+async function buildTempUrlMap(fileIDs = []) {
+  const uniqueFileIDs = Array.from(new Set(fileIDs.filter(Boolean)))
+  if (!uniqueFileIDs.length) return {}
+
+  try {
+    const res = await cloud.getTempFileURL({ fileList: uniqueFileIDs })
+    return (res.fileList || []).reduce((map, item) => {
+      if (item.fileID && item.tempFileURL) {
+        map[item.fileID] = item.tempFileURL
+      }
+      return map
+    }, {})
+  } catch (err) {
+    console.warn('[listPendingStageLogs] getTempFileURL failed:', err && err.message)
+    return {}
+  }
+}
+
 exports.main = async () => {
   try {
     const user = await getCurrentUser()
@@ -48,10 +66,37 @@ exports.main = async () => {
       }, {})
     }
 
+    // Collect all photo fileIDs and convert to temp URLs
+    const allFileIDs = []
+    items.forEach((log) => {
+      const ids = Array.isArray(log.photoFileIDs) ? log.photoFileIDs.filter(Boolean) : []
+      ids.forEach((id) => allFileIDs.push(id))
+    })
+    const tempUrlMap = await buildTempUrlMap(allFileIDs)
+
     return {
-      items: items.map((item) => Object.assign({}, item, {
-        projectName: item.projectName || (projectMap[item.projectId] && projectMap[item.projectId].name) || '未命名工地'
-      }))
+      items: items.map((log) => {
+        const photoFileIDs = Array.isArray(log.photoFileIDs) ? log.photoFileIDs.filter(Boolean) : []
+        const photoUrls = photoFileIDs.map((fileID) => tempUrlMap[fileID]).filter(Boolean)
+        const photos = photoFileIDs.map((fileID) => {
+          const tempFileURL = tempUrlMap[fileID]
+          return {
+            fileID,
+            url: tempFileURL || fileID,
+            tempFileURL: tempFileURL || ''
+          }
+        })
+
+        return Object.assign({}, log, {
+          projectName: log.projectName || (projectMap[log.projectId] && projectMap[log.projectId].name) || '未命名工地',
+          // Keep original field
+          photoFileIDs,
+          // Add temp URL fields for display
+          photoUrls,
+          photoTempUrls: photoUrls,
+          photos
+        })
+      })
     }
   } catch (error) {
     return {
