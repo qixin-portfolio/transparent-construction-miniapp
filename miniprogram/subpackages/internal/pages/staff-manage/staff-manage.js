@@ -25,6 +25,8 @@ Page({
     remark: '',
     generating: false,
     latestCode: null,
+    inviteCodesCollapsed: false,
+    membersCollapsed: false,
     inviteCodes: [],
     members: [],
     teamStats: {
@@ -181,6 +183,14 @@ Page({
           .catch((err) => showError('移除失败', err))
       }
     })
+  },
+
+  toggleInviteCodes() {
+    this.setData({ inviteCodesCollapsed: !this.data.inviteCodesCollapsed })
+  },
+
+  toggleMembers() {
+    this.setData({ membersCollapsed: !this.data.membersCollapsed })
   },
 
   makeTeamStats(inviteCodes, members) {

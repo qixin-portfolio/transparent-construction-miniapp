@@ -429,6 +429,30 @@
   border-radius: 28rpx;
   background: #FEF3C7;
 }
+/* ================================================================
+   可折叠面板
+   ================================================================ */
+.collapsible-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.collapsible-title:active {
+  opacity: 0.72;
+}
+
+.collapse-arrow {
+  font-size: 22rpx;
+  color: #9CA3AF;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #F3F4F6;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
 
 .tip-title {
   color: #92400E;

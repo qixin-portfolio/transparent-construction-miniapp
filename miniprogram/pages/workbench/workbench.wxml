@@ -1,8 +1,8 @@
 <view class="workbench-page">
-  <view wx:if="{{!authReady}}" class="card empty">正在进入透明工地...</view>
+  <view wx:if="{{!authReady}}" class="workbench-loading"><view class="workbench-loading-hero"><view class="workbench-loading-title">晟景透明工地</view><view class="workbench-loading-pulse"></view></view><view class="workbench-loading-body"><view class="skeleton-card"></view><view class="skeleton-grid"><view class="skeleton-card"></view><view class="skeleton-card"></view></view></view></view>
 
   <!-- ========== 业主端：安心首页 ========== -->
-  <block wx:elif="{{isOwner}}">
+  <block wx:elif="{{authReady && isOwner}}">
     <view class="owner-hero">
       <view class="owner-hero-eyebrow">晟景透明工地</view>
       <view class="owner-hero-title">我的施工进度</view>
@@ -341,6 +341,10 @@
           </view>
         </view>
         <view wx:if="{{tenantPlan.limitMessage}}" class="boss-plan-tip">{{tenantPlan.limitMessage}}</view>
+        <view class="boss-plan-upgrade" bindtap="goPlanUpgrade">
+          <text>查看套餐详情</text>
+          <text class="boss-plan-upgrade-arrow">›</text>
+        </view>
       </view>
     </view>
 

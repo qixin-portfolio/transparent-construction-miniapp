@@ -1,0 +1,73 @@
+<view class="plan-page">
+  <!-- 加载态 -->
+  <view wx:if="{{loading}}" class="plan-loading">
+    <view class="plan-loading-card"></view>
+    <view class="plan-loading-card"></view>
+  </view>
+
+  <block wx:else>
+    <!-- 当前套餐信息 -->
+    <view wx:if="{{currentPlan}}" class="current-plan-card">
+      <view class="current-plan-header">
+        <view>
+          <view class="current-plan-label">当前套餐</view>
+          <view class="current-plan-name">{{currentPlan.planName || '免费版'}}</view>
+        </view>
+        <view class="current-plan-badge {{currentPlan.status}}">{{currentPlan.statusText || '使用中'}}</view>
+      </view>
+      <view class="current-plan-metrics">
+        <view class="current-plan-metric">
+          <view class="metric-value">{{currentPlan.usedProjects || 0}}<text class="metric-unit">/{{currentPlan.maxProjects || 3}}</text></view>
+          <view class="metric-label">项目数</view>
+        </view>
+        <view class="current-plan-metric">
+          <view class="metric-value">{{currentPlan.usedStaff || 0}}<text class="metric-unit">/{{currentPlan.maxStaff || 3}}</text></view>
+          <view class="metric-label">员工数</view>
+        </view>
+        <view class="current-plan-metric">
+          <view class="metric-value">{{currentPlan.projectPercent || 0}}<text class="metric-unit">%</text></view>
+          <view class="metric-label">项目使用率</view>
+        </view>
+      </view>
+      <view wx:if="{{currentPlan.limitMessage}}" class="current-plan-tip">{{currentPlan.limitMessage}}</view>
+    </view>
+
+    <!-- 可用套餐列表 -->
+    <view class="plan-section">
+      <view class="plan-section-title">选择套餐</view>
+      <view class="plan-grid">
+        <view wx:for="{{plans}}" wx:key="id" class="plan-card {{item.id === currentPlanId ? 'plan-card-current' : ''}}" bindtap="selectPlan" data-plan="{{item.id}}">
+          <view class="plan-card-top">
+            <view>
+              <view class="plan-card-name" style="color: {{item.color}}">{{item.name}}</view>
+              <view class="plan-card-subtitle">{{item.subtitle}}</view>
+            </view>
+            <view class="plan-card-badge {{item.badge}}">{{item.price}}</view>
+          </view>
+          <view wx:if="{{item.id === currentPlanId}}" class="plan-current-tag">当前套餐</view>
+          <view class="plan-card-features">
+            <view wx:for="{{item.features}}" wx:key="text" class="plan-feature-item {{item.ok ? '' : 'plan-feature-disabled'}}">
+              <text class="plan-feature-icon {{item.ok ? 'plan-feature-ok' : 'plan-feature-no'}}">{{item.icon}}</text>
+              <text>{{item.text}}</text>
+            </view>
+          </view>
+          <view wx:if="{{item.id !== currentPlanId}}" class="plan-upgrade-btn">升级为{{item.name}}</view>
+          <view wx:else class="plan-upgrade-btn plan-current-btn">当前套餐</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 升级说明 -->
+    <view class="plan-footer-note">
+      <view class="plan-footer-title">💡 升级说明</view>
+      <view class="plan-footer-text">升级后套餐立即生效，旧套餐剩余时间不保留。如需了解更多套餐详情或企业定制，请联系您的服务顾问。</view>
+    </view>
+
+    <!-- 升级中的 loading 遮罩 -->
+    <view wx:if="{{upgrading}}" class="plan-mask">
+      <view class="plan-mask-box">
+        <view class="plan-mask-text">正在升级套餐...</view>
+      </view>
+    </view>
+  </block>
+</view>

@@ -177,7 +177,7 @@ Page({
     call('reviewStageLog', params)
       .then(() => {
         wx.showToast({
-          title: action === 'approve' ? '已通过' : '已退回',
+          title: action === 'approve' ? '已通过，业主将收到通知' : '已退回',
           icon: 'success'
         })
         this.setData({ rejectDialogVisible: false, rejectReason: '', rejectTargetId: '' })

@@ -1787,3 +1787,80 @@ page {
   color: #E65100;
   line-height: 1.4;
 }
+.boss-plan-upgrade {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20rpx;
+  padding: 24rpx 24rpx;
+  border-radius: 20rpx;
+  background: #F7FCF9;
+  color: #1B7A56;
+  font-size: 26rpx;
+  font-weight: 800;
+  transition: all 0.15s ease;
+}
+
+.boss-plan-upgrade:active {
+  opacity: 0.76;
+  background: #E8F5EE;
+}
+
+.boss-plan-upgrade-arrow {
+  font-size: 32rpx;
+  color: #1B7A56;
+}
+
+/* ================================================================
+   加载骨架屏 · 固定布局防止跳动
+   ================================================================ */
+.workbench-loading {
+  width: 100%;
+  min-height: 100vh;
+  background: transparent;
+}
+
+.workbench-loading-hero {
+  height: 400rpx;
+  padding: 84rpx 32rpx 0;
+  background: linear-gradient(150deg, #0D4D36 0%, #1B7A56 50%, #2AA876 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.workbench-loading-title {
+  color: rgba(255,255,255,0.6);
+  font-size: 40rpx;
+  font-weight: 800;
+}
+
+.workbench-loading-pulse {
+  width: 100rpx;
+  height: 100rpx;
+  margin-top: 40rpx;
+  border-radius: 24rpx;
+  background: rgba(255,255,255,0.08);
+}
+
+.workbench-loading-body {
+  padding: 0 32rpx;
+  margin-top: 20rpx;
+}
+
+.skeleton-card {
+  height: 180rpx;
+  margin-bottom: 24rpx;
+  border-radius: 32rpx;
+  background: #F3F4F6;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.skeleton-grid .skeleton-card {
+  height: 140rpx;
+  margin-bottom: 0;
+}
