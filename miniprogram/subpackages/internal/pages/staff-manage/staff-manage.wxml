@@ -95,7 +95,11 @@
 
     <!-- 邀请码列表 -->
     <view class="section">
-      <view class="section-title">邀请码列表</view>
+      <view class="section-title collapsible-title" bindtap="toggleInviteCodes">
+        <text>邀请码列表</text>
+        <text class="collapse-arrow">{{inviteCodesCollapsed ? "展开" : "收起"}}</text>
+      </view>
+      <view wx:if="{{!inviteCodesCollapsed}}">
       <view wx:if="{{loadingCodes}}" class="muted">加载中...</view>
       <view wx:elif="{{inviteCodes.length === 0}}" class="card empty">
         <view class="empty-title">暂无邀请码</view>
@@ -116,10 +120,15 @@
         </view>
       </view>
     </view>
+    </view>
 
     <!-- 已激活员工 -->
     <view class="section">
-      <view class="section-title">已激活内部员工</view>
+      <view class="section-title collapsible-title" bindtap="toggleMembers">
+        <text>已激活内部员工</text>
+        <text class="collapse-arrow">{{membersCollapsed ? "展开" : "收起"}}</text>
+      </view>
+      <view wx:if="{{!membersCollapsed}}">
       <view wx:if="{{loadingMembers}}" class="muted">加载中...</view>
       <view wx:elif="{{members.length === 0}}" class="card empty">
         <view class="empty-title">暂无内部员工</view>
@@ -154,6 +163,7 @@
           </view>
         </view>
       </view>
+    </view>
     </view>
 
     <!-- 激活规则 -->
