@@ -26,7 +26,7 @@
 
       <view class="review-diagnostic-row">
         <view class="review-diagnostic-pill pending">待发布</view>
-        <view class="review-diagnostic-pill {{item.issue ? 'risk' : ''}}">{{item.issue ? '有现场问题' : '无现场问题'}}</view>
+        <view wx:if="{{item.issue}}" class="review-diagnostic-pill risk">有现场问题</view>
         <view class="review-diagnostic-pill {{item.needConfirm ? 'confirm' : ''}}">{{item.needConfirm ? '需确认' : '无需确认'}}</view>
         <view class="review-diagnostic-pill evidence">{{item.photoFileIDs.length}} 张照片</view>
         <view wx:if="{{item.aiGenerated}}" class="review-diagnostic-pill ai">AI整理</view>
