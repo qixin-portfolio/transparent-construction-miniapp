@@ -547,6 +547,9 @@ Page({
     wx.navigateTo({ url: '/subpackages/internal/pages/staff-manage/staff-manage' })
   },
 
+  goPlanUpgrade() {
+    wx.navigateTo({ url: "\/subpackages\/internal\/pages\/plan-upgrade\/plan-upgrade" })
+  },
   goAfterSalesManage() {
     wx.navigateTo({ url: '/subpackages/internal/pages/after-sales-list/after-sales-list' })
   },

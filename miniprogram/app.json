@@ -43,7 +43,8 @@
         "pages/staff-manage/staff-manage",
         "pages/after-sales-list/after-sales-list",
         "pages/after-sales-detail/after-sales-detail",
-        "pages/deliver-form/deliver-form"
+        "pages/deliver-form/deliver-form",
+        "pages/plan-upgrade/plan-upgrade"
       ]
     }
   ],
