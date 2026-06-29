@@ -5,6 +5,7 @@ Page({
   data: {
     loading: false,
     reviewingId: '',
+    userRole: '',
     items: [],
     rejectDialogVisible: false,
     rejectReason: '',
@@ -17,6 +18,7 @@ Page({
       this.setData({ items: [] })
       return
     }
+    this.setData({ userRole: user.role || '' })
     this.loadItems()
   },
 
@@ -45,8 +47,10 @@ Page({
       dateText: this.formatTime(item.createdAt || item.updatedAt),
       submitterText: item.submittedByName || '内部人员',
       aiGenerated: !!item.aiGenerated || /^ai_/.test(item.sourceType || ''),
+      ownerSummary: item.ownerSummary || '',
       ownerSummaryText: item.ownerSummary || '',
-      voiceTranscriptText: item.voiceTranscript || ''
+      voiceTranscriptText: item.voiceTranscript || '',
+      aiSummaryLoading: false
     }))
   },
 
@@ -116,9 +120,61 @@ Page({
 
   noop() {},
 
+  onOwnerSummaryInput(event) {
+    const id = event.currentTarget.dataset.id
+    const value = String(event.detail.value || '').slice(0, 200)
+    const items = this.data.items.map(item => {
+      if (item._id === id) {
+        item.ownerSummary = value
+      }
+      return item
+    })
+    this.setData({ items })
+  },
+
+  generateAiSummary(event) {
+    const id = event.currentTarget.dataset.id
+    const item = this.data.items.find(i => i._id === id)
+    if (!item) return
+    const items = this.data.items.map(i => {
+      if (i._id === id) i.aiSummaryLoading = true
+      return i
+    })
+    this.setData({ items })
+    call('aiGenerateOwnerSummary', { stageLogId: id })
+      .then((result) => {
+        if (result && result.summary) {
+          const updated = this.data.items.map(i => {
+            if (i._id === id) {
+              i.ownerSummary = result.summary
+              i.aiSummaryLoading = false
+            }
+            return i
+          })
+          this.setData({ items: updated })
+          wx.showToast({ title: 'AI 摘要已生成，可修改后再通过', icon: 'none' })
+        } else {
+          throw new Error((result && result.message) || '生成失败')
+        }
+      })
+      .catch((error) => {
+        const updated = this.data.items.map(i => {
+          if (i._id === id) i.aiSummaryLoading = false
+          return i
+        })
+        this.setData({ items: updated })
+        showError('AI 生成失败', error)
+      })
+  },
+
   doReview(id, action, rejectReason = '') {
     this.setData({ reviewingId: id })
-    call('reviewStageLog', { stageLogId: id, action, rejectReason })
+    const reviewItem = this.data.items.find(i => i._id === id)
+    const params = { stageLogId: id, action, rejectReason }
+    if (action === 'approve' && reviewItem && reviewItem.ownerSummary) {
+      params.ownerSummary = reviewItem.ownerSummary
+    }
+    call('reviewStageLog', params)
       .then(() => {
         wx.showToast({
           title: action === 'approve' ? '已通过' : '已退回',

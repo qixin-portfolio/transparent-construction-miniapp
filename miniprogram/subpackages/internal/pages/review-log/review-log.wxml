@@ -39,7 +39,17 @@
       </view>
 
       <view wx:if="{{item.reviewFocus}}" class="review-focus-box">审核重点：{{item.reviewFocus}}</view>
-      <view wx:if="{{item.ownerSummaryText}}" class="owner-summary-box">业主端文案：{{item.ownerSummaryText}}</view>
+
+      <!-- 业主摘要区域 -->
+      <view class="owner-summary-section">
+        <view class="form-label">业主摘要</view>
+        <textarea class="textarea owner-summary-input" value="{{item.ownerSummary}}" placeholder="业主可见的文案，AI 可辅助生成" maxlength="200" data-id="{{item._id}}" bindinput="onOwnerSummaryInput"></textarea>
+        <view class="ai-summary-row" wx:if="{{userRole === 'admin' || userRole === 'boss_qi' || userRole === 'boss_hu'}}">
+          <button class="button-ai-summary" data-id="{{item._id}}" loading="{{item.aiSummaryLoading}}" disabled="{{item.aiSummaryLoading || reviewingId}}" bindtap="generateAiSummary">AI 生成业主摘要</button>
+          <text class="ai-summary-hint">生成内容仅作参考</text>
+        </view>
+      </view>
+
       <view wx:if="{{item.issue}}" class="risk-box">⚠ 现场问题：{{item.issue}}</view>
       <view wx:if="{{item.needConfirm}}" class="confirm-box">需确认：{{item.needConfirm}}</view>
       <view wx:if="{{item.tomorrowPlan}}" class="tomorrow-box">明日计划：{{item.tomorrowPlan}}</view>
