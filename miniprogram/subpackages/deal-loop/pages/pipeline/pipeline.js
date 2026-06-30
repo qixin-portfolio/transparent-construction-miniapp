@@ -1,20 +1,29 @@
 const { pipelineStages, customers } = require('../../mock/customers')
-const { getPipelineStage, getPipelineLabel, makePipelineStats } = require('../../utils/pipelineStatus')
+const {
+  ACTION_FILTERS,
+  getPipelineStage,
+  getPipelineLabel,
+  getRiskClass,
+  filterCustomersForAction,
+  makePipelineStats,
+  sortCustomersForAction
+} = require('../../utils/pipelineStatus')
 const { getPhase2Guards } = require('../../utils/riskGuards')
 
 Page({
   data: {
     stageTabs: [],
-    activeStage: 'all',
+    activeFilter: 'today_follow',
     customers: [],
     visibleCustomers: [],
     stats: {
-      total: 0,
-      hot: 0,
-      signed: 0,
+      todayFollow: 0,
+      keyPush: 0,
+      closing: 0,
       highRisk: 0
     },
-    guards: []
+    guards: [],
+    showGuards: false
   },
 
   onLoad() {
@@ -22,12 +31,14 @@ Page({
       const pipelineStage = getPipelineStage(customer)
       return Object.assign({}, customer, {
         pipelineStage,
-        pipelineLabel: getPipelineLabel(pipelineStage)
+        pipelineLabel: getPipelineLabel(pipelineStage),
+        riskClass: getRiskClass(customer.riskLevel),
+        primaryRiskReason: (customer.riskReasons || [])[0] || '暂无风险备注'
       })
     })
     this.setData({
-      stageTabs: [{ code: 'all', label: '全部', desc: '所有客户' }].concat(pipelineStages),
-      customers: preparedCustomers,
+      stageTabs: ACTION_FILTERS.concat([{ code: 'all', label: '全部', desc: '所有客户' }], pipelineStages),
+      customers: sortCustomersForAction(preparedCustomers),
       stats: makePipelineStats(preparedCustomers),
       guards: getPhase2Guards()
     }, () => this.applyFilter())
@@ -35,15 +46,12 @@ Page({
 
   switchStage(event) {
     const code = event.currentTarget.dataset.code || 'all'
-    this.setData({ activeStage: code }, () => this.applyFilter())
+    this.setData({ activeFilter: code }, () => this.applyFilter())
   },
 
   applyFilter() {
-    const activeStage = this.data.activeStage
-    const list = activeStage === 'all'
-      ? this.data.customers
-      : this.data.customers.filter((customer) => customer.pipelineStage === activeStage)
-    this.setData({ visibleCustomers: list })
+    const list = filterCustomersForAction(this.data.customers, this.data.activeFilter)
+    this.setData({ visibleCustomers: sortCustomersForAction(list) })
   },
 
   goCustomerDetail(event) {
@@ -58,5 +66,15 @@ Page({
     wx.navigateTo({
       url: `/subpackages/deal-loop/pages/ai-assistant/ai-assistant?id=${id}`
     })
+  },
+
+  goMaterials() {
+    wx.navigateTo({
+      url: '/subpackages/deal-loop/pages/trust-materials/trust-materials'
+    })
+  },
+
+  toggleGuards() {
+    this.setData({ showGuards: !this.data.showGuards })
   }
 })

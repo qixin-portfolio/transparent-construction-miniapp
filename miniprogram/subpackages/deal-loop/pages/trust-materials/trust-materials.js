@@ -21,11 +21,13 @@ Page({
     this.setData({ materials: filterMaterials(this.data.activeType) })
   },
 
-  copyMaterial(event) {
+  mockSendMaterial(event) {
     const id = event.currentTarget.dataset.id
     const material = this.data.materials.find((item) => item.materialId === id)
-    wx.setClipboardData({
-      data: getMaterialSummary(material)
+    wx.showModal({
+      title: 'Mock 发送',
+      content: material ? getMaterialSummary(material) : '当前仅为 mock 提示，不调用分享或接口。',
+      showCancel: false
     })
   }
 })

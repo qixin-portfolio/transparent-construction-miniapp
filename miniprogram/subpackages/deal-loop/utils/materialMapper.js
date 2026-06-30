@@ -13,7 +13,7 @@ function getMaterialsByIds(ids) {
 function getMaterialSummary(material) {
   if (!material) return ''
   const tags = (material.tags || []).join(' / ')
-  return [material.typeLabel, tags, material.summary].filter(Boolean).join(' · ')
+  return [material.typeLabel, tags, material.concernSolved, material.sendScene].filter(Boolean).join(' · ')
 }
 
 module.exports = {

@@ -8,7 +8,8 @@ Page({
     selectedIndex: 0,
     customer: null,
     suggestion: null,
-    guards: []
+    guards: [],
+    showGuards: false
   },
 
   onLoad(options = {}) {
@@ -40,5 +41,9 @@ Page({
   copyMessage() {
     const message = (this.data.suggestion && this.data.suggestion.recommendedMessage) || ''
     wx.setClipboardData({ data: message })
+  },
+
+  toggleGuards() {
+    this.setData({ showGuards: !this.data.showGuards })
   }
 })

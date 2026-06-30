@@ -1,8 +1,8 @@
 <view class="deal-page">
   <view class="hero">
     <view class="kicker">只读素材 mock</view>
-    <view class="title">信任素材库</view>
-    <view class="desc">统一表达日报、照片、图纸、案例和质保素材。Phase 2 不读取真实 V1 数据。</view>
+    <view class="title">信任证据库</view>
+    <view class="desc">把日报、照片、图纸、案例和质保说明变成销售跟进可发送的证据。</view>
   </view>
 
   <scroll-view class="tabs" scroll-x enable-flex>
@@ -24,9 +24,22 @@
           <view class="material-title">{{item.title}}</view>
           <view class="muted">{{item.typeLabel}} · {{item.stageName}}</view>
         </view>
-        <view class="auth-pill">{{item.authorizationStatus}}</view>
+        <view class="auth-pill">{{item.authorizationLabel}}</view>
       </view>
-      <view class="summary">{{item.summary}}</view>
+      <view class="evidence-block">
+        <view class="mini-label">解决的客户顾虑</view>
+        <view class="summary">{{item.concernSolved}}</view>
+      </view>
+      <view class="evidence-block">
+        <view class="mini-label">推荐发送场景</view>
+        <view class="summary">{{item.sendScene}}</view>
+      </view>
+      <view class="stage-row">
+        <view class="mini-label">适合阶段</view>
+        <view class="stage-tags">
+          <view wx:for="{{item.suitableStages}}" wx:key="*this" class="stage-tag">{{item}}</view>
+        </view>
+      </view>
       <view class="tag-row">
         <view wx:for="{{item.tags}}" wx:key="*this" class="tag">{{item}}</view>
       </view>
@@ -34,7 +47,7 @@
         <view>来源：{{item.sourceCollection}}</view>
         <view>业主可见：{{item.ownerVisible ? '是' : '否'}}</view>
       </view>
-      <button class="secondary-btn" data-id="{{item.materialId}}" bindtap="copyMaterial">复制素材说明</button>
+      <button class="secondary-btn" data-id="{{item.materialId}}" bindtap="mockSendMaterial">mock 发送给客户</button>
     </view>
   </view>
 </view>

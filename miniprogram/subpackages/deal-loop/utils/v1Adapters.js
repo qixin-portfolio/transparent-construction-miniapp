@@ -4,8 +4,15 @@ function toProjectDraft(customer) {
   return {
     customerId: (customer && (customer.v1CustomerId || customer.customerId)) || '',
     customerName: name,
+    ownerName: name,
     address,
     name: address ? `${address} 透明工地` : `${name} 透明工地`,
+    baseInfoDraft: [
+      (customer && customer.community) || '',
+      (customer && customer.area) || '',
+      (customer && customer.stylePreference) || '',
+      (customer && customer.budgetRange) || ''
+    ].filter(Boolean).join(' / '),
     ownerOpenid: '',
     status: '施工中',
     statusCode: 'in_progress'

@@ -8,6 +8,8 @@ function buildFallbackSuggestion(customer) {
     customerId: (customer && customer.customerId) || '',
     triggerStage: (customer && customer.pipelineStage) || 'new_lead',
     customerConcern: '待补充客户顾虑',
+    recommendedApproach: '先确认客户当前最担心的点，再选择对应信任素材。',
+    materialSendPlan: '默认发送透明日报样例，让客户先理解透明工地价值。',
     recommendedMessage: `${name}，我先把您最关心的预算、效果和工地管理拆开讲清楚，再给您看对应案例和透明工地记录。`,
     recommendedMaterialIds: ['mock_material_002'],
     nextAction: '补充客户顾虑后重新生成 mock 建议',

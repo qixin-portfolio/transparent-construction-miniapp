@@ -2,7 +2,7 @@
   <view class="hero">
     <view class="kicker">Mock only</view>
     <view class="title">AI 跟进助手</view>
-    <view class="desc">本页使用本地规则生成建议，不请求真实 AI API，不调用云函数。</view>
+    <view class="desc">当前为本地 mock 建议，不调用真实 AI。</view>
   </view>
 
   <view class="card">
@@ -24,8 +24,17 @@
     <view class="muted">触发阶段：{{suggestion.triggerStage}} ｜ 生成方式：{{suggestion.generatedBy}}</view>
   </view>
 
+  <view class="card">
+    <view class="section-title">推荐跟进方式</view>
+    <view class="strategy">{{suggestion.recommendedApproach}}</view>
+    <view class="next-box">
+      <view class="next-label">可发送素材</view>
+      <view class="next-text">{{suggestion.materialSendPlan}}</view>
+    </view>
+  </view>
+
   <view class="card output-card">
-    <view class="section-title">推荐话术</view>
+    <view class="section-title">建议话术</view>
     <view class="message">{{suggestion.recommendedMessage}}</view>
     <view class="next-box">
       <view class="next-label">下一步动作</view>
@@ -41,7 +50,8 @@
     <view class="section-title">推荐素材</view>
     <view wx:for="{{suggestion.materials}}" wx:key="materialId" class="material-item">
       <view class="material-title">{{item.title}}</view>
-      <view class="muted">{{item.typeLabel}} · {{item.summary}}</view>
+      <view class="muted">{{item.typeLabel}} · {{item.concernSolved}}</view>
+      <view class="send-scene">{{item.sendScene}}</view>
     </view>
   </view>
 
@@ -50,8 +60,9 @@
     <view wx:for="{{suggestion.riskNotes}}" wx:key="*this" class="risk-note">{{item}}</view>
   </view>
 
-  <view class="card">
-    <view class="section-title">Phase 2 保护规则</view>
-    <view wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
+  <view class="guard-card weak" bindtap="toggleGuards">
+    <view class="guard-title">Phase 2.5 本地 mock 保护规则</view>
+    <view class="guard-hint">{{showGuards ? '收起' : '展开查看'}}</view>
+    <view wx:if="{{showGuards}}" wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
   </view>
 </view>

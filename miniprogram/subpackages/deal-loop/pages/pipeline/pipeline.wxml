@@ -1,22 +1,24 @@
 <view class="deal-page">
   <view class="hero">
-    <view class="kicker">Phase 2 Mock</view>
-    <view class="title">客户成交管道</view>
-    <view class="desc">本页面只读取本地 mock 数据，不调用云函数，不写入真实数据库。</view>
+    <view class="hero-top">
+      <view class="title">今日成交跟进</view>
+      <view class="kicker">Phase 2.5 Mock / 不影响 V1</view>
+    </view>
+    <view class="desc">看清客户阶段、下一步动作和可发送的信任素材</view>
   </view>
 
   <view class="stats-grid">
     <view class="stat-card">
-      <view class="stat-num">{{stats.total}}</view>
-      <view class="stat-label">客户总数</view>
+      <view class="stat-num">{{stats.todayFollow}}</view>
+      <view class="stat-label">今日待跟进</view>
     </view>
     <view class="stat-card">
-      <view class="stat-num warn">{{stats.hot}}</view>
-      <view class="stat-label">重点跟进</view>
+      <view class="stat-num warn">{{stats.keyPush}}</view>
+      <view class="stat-label">重点推进</view>
     </view>
     <view class="stat-card">
-      <view class="stat-num success">{{stats.signed}}</view>
-      <view class="stat-label">已签约</view>
+      <view class="stat-num success">{{stats.closing}}</view>
+      <view class="stat-label">临门一脚</view>
     </view>
     <view class="stat-card">
       <view class="stat-num danger">{{stats.highRisk}}</view>
@@ -29,16 +31,16 @@
       <view
         wx:for="{{stageTabs}}"
         wx:key="code"
-        class="tab {{activeStage == item.code ? 'active' : ''}}"
+        class="tab {{activeFilter == item.code ? 'active' : ''}}"
         data-code="{{item.code}}"
         bindtap="switchStage"
       >{{item.label}}</view>
     </view>
   </scroll-view>
 
-  <view class="section-title">客户列表</view>
+  <view class="section-title">成交作战队列</view>
   <view class="customer-list">
-    <view wx:for="{{visibleCustomers}}" wx:key="customerId" class="customer-card" data-id="{{item.customerId}}" bindtap="goCustomerDetail">
+    <view wx:for="{{visibleCustomers}}" wx:key="customerId" class="customer-card">
       <view class="customer-head">
         <view>
           <view class="customer-name">{{item.name}}</view>
@@ -47,19 +49,36 @@
         <view class="stage-pill">{{item.pipelineLabel}}</view>
       </view>
       <view class="info-row">预算：{{item.budgetRange}} ｜ 来源：{{item.source}}</view>
+      <view class="action-label">{{item.actionBucketLabel}}</view>
       <view class="next-box">
-        <view class="next-label">下一步</view>
-        <view class="next-text">{{item.nextAction}}</view>
+        <view class="next-label">今日动作</view>
+        <view class="next-text">{{item.todayAction}}</view>
+      </view>
+      <view class="deal-grid">
+        <view>
+          <view class="mini-label">推荐素材</view>
+          <view class="mini-value">{{item.recommendedMaterial}}</view>
+        </view>
+        <view>
+          <view class="mini-label">建议话术</view>
+          <view class="mini-value">{{item.suggestedTalk}}</view>
+        </view>
+      </view>
+      <view class="risk-row">
+        <view class="risk-pill {{item.riskClass}}">{{item.riskLevel}}</view>
+        <view class="risk-reason">{{item.primaryRiskReason}}</view>
       </view>
       <view class="card-actions">
-        <view class="text-action" data-id="{{item.customerId}}" catchtap="goAssistant">AI mock 建议</view>
-        <view class="risk {{item.riskLevel}}">{{item.riskLevel}}</view>
+        <button class="mock-btn" data-id="{{item.customerId}}" bindtap="goCustomerDetail">看客户</button>
+        <button class="mock-btn primary" data-id="{{item.customerId}}" bindtap="goAssistant">AI 话术</button>
+        <button class="mock-btn" bindtap="goMaterials">推荐素材</button>
       </view>
     </view>
   </view>
 
-  <view class="guard-card">
-    <view class="section-title">Phase 2 保护规则</view>
-    <view wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
+  <view class="guard-card weak" bindtap="toggleGuards">
+    <view class="guard-title">Phase 2.5 本地 mock 保护规则</view>
+    <view class="guard-hint">{{showGuards ? '收起' : '展开查看'}}</view>
+    <view wx:if="{{showGuards}}" wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
   </view>
 </view>

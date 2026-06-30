@@ -18,14 +18,23 @@
   padding: 34rpx;
 }
 
+.hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
 .kicker {
-  color: #1B7A56;
-  font-size: 24rpx;
-  font-weight: 700;
+  flex-shrink: 0;
+  padding: 8rpx 12rpx;
+  border-radius: 999rpx;
+  background: #F3F4F6;
+  color: #6B7280;
+  font-size: 20rpx;
 }
 
 .title {
-  margin-top: 10rpx;
   color: #111827;
   font-size: 44rpx;
   font-weight: 800;
@@ -151,6 +160,17 @@
   margin-top: 14rpx;
 }
 
+.action-label {
+  display: inline-flex;
+  margin-top: 16rpx;
+  padding: 7rpx 14rpx;
+  border-radius: 999rpx;
+  background: #FFF7ED;
+  color: #B45309;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
 .next-box {
   margin-top: 18rpx;
   padding: 18rpx;
@@ -171,35 +191,104 @@
   line-height: 1.45;
 }
 
-.card-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 18rpx;
+.deal-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14rpx;
+  margin-top: 16rpx;
 }
 
-.text-action {
-  color: #1B7A56;
-  font-size: 25rpx;
-  font-weight: 700;
-}
-
-.risk {
+.mini-label {
   color: #6B7280;
   font-size: 22rpx;
 }
 
-.risk.high {
+.mini-value {
+  margin-top: 4rpx;
+  color: #111827;
+  font-size: 25rpx;
+  line-height: 1.45;
+}
+
+.risk-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.risk-pill {
+  flex-shrink: 0;
+  padding: 7rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.risk-pill.risk-high {
+  background: #FEE2E2;
   color: #B91C1C;
 }
 
-.risk.medium {
+.risk-pill.risk-medium {
+  background: #FEF3C7;
   color: #B45309;
+}
+
+.risk-pill.risk-low {
+  background: #EAF6F0;
+  color: #1B7A56;
+}
+
+.risk-reason {
+  color: #6B7280;
+  font-size: 23rpx;
+  line-height: 1.4;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 18rpx;
+}
+
+.mock-btn {
+  flex: 1;
+  height: 68rpx;
+  border-radius: 12rpx;
+  background: #F3F4F6;
+  color: #374151;
+  font-size: 24rpx;
+  line-height: 68rpx;
+}
+
+.mock-btn.primary {
+  background: #1B7A56;
+  color: #FFFFFF;
 }
 
 .guard-card {
   margin-top: 24rpx;
   padding: 28rpx;
+}
+
+.guard-card.weak {
+  padding: 22rpx 24rpx;
+  background: #F3F4F6;
+  box-shadow: none;
+}
+
+.guard-title {
+  color: #4B5563;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.guard-hint {
+  margin-top: 6rpx;
+  color: #9CA3AF;
+  font-size: 22rpx;
 }
 
 .guard-item {

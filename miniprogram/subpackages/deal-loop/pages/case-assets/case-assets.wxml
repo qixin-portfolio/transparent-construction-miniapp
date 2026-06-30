@@ -2,7 +2,7 @@
   <view class="hero">
     <view class="kicker">案例草案 mock</view>
     <view class="title">工地转案例资产</view>
-    <view class="desc">只整理内部案例草案，不自动发布，不修改案例授权。</view>
+    <view class="desc">完工工地如何沉淀成案例内容资产。当前仅为 mock 案例资产，不自动发布，不修改 case_authorizations。</view>
   </view>
 
   <view class="card">
@@ -28,10 +28,33 @@
   </view>
 
   <view class="card">
-    <view class="section-title">引用素材</view>
+    <view class="section-title">内容方向</view>
+    <view class="asset-row">
+      <view class="asset-label">小红书笔记标题草案</view>
+      <view class="asset-value">{{caseAsset.xiaohongshuTitle}}</view>
+    </view>
+    <view class="asset-row">
+      <view class="asset-label">抖音短视频选题</view>
+      <view class="asset-value">{{caseAsset.douyinTopic}}</view>
+    </view>
+    <view class="asset-row">
+      <view class="asset-label">官网案例摘要</view>
+      <view class="asset-value">{{caseAsset.websiteSummary}}</view>
+    </view>
+    <view class="asset-row">
+      <view class="asset-label">GEO 问答素材</view>
+      <view class="asset-value">{{caseAsset.geoQaMaterial}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">可用素材清单</view>
+    <view class="checklist">
+      <view wx:for="{{caseAsset.materialChecklist}}" wx:key="*this" class="check-pill">{{item}}</view>
+    </view>
     <view wx:for="{{materials}}" wx:key="materialId" class="material-item">
       <view class="material-title">{{item.title}}</view>
-      <view class="muted">{{item.typeLabel}} · {{item.summary}}</view>
+      <view class="muted">{{item.typeLabel}} · {{item.concernSolved}}</view>
     </view>
   </view>
 
@@ -45,5 +68,6 @@
       <view class="draft-body">{{item.body}}</view>
       <button class="secondary-btn" data-index="{{index}}" bindtap="copyDraft">复制草案</button>
     </view>
+    <button class="disabled-btn" disabled>不自动发布</button>
   </view>
 </view>

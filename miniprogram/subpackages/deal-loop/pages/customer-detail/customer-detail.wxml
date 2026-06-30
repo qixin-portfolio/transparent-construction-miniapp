@@ -14,9 +14,10 @@
     <view class="field-row"><text>预算</text><text>{{customer.budgetRange}}</text></view>
     <view class="field-row"><text>需求</text><text>{{customer.need}}</text></view>
     <view class="field-row"><text>阶段</text><text>{{customer.stage}} / {{customer.dealStatus}}</text></view>
+    <view class="field-row"><text>风险</text><text>{{customer.riskLevel}}</text></view>
     <view class="next-box">
-      <view class="next-label">下一步</view>
-      <view class="next-text">{{customer.nextAction}}</view>
+      <view class="next-label">今日动作</view>
+      <view class="next-text">{{customer.todayAction}}</view>
     </view>
   </view>
 
@@ -38,12 +39,30 @@
   </view>
 
   <view class="card">
-    <view class="section-title">AI mock 建议</view>
-    <view class="suggestion">{{suggestion.recommendedMessage}}</view>
+    <view class="section-title">销售助手建议</view>
+    <view class="mock-note">当前为本地 mock 建议，不调用真实 AI。</view>
+    <view class="assistant-grid">
+      <view class="assistant-row">
+        <view class="assistant-label">客户当前顾虑</view>
+        <view class="assistant-value">{{suggestion.customerConcern}}</view>
+      </view>
+      <view class="assistant-row">
+        <view class="assistant-label">推荐跟进方式</view>
+        <view class="assistant-value">{{suggestion.recommendedApproach}}</view>
+      </view>
+      <view class="assistant-row">
+        <view class="assistant-label">可发送素材</view>
+        <view class="assistant-value">{{suggestion.materialSendPlan}}</view>
+      </view>
+      <view class="assistant-row">
+        <view class="assistant-label">建议话术</view>
+        <view class="suggestion">{{suggestion.recommendedMessage}}</view>
+      </view>
+    </view>
     <view class="risk-note" wx:for="{{suggestion.riskNotes}}" wx:key="*this">{{item}}</view>
     <view class="button-row">
-      <button class="primary-btn" bindtap="goAssistant">打开 AI mock</button>
-      <button class="secondary-btn" bindtap="goMaterials">看素材库</button>
+      <button class="primary-btn" bindtap="goAssistant">打开 AI 话术</button>
+      <button class="secondary-btn" bindtap="goMaterials">推荐素材</button>
     </view>
   </view>
 

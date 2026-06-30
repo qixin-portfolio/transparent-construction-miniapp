@@ -2,7 +2,7 @@
   <view class="hero">
     <view class="kicker">草案，不写库</view>
     <view class="title">签约转工地</view>
-    <view class="desc">Phase 2 只生成工地创建 payload 草案，不调用 `createProject`。</view>
+    <view class="desc">签约后，客户资料如何转换为工地创建草案。Phase 2.5 不调用 createProject，不写 projects。</view>
   </view>
 
   <view class="card">
@@ -16,12 +16,27 @@
   </view>
 
   <view class="card">
+    <view class="section-title">字段映射</view>
+    <view wx:for="{{mappingRows}}" wx:key="from" class="mapping-row">
+      <view class="mapping-head">
+        <text>{{item.from}}</text>
+        <text>→</text>
+        <text>{{item.to}}</text>
+      </view>
+      <view class="mapping-value">{{item.value}}</view>
+    </view>
+  </view>
+
+  <view class="card">
     <view class="section-title">工地创建草案</view>
     <view class="field-row"><text>name</text><text>{{projectDraft.name}}</text></view>
     <view class="field-row"><text>customerName</text><text>{{projectDraft.customerName}}</text></view>
+    <view class="field-row"><text>ownerName</text><text>{{projectDraft.ownerName}}</text></view>
     <view class="field-row"><text>address</text><text>{{projectDraft.address}}</text></view>
+    <view class="field-row"><text>baseInfoDraft</text><text>{{projectDraft.baseInfoDraft}}</text></view>
     <view class="field-row"><text>statusCode</text><text>{{projectDraft.statusCode}}</text></view>
     <button class="secondary-btn" bindtap="copyDraft">复制草案 JSON</button>
+    <button class="disabled-btn" disabled>创建工地需 Human Gate</button>
   </view>
 
   <view class="card">
@@ -33,8 +48,9 @@
     <view class="gate-box">{{gateMessage}}</view>
   </view>
 
-  <view class="card">
-    <view class="section-title">Phase 2 保护规则</view>
-    <view wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
+  <view class="guard-card weak" bindtap="toggleGuards">
+    <view class="guard-title">Phase 2.5 本地 mock 保护规则</view>
+    <view class="guard-hint">{{showGuards ? '收起' : '展开查看'}}</view>
+    <view wx:if="{{showGuards}}" wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
   </view>
 </view>
