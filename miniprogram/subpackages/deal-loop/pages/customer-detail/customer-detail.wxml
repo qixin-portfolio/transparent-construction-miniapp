@@ -1,20 +1,26 @@
 <view class="deal-page" wx:if="{{customer}}">
   <view class="hero">
-    <view class="kicker">客户详情 mock</view>
-    <view class="title">{{customer.name}}</view>
-    <view class="desc">{{customer.community}} · {{customer.area}} · {{customer.stylePreference}}</view>
-    <view class="tag-row">
-      <view wx:for="{{customer.tags}}" wx:key="*this" class="tag">{{item}}</view>
+    <view class="hero-top">
+      <view class="title">{{customer.name}}</view>
+      <view class="stage-pill {{riskClass}}">{{pipelineLabel}} ｜ {{riskLevel}}</view>
+    </view>
+    <view class="desc">{{community}} · {{area}} · {{stylePreference}}</view>
+    <view class="source-row {{dataSourceClass}}">
+      <view class="source-dot"></view>
+      <view>
+        <view class="source-title">{{dataSourceLabel}}</view>
+        <view class="source-hint">{{dataSourceHint}}</view>
+      </view>
     </view>
   </view>
 
   <view class="card">
-    <view class="section-title">客户画像</view>
+    <view class="section-title">成交画像</view>
     <view class="field-row"><text>来源</text><text>{{customer.source}}</text></view>
     <view class="field-row"><text>预算</text><text>{{customer.budgetRange}}</text></view>
-    <view class="field-row"><text>需求</text><text>{{customer.need}}</text></view>
+    <view class="field-row"><text>装修需求</text><text>{{customer.need}}</text></view>
+    <view class="field-row"><text>当前顾虑</text><text>{{customer.concern}}</text></view>
     <view class="field-row"><text>阶段</text><text>{{customer.stage}} / {{customer.dealStatus}}</text></view>
-    <view class="field-row"><text>风险</text><text>{{customer.riskLevel}}</text></view>
     <view class="next-box">
       <view class="next-label">今日动作</view>
       <view class="next-text">{{customer.todayAction}}</view>
@@ -22,7 +28,7 @@
   </view>
 
   <view class="card">
-    <view class="section-title">跟进记录</view>
+    <view class="section-title">本地 mock 跟进记录</view>
     <view wx:for="{{followRecords}}" wx:key="followId" class="timeline-item">
       <view class="timeline-head">
         <view class="timeline-title">{{item.typeLabel}} · {{item.createdByName}}</view>
@@ -35,7 +41,7 @@
         <view class="next-text">{{item.nextAction}}</view>
       </view>
     </view>
-    <view wx:if="{{!followRecords.length}}" class="muted">暂无跟进记录 mock。</view>
+    <view wx:if="{{!followRecords.length}}" class="muted">暂无本地 mock 跟进记录。</view>
   </view>
 
   <view class="card">
@@ -74,5 +80,14 @@
     </view>
   </view>
 
-  <button class="primary-btn bottom-btn" bindtap="goContractDraft">生成签约转工地草案</button>
+  <view class="card">
+    <view class="section-title">客户安全说明</view>
+    <view class="muted">本页展示字段只用于销售跟进参考；完整手机号、身份证、openid、详细门牌地址均已脱敏隐藏。</view>
+  </view>
+
+  <view class="guard-card weak" bindtap="toggleGuards">
+    <view class="guard-title">Phase 3B-2 本地 mock 保护规则</view>
+    <view class="guard-hint">{{showGuards ? '收起' : '展开查看'}}</view>
+    <view wx:if="{{showGuards}}" wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
+  </view>
 </view>

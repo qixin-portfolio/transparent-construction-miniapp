@@ -205,6 +205,79 @@ function mapCustomerToPipelineCard(customer) {
   })
 }
 
+function maskSensitiveCustomerFields(customer) {
+  if (!customer || typeof customer !== 'object') return customer || {}
+  const source = Object.assign({}, customer)
+  if (source.phone) source.phone = maskSensitiveValue(source.phone, '138****0000')
+  if (source.phoneNumber) source.phoneNumber = maskSensitiveValue(source.phoneNumber, '138****0000')
+  delete source.openid
+  delete source.ownerOpenid
+  delete source.createdByOpenid
+  delete source.updatedByOpenid
+  delete source.idCard
+  if (source.address) source.address = maskAddress(source.address)
+  if (source.addressDetail) source.addressDetail = maskAddress(source.addressDetail)
+  return source
+}
+
+function maskSensitiveValue(value, fallback = '****') {
+  const text = String(value || '').trim()
+  if (!text || text.length < 4) return fallback
+  if (/\d{11}/.test(text)) return `${text.slice(0, 3)}****${text.slice(-4)}`
+  return `${text.slice(0, 2)}****${text.slice(-2)}`
+}
+
+function normalizeCustomerStage(customer) {
+  const stage = safeText(customer && customer.stage, '咨询')
+  const dealStatus = safeText(customer && customer.dealStatus, '未成交')
+  const pipelineStage = getPipelineStage({
+    stage,
+    dealStatus,
+    lifecycleStatus: customer && customer.lifecycleStatus
+  })
+  return {
+    stage,
+    dealStatus,
+    lifecycleStatus: customer && customer.lifecycleStatus || '',
+    pipelineStage,
+    pipelineLabel: getPipelineLabel(pipelineStage)
+  }
+}
+
+function mapCustomerToDetail(customer) {
+  const source = customer || {}
+  const id = String(source._id || source.id || source.customerId || '').trim()
+  const stageInfo = normalizeCustomerStage(source)
+  const masked = maskSensitiveCustomerFields(source)
+  return Object.assign({}, stageInfo, {
+    id,
+    customerId: id,
+    v1CustomerId: id,
+    tenantId: source.tenantId || '',
+    name: safeText(source.name || source.customerName, '未命名客户'),
+    source: safeText(source.source, '来源待确认'),
+    community: normalizeCommunity(source),
+    area: normalizeArea(source),
+    stylePreference: normalizeStyle(source),
+    budgetRange: normalizeBudget(source),
+    need: safeText(source.need, ''),
+    concern: safeText(source.concern || source.need || '', '暂无明确顾虑'),
+    todayAction: getActionProfile(source, stageInfo.pipelineStage).todayAction,
+    recommendedMaterial: getActionProfile(source, stageInfo.pipelineStage).recommendedMaterial,
+    suggestedTalk: getActionProfile(source, stageInfo.pipelineStage).suggestedTalk,
+    riskLevel: source.riskLevel || getActionProfile(source, stageInfo.pipelineStage).riskLevel,
+    riskReasons: Array.isArray(source.riskReasons) && source.riskReasons.length
+      ? source.riskReasons
+      : getActionProfile(source, stageInfo.pipelineStage).riskReasons,
+    primaryRiskReason: (Array.isArray(source.riskReasons) && source.riskReasons.length
+      ? source.riskReasons
+      : getActionProfile(source, stageInfo.pipelineStage).riskReasons)[0] || '暂无风险备注',
+    tags: ['真实客户数据', stageInfo.pipelineLabel],
+    createdAt: source.createdAt || '',
+    updatedAt: source.updatedAt || ''
+  }, masked)
+}
+
 function mapCustomerListToPipelineCards(customers) {
   if (!Array.isArray(customers)) return []
   return customers
@@ -214,5 +287,8 @@ function mapCustomerListToPipelineCards(customers) {
 
 module.exports = {
   mapCustomerToPipelineCard,
-  mapCustomerListToPipelineCards
+  mapCustomerListToPipelineCards,
+  mapCustomerToDetail,
+  normalizeCustomerStage,
+  maskSensitiveCustomerFields
 }
