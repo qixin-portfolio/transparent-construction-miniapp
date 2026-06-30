@@ -6,6 +6,14 @@
   </view>
 
   <view class="card">
+    <view class="section-title">客户上下文</view>
+    <view class="muted">当前 URL customerId：{{urlCustomerId ? urlCustomerId : '无'}}</view>
+    <view class="muted">当前客户姓名：{{currentCustomerName}}</view>
+    <view class="muted">数据源状态：{{contextStatus}}</view>
+    <view wx:if="{{contextError}}" class="risk-note">{{contextError}}</view>
+  </view>
+
+  <view class="card">
     <view class="section-title">选择客户</view>
     <picker range="{{customers}}" range-key="name" value="{{selectedIndex}}" bindchange="onCustomerChange">
       <view class="picker-row">

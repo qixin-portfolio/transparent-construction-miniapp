@@ -15,6 +15,11 @@ function pickFirst(values, fallback = '') {
   return fallback
 }
 
+function getCustomerIdentity(customer) {
+  const source = customer || {}
+  return String(source.customerId || source.id || source._id || '').trim()
+}
+
 function getHouseInfo(customer) {
   const houseInfo = customer && customer.houseInfo
   if (houseInfo && typeof houseInfo === 'object') return houseInfo
@@ -215,6 +220,12 @@ function maskSensitiveCustomerFields(customer) {
   delete source.createdByOpenid
   delete source.updatedByOpenid
   delete source.idCard
+  delete source.internalNote
+  delete source.internalNotes
+  delete source.internalRemark
+  delete source.internalRemarks
+  delete source.remark
+  delete source.remarks
   if (source.address) source.address = maskAddress(source.address)
   if (source.addressDetail) source.addressDetail = maskAddress(source.addressDetail)
   return source
@@ -246,10 +257,10 @@ function normalizeCustomerStage(customer) {
 
 function mapCustomerToDetail(customer) {
   const source = customer || {}
-  const id = String(source._id || source.id || source.customerId || '').trim()
+  const id = getCustomerIdentity(source)
   const stageInfo = normalizeCustomerStage(source)
   const masked = maskSensitiveCustomerFields(source)
-  return Object.assign({}, stageInfo, {
+  return Object.assign({}, masked, stageInfo, {
     id,
     customerId: id,
     v1CustomerId: id,
@@ -275,7 +286,7 @@ function mapCustomerToDetail(customer) {
     tags: ['真实客户数据', stageInfo.pipelineLabel],
     createdAt: source.createdAt || '',
     updatedAt: source.updatedAt || ''
-  }, masked)
+  })
 }
 
 function mapCustomerListToPipelineCards(customers) {
@@ -286,6 +297,7 @@ function mapCustomerListToPipelineCards(customers) {
 }
 
 module.exports = {
+  getCustomerIdentity,
   mapCustomerToPipelineCard,
   mapCustomerListToPipelineCards,
   mapCustomerToDetail,

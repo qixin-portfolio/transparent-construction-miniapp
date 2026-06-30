@@ -202,12 +202,27 @@ const customers = [
   }
 ]
 
+function normalizeCustomerId(customerId) {
+  return String(customerId || '').trim()
+}
+
+function getMockCustomerById(customerId) {
+  const id = normalizeCustomerId(customerId)
+  if (!id) return customers[0]
+  return customers.find((item) => (
+    item.customerId === id ||
+    item.id === id ||
+    item._id === id
+  )) || null
+}
+
 function getCustomerById(customerId) {
-  return customers.find((item) => item.customerId === customerId) || customers[0]
+  return getMockCustomerById(customerId) || customers[0]
 }
 
 module.exports = {
   pipelineStages,
   customers,
-  getCustomerById
+  getCustomerById,
+  getMockCustomerById
 }

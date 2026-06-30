@@ -4,6 +4,23 @@ const { generateSuggestion } = require('../../utils/aiMockEngine')
 const { getMaterialsByIds } = require('../../utils/materialMapper')
 const { mapCustomerToDetail } = require('../../utils/v1ReadonlyAdapters')
 
+function normalizeCustomerId(value) {
+  return String(value || '').trim()
+}
+
+function getCustomerIdFromContext(customer, pageData) {
+  const source = customer || {}
+  const data = pageData || {}
+  return normalizeCustomerId(
+    source.customerId ||
+    source.id ||
+    source._id ||
+    data.customerId ||
+    data.id ||
+    ''
+  )
+}
+
 function buildMockDetail(id) {
   const customer = getCustomerById(id)
   if (!customer) {
@@ -38,6 +55,8 @@ Page({
     suggestion: null,
     materials: [],
     loading: true,
+    customerId: '',
+    id: '',
     dataSourceLabel: 'Mock fallback',
     dataSourceClass: 'mock',
     dataSourceHint: '正在尝试只读加载真实客户详情',
@@ -45,8 +64,12 @@ Page({
     showGuards: false
   },
   onLoad(options = {}) {
-    const customerId = String(options.id || options.customerId || '').trim()
-    this.setData({ guards: this.makeReadonlyGuards() })
+    const customerId = String(options.customerId || options.id || '').trim()
+    this.setData({
+      guards: this.makeReadonlyGuards(),
+      customerId,
+      id: customerId
+    })
     if (!customerId) {
       const fallback = buildMockDetail('')
       this.setData({
@@ -111,9 +134,16 @@ Page({
     this.setData({ showGuards: !this.data.showGuards })
   },
   goAssistant() {
-    const customerId = (this.data.customer && this.data.customer.customerId) || ''
+    const customerId = getCustomerIdFromContext(this.data.customer, this.data)
+    if (!customerId) {
+      wx.showToast({
+        title: '缺少客户ID，无法生成 AI 话术',
+        icon: 'none'
+      })
+      return
+    }
     wx.navigateTo({
-      url: `/subpackages/deal-loop/pages/ai-assistant/ai-assistant?id=${customerId}`
+      url: `/subpackages/deal-loop/pages/ai-assistant/ai-assistant?customerId=${encodeURIComponent(customerId)}`
     })
   },
   goMaterials() {
