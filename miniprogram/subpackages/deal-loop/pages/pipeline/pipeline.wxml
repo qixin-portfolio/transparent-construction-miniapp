@@ -78,7 +78,7 @@
       <view class="card-actions">
         <button class="mock-btn" data-id="{{item.customerId}}" bindtap="goCustomerDetail">看客户</button>
         <button class="mock-btn primary" data-id="{{item.customerId}}" bindtap="goAssistant">AI 话术</button>
-        <button class="mock-btn" bindtap="goMaterials">推荐素材</button>
+        <button class="mock-btn" data-id="{{item.customerId}}" bindtap="goMaterials">推荐素材</button>
       </view>
     </view>
   </view>

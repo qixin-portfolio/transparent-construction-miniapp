@@ -61,6 +61,7 @@
       <view class="muted">{{item.typeLabel}} · {{item.concernSolved}}</view>
       <view class="send-scene">{{item.sendScene}}</view>
     </view>
+    <button class="secondary-btn" bindtap="goMaterials">打开推荐素材库</button>
   </view>
 
   <view class="card">

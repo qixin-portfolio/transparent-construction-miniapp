@@ -3,6 +3,36 @@
     <view class="kicker">只读素材 mock</view>
     <view class="title">信任证据库</view>
     <view class="desc">把日报、照片、图纸、案例和质保说明变成销售跟进可发送的证据。</view>
+    <view class="source-row {{dataSourceClass}}">
+      <view class="source-dot"></view>
+      <view>
+        <view class="source-title">{{dataSourceLabel}}</view>
+        <view class="source-hint">{{dataSourceHint}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{contextError}}" class="material-card error-card">
+    <view class="material-title">{{contextError}}</view>
+    <view class="muted">请返回客户列表重新打开，避免使用错误客户的推荐素材。</view>
+  </view>
+
+  <view wx:if="{{customer}}" class="material-card">
+    <view class="material-head">
+      <view>
+        <view class="material-title">{{customer.name}}</view>
+        <view class="muted">{{customer.stage}} / {{customer.dealStatus}} · {{customer.budgetRange}} · {{customer.community}}</view>
+      </view>
+      <view class="auth-pill">{{customer.riskLevel}}</view>
+    </view>
+    <view class="evidence-block">
+      <view class="mini-label">当前顾虑</view>
+      <view class="summary">{{customer.concern}}</view>
+    </view>
+    <view class="evidence-block">
+      <view class="mini-label">推荐理由</view>
+      <view class="summary">{{recommendationSummary}}</view>
+    </view>
   </view>
 
   <scroll-view class="tabs" scroll-x enable-flex>
@@ -26,13 +56,17 @@
         </view>
         <view class="auth-pill">{{item.authorizationLabel}}</view>
       </view>
+      <view class="evidence-block highlight">
+        <view class="mini-label">推荐原因</view>
+        <view class="summary">{{item.recommendationReason}}</view>
+      </view>
       <view class="evidence-block">
         <view class="mini-label">解决的客户顾虑</view>
-        <view class="summary">{{item.concernSolved}}</view>
+        <view class="summary">{{item.matchedConcern || item.concernSolved}}</view>
       </view>
       <view class="evidence-block">
         <view class="mini-label">推荐发送场景</view>
-        <view class="summary">{{item.sendScene}}</view>
+        <view class="summary">{{item.recommendedSendScene || item.sendScene}}</view>
       </view>
       <view class="stage-row">
         <view class="mini-label">适合阶段</view>
@@ -44,10 +78,14 @@
         <view wx:for="{{item.tags}}" wx:key="*this" class="tag">{{item}}</view>
       </view>
       <view class="meta-row">
-        <view>来源：{{item.sourceCollection}}</view>
+        <view>来源：本地 mock</view>
         <view>业主可见：{{item.ownerVisible ? '是' : '否'}}</view>
       </view>
       <button class="secondary-btn" data-id="{{item.materialId}}" bindtap="mockSendMaterial">mock 发送给客户</button>
+    </view>
+    <view wx:if="{{!materials.length && !contextError}}" class="material-card">
+      <view class="material-title">暂无匹配素材</view>
+      <view class="muted">当前筛选下没有推荐素材，可以切换到“全部”查看。</view>
     </view>
   </view>
 </view>

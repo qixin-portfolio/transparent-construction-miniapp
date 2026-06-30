@@ -129,9 +129,17 @@ Page({
     })
   },
 
-  goMaterials() {
+  goMaterials(event) {
+    const id = event.currentTarget.dataset.id
+    if (!id) {
+      wx.showToast({
+        title: '缺少客户ID，无法推荐素材',
+        icon: 'none'
+      })
+      return
+    }
     wx.navigateTo({
-      url: '/subpackages/deal-loop/pages/trust-materials/trust-materials'
+      url: `/subpackages/deal-loop/pages/trust-materials/trust-materials?customerId=${encodeURIComponent(id)}`
     })
   },
 

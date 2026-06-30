@@ -147,8 +147,16 @@ Page({
     })
   },
   goMaterials() {
+    const customerId = getCustomerIdFromContext(this.data.customer, this.data)
+    if (!customerId) {
+      wx.showToast({
+        title: '缺少客户ID，无法推荐素材',
+        icon: 'none'
+      })
+      return
+    }
     wx.navigateTo({
-      url: '/subpackages/deal-loop/pages/trust-materials/trust-materials'
+      url: `/subpackages/deal-loop/pages/trust-materials/trust-materials?customerId=${encodeURIComponent(customerId)}`
     })
   },
   goContractDraft() {

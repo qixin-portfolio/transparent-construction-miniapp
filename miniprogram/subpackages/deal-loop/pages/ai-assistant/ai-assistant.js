@@ -282,5 +282,25 @@ Page({
     wx.navigateTo({
       url: `/subpackages/deal-loop/pages/customer-detail/customer-detail?customerId=${encodeURIComponent(customerId)}`
     })
+  },
+  goMaterials() {
+    if (this.data.contextBlocked) {
+      wx.showToast({
+        title: READ_FAILED_MESSAGE,
+        icon: 'none'
+      })
+      return
+    }
+    const customerId = getCustomerIdentity(this.data.customer) || this.data.customerId || ''
+    if (!customerId) {
+      wx.showToast({
+        title: '缺少客户ID，无法推荐素材',
+        icon: 'none'
+      })
+      return
+    }
+    wx.navigateTo({
+      url: `/subpackages/deal-loop/pages/trust-materials/trust-materials?customerId=${encodeURIComponent(customerId)}`
+    })
   }
 })
