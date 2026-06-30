@@ -1,54 +1,59 @@
-<view class="deal-page" wx:if="{{caseAsset}}">
+<view class="deal-page">
   <view class="hero">
-    <view class="kicker">案例草案 mock</view>
+    <view class="kicker">案例资产 mock 草案</view>
     <view class="title">工地转案例资产</view>
-    <view class="desc">完工工地如何沉淀成案例内容资产。当前仅为 mock 案例资产，不自动发布，不修改 case_authorizations。</view>
-  </view>
-
-  <view class="card">
-    <view class="section-title">选择案例资产</view>
-    <picker range="{{caseAssets}}" range-key="title" value="{{selectedIndex}}" bindchange="onCaseChange">
-      <view class="picker-row">
-        <view>
-          <view class="case-title">{{caseAsset.title}}</view>
-          <view class="muted">{{caseAsset.community}} · {{caseAsset.area}} · {{caseAsset.style}}</view>
-        </view>
-        <view class="picker-action">更换</view>
+    <view class="desc">基于客户字段生成小红书、抖音、官网和 GEO 的 mock 案例内容草案。当前不读取真实照片/日报，不自动发布，不修改 case_authorizations。</view>
+    <view class="source-row {{dataSourceClass}}">
+      <view class="source-dot"></view>
+      <view>
+        <view class="source-title">{{dataSourceLabel}}</view>
+        <view class="source-hint">{{dataSourceHint}}</view>
       </view>
-    </picker>
-  </view>
-
-  <view class="card">
-    <view class="section-title">授权与隐私</view>
-    <view class="field-row"><text>授权状态</text><text>{{caseAsset.authorizationLabel}}</text></view>
-    <view class="field-row"><text>项目状态</text><text>{{caseAsset.projectStatusCode}}</text></view>
-    <view class="privacy-list">
-      <view wx:for="{{caseAsset.privacyFlags}}" wx:key="*this" class="privacy-pill">{{item}}</view>
     </view>
   </view>
 
-  <view class="card">
-    <view class="section-title">内容方向</view>
-    <view class="asset-row">
-      <view class="asset-label">小红书笔记标题草案</view>
-      <view class="asset-value">{{caseAsset.xiaohongshuTitle}}</view>
-    </view>
-    <view class="asset-row">
-      <view class="asset-label">抖音短视频选题</view>
-      <view class="asset-value">{{caseAsset.douyinTopic}}</view>
-    </view>
-    <view class="asset-row">
-      <view class="asset-label">官网案例摘要</view>
-      <view class="asset-value">{{caseAsset.websiteSummary}}</view>
-    </view>
-    <view class="asset-row">
-      <view class="asset-label">GEO 问答素材</view>
-      <view class="asset-value">{{caseAsset.geoQaMaterial}}</view>
-    </view>
+  <view wx:if="{{contextError}}" class="card error-card">
+    <view class="section-title">{{contextError}}</view>
+    <view class="muted">请返回客户列表重新打开，避免用错误客户生成案例资产草案。</view>
   </view>
 
-  <view class="card">
-    <view class="section-title">可用素材清单</view>
+  <view wx:if="{{customer}}" class="card">
+    <view class="section-title">当前客户</view>
+    <view class="customer-name">{{customer.name}}</view>
+    <view class="muted">{{customer.stage}} / {{customer.dealStatus}}</view>
+    <view class="summary-row">{{customer.community}} · {{customer.area}} · {{customer.stylePreference}}</view>
+    <view class="field-row"><text>客户来源</text><text>{{customer.source}}</text></view>
+    <view class="field-row"><text>需求摘要</text><text>{{caseAsset.needSummary}}</text></view>
+  </view>
+
+  <view wx:if="{{caseAsset}}" class="card">
+    <view class="section-title">小红书标题草案</view>
+    <view wx:for="{{caseAsset.xiaohongshuTitles}}" wx:key="*this" class="draft-line">{{item}}</view>
+    <button class="secondary-btn" bindtap="copyXiaohongshuTitle">复制小红书标题（mock）</button>
+  </view>
+
+  <view wx:if="{{caseAsset}}" class="card">
+    <view class="section-title">抖音短视频选题</view>
+    <view wx:for="{{caseAsset.douyinTopics}}" wx:key="*this" class="draft-line">{{item}}</view>
+    <button class="secondary-btn" bindtap="copyDouyinTopic">复制抖音选题（mock）</button>
+  </view>
+
+  <view wx:if="{{caseAsset}}" class="card">
+    <view class="section-title">官网案例摘要</view>
+    <view class="asset-value">{{caseAsset.websiteSummary}}</view>
+  </view>
+
+  <view wx:if="{{caseAsset}}" class="card">
+    <view class="section-title">GEO 问答素材</view>
+    <view wx:for="{{caseAsset.geoQaMaterials}}" wx:key="question" class="qa-item">
+      <view class="qa-question">{{item.question}}</view>
+      <view class="qa-answer">{{item.answer}}</view>
+    </view>
+    <button class="secondary-btn" bindtap="copyGeoQa">复制 GEO 问答（mock）</button>
+  </view>
+
+  <view wx:if="{{caseAsset}}" class="card">
+    <view class="section-title">可用素材清单 mock</view>
     <view class="checklist">
       <view wx:for="{{caseAsset.materialChecklist}}" wx:key="*this" class="check-pill">{{item}}</view>
     </view>
@@ -58,7 +63,16 @@
     </view>
   </view>
 
-  <view class="card">
+  <view wx:if="{{caseAsset}}" class="card">
+    <view class="section-title">授权状态 mock</view>
+    <view class="field-row"><text>授权状态</text><text>{{caseAsset.authorizationLabel}}</text></view>
+    <view class="asset-value">{{caseAsset.authorizationHint}}</view>
+    <view class="privacy-list">
+      <view wx:for="{{caseAsset.privacyFlags}}" wx:key="*this" class="privacy-pill">{{item}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{caseAsset}}" class="card">
     <view class="section-title">内容草案</view>
     <view wx:for="{{caseAsset.contentDrafts}}" wx:key="target" class="draft-card">
       <view class="draft-head">
@@ -66,8 +80,13 @@
         <view class="target-pill">{{item.target}}</view>
       </view>
       <view class="draft-body">{{item.body}}</view>
-      <button class="secondary-btn" data-index="{{index}}" bindtap="copyDraft">复制草案</button>
     </view>
-    <button class="disabled-btn" disabled>不自动发布</button>
+    <view class="safe-note">{{caseAsset.safetyNote}}</view>
+    <button class="mock-primary-btn" bindtap="showPublishGuard">确认仅生成 mock 草案</button>
+  </view>
+
+  <view class="guard-card weak">
+    <view class="guard-title">Phase 3B-6 保护规则</view>
+    <view wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
   </view>
 </view>
