@@ -289,6 +289,51 @@ function mapCustomerToDetail(customer) {
   })
 }
 
+function mapCustomerToProjectDraft(customer) {
+  const source = mapCustomerToDetail(customer)
+  const projectCommunity = safeText(source.community, '小区待确认')
+  const projectArea = safeText(source.area, '面积待确认')
+  const projectStyle = safeText(source.stylePreference, '风格待确认')
+  const budgetNote = safeText(source.budgetRange, '预算待确认')
+  const needNote = safeText(source.need, '需求待补充')
+  const ownerName = safeText(source.name, '业主待确认')
+  const baseInfoDraft = [
+    projectCommunity,
+    projectArea,
+    projectStyle
+  ].filter(Boolean).join(' / ')
+
+  return {
+    customerId: source.customerId || '',
+    customerName: ownerName,
+    ownerName,
+    projectCommunity,
+    projectArea,
+    projectStyle,
+    budgetNote,
+    sourceNote: safeText(source.source, '来源待确认'),
+    preProjectStatus: `${safeText(source.stage, '阶段待确认')} / ${safeText(source.dealStatus, '成交状态待确认')}`,
+    needNote,
+    projectRemarkDraft: [
+      `客户需求：${needNote}`,
+      `预算备注：${budgetNote}`,
+      `来源备注：${safeText(source.source, '来源待确认')}`
+    ].join('；'),
+    baseInfoDraft,
+    name: `${projectCommunity} 透明工地`,
+    address: projectCommunity,
+    status: '待开工',
+    statusCode: 'draft_only',
+    createMode: 'mock_draft_only',
+    riskChecklist: [
+      'Phase 3B-5 仅生成草案',
+      '不调用 createProject',
+      '不写 projects / project_members / customers',
+      '创建真实工地前必须人工确认'
+    ]
+  }
+}
+
 function mapCustomerListToPipelineCards(customers) {
   if (!Array.isArray(customers)) return []
   return customers
@@ -301,6 +346,7 @@ module.exports = {
   mapCustomerToPipelineCard,
   mapCustomerListToPipelineCards,
   mapCustomerToDetail,
+  mapCustomerToProjectDraft,
   normalizeCustomerStage,
   maskSensitiveCustomerFields
 }

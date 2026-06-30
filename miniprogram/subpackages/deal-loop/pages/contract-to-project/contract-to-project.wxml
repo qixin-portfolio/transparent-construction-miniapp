@@ -1,21 +1,34 @@
-<view class="deal-page" wx:if="{{customer}}">
+<view class="deal-page">
   <view class="hero">
     <view class="kicker">草案，不写库</view>
     <view class="title">签约转工地</view>
-    <view class="desc">签约后，客户资料如何转换为工地创建草案。Phase 2.5 不调用 createProject，不写 projects。</view>
+    <view class="desc">签约后，客户资料如何转换为工地创建草案。Phase 3B-5 不调用 createProject，不写 projects。</view>
+    <view class="source-row {{dataSourceClass}}">
+      <view class="source-dot"></view>
+      <view>
+        <view class="source-title">{{dataSourceLabel}}</view>
+        <view class="source-hint">{{dataSourceHint}}</view>
+      </view>
+    </view>
   </view>
 
-  <view class="card">
+  <view wx:if="{{contextError}}" class="card error-card">
+    <view class="section-title">{{contextError}}</view>
+    <view class="muted">请返回客户列表重新打开，避免用错误客户生成工地草案。</view>
+  </view>
+
+  <view wx:if="{{customer}}" class="card">
     <view class="section-title">客户</view>
     <view class="customer-name">{{customer.name}}</view>
-    <view class="muted">{{customer.community}} · {{customer.area}} · {{customer.dealStatus}}</view>
+    <view class="muted">{{customer.community}} · {{customer.area}} · {{customer.stylePreference}}</view>
+    <view class="muted">{{customer.stage}} / {{customer.dealStatus}} · {{customer.budgetRange}}</view>
     <view class="next-box">
       <view class="next-label">当前动作</view>
       <view class="next-text">{{customer.nextAction}}</view>
     </view>
   </view>
 
-  <view class="card">
+  <view wx:if="{{mappingRows.length}}" class="card">
     <view class="section-title">字段映射</view>
     <view wx:for="{{mappingRows}}" wx:key="from" class="mapping-row">
       <view class="mapping-head">
@@ -27,19 +40,23 @@
     </view>
   </view>
 
-  <view class="card">
+  <view wx:if="{{projectDraft}}" class="card">
     <view class="section-title">工地创建草案</view>
-    <view class="field-row"><text>name</text><text>{{projectDraft.name}}</text></view>
-    <view class="field-row"><text>customerName</text><text>{{projectDraft.customerName}}</text></view>
-    <view class="field-row"><text>ownerName</text><text>{{projectDraft.ownerName}}</text></view>
-    <view class="field-row"><text>address</text><text>{{projectDraft.address}}</text></view>
-    <view class="field-row"><text>baseInfoDraft</text><text>{{projectDraft.baseInfoDraft}}</text></view>
-    <view class="field-row"><text>statusCode</text><text>{{projectDraft.statusCode}}</text></view>
+    <view class="field-row"><text>project.customerId</text><text>{{projectDraft.customerId}}</text></view>
+    <view class="field-row"><text>业主姓名草案</text><text>{{projectDraft.ownerName}}</text></view>
+    <view class="field-row"><text>工地小区草案</text><text>{{projectDraft.projectCommunity}}</text></view>
+    <view class="field-row"><text>工地面积草案</text><text>{{projectDraft.projectArea}}</text></view>
+    <view class="field-row"><text>装修风格草案</text><text>{{projectDraft.projectStyle}}</text></view>
+    <view class="field-row"><text>预算备注</text><text>{{projectDraft.budgetNote}}</text></view>
+    <view class="field-row"><text>客户来源备注</text><text>{{projectDraft.sourceNote}}</text></view>
+    <view class="field-row"><text>转工地前置状态</text><text>{{projectDraft.preProjectStatus}}</text></view>
+    <view class="field-row"><text>项目备注草案</text><text>{{projectDraft.projectRemarkDraft}}</text></view>
+    <view class="safe-note">当前仅为草案预览，需人工确认后，未来才能进入真实创建工地流程。</view>
     <button class="secondary-btn" bindtap="copyDraft">复制草案 JSON</button>
-    <button class="disabled-btn" disabled>创建工地需 Human Gate</button>
+    <button class="mock-primary-btn" bindtap="mockGenerateDraft">生成工地草案（mock）</button>
   </view>
 
-  <view class="card">
+  <view wx:if="{{checklist.length}}" class="card">
     <view class="section-title">风险检查</view>
     <view wx:for="{{checklist}}" wx:key="label" class="check-row">
       <view class="check-dot {{item.ok ? 'ok' : ''}}">{{item.ok ? '通过' : '待补'}}</view>

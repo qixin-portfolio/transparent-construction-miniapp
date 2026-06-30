@@ -18,6 +18,57 @@
   margin-top: 18rpx;
 }
 
+.error-card {
+  background: #FEF2F2;
+}
+
+.source-row {
+  display: flex;
+  gap: 16rpx;
+  align-items: flex-start;
+  margin-top: 22rpx;
+  padding: 18rpx;
+  border-radius: 12rpx;
+  background: #F3F4F6;
+}
+
+.source-row.real {
+  background: #EAF6F0;
+}
+
+.source-row.error {
+  background: #FEF2F2;
+}
+
+.source-dot {
+  width: 16rpx;
+  height: 16rpx;
+  margin-top: 10rpx;
+  border-radius: 50%;
+  background: #9CA3AF;
+}
+
+.source-row.real .source-dot {
+  background: #1B7A56;
+}
+
+.source-row.error .source-dot {
+  background: #DC2626;
+}
+
+.source-title {
+  color: #111827;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.source-hint {
+  margin-top: 4rpx;
+  color: #6B7280;
+  font-size: 23rpx;
+  line-height: 1.45;
+}
+
 .kicker {
   color: #B45309;
   font-size: 24rpx;
@@ -87,6 +138,12 @@
   font-size: 25rpx;
 }
 
+.field-row text:last-child {
+  flex: 1;
+  text-align: right;
+  word-break: break-all;
+}
+
 .mapping-row {
   padding: 18rpx 0;
   border-top: 1rpx solid #EEF1F3;
@@ -110,6 +167,16 @@
   flex-shrink: 0;
 }
 
+.safe-note {
+  margin-top: 20rpx;
+  padding: 18rpx;
+  border-radius: 12rpx;
+  background: #FFF7ED;
+  color: #92400E;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
 .secondary-btn {
   margin-top: 20rpx;
   height: 76rpx;
@@ -118,6 +185,22 @@
   color: #1B7A56;
   font-size: 26rpx;
   line-height: 76rpx;
+}
+
+.mock-primary-btn {
+  margin-top: 16rpx;
+  height: 84rpx;
+  border-radius: 12rpx;
+  background: #B45309;
+  color: #FFFFFF;
+  font-size: 28rpx;
+  font-weight: 800;
+  line-height: 84rpx;
+  box-shadow: 0 10rpx 20rpx rgba(180, 83, 9, 0.18);
+}
+
+.mock-primary-btn::after {
+  border: none;
 }
 
 .disabled-btn {

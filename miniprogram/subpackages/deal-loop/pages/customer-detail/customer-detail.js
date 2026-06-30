@@ -160,9 +160,16 @@ Page({
     })
   },
   goContractDraft() {
-    const customerId = (this.data.customer && this.data.customer.customerId) || ''
+    const customerId = getCustomerIdFromContext(this.data.customer, this.data)
+    if (!customerId) {
+      wx.showToast({
+        title: '缺少客户ID，无法生成工地草案',
+        icon: 'none'
+      })
+      return
+    }
     wx.navigateTo({
-      url: `/subpackages/deal-loop/pages/contract-to-project/contract-to-project?id=${customerId}`
+      url: `/subpackages/deal-loop/pages/contract-to-project/contract-to-project?customerId=${encodeURIComponent(customerId)}`
     })
   }
 })
