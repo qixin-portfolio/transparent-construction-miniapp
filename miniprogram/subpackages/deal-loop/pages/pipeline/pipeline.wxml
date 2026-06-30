@@ -2,9 +2,16 @@
   <view class="hero">
     <view class="hero-top">
       <view class="title">今日成交跟进</view>
-      <view class="kicker">Phase 2.5 Mock / 不影响 V1</view>
+      <view class="kicker">Phase 3B-1 Readonly / 不影响 V1</view>
     </view>
     <view class="desc">看清客户阶段、下一步动作和可发送的信任素材</view>
+    <view class="source-row {{dataSourceClass}}">
+      <view class="source-dot"></view>
+      <view>
+        <view class="source-title">{{dataSourceLabel}}</view>
+        <view class="source-hint">{{dataSourceHint}}</view>
+      </view>
+    </view>
   </view>
 
   <view class="stats-grid">
