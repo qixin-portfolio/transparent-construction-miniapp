@@ -10,9 +10,11 @@ Phase 0：项目审计与状态文件建立
 
 - 审计日期：2026-06-29
 - 审计范围：`透明工地小程序/开发骨架`
-- 当前分支：`master`
-- 当前 commit：`606c58873c422ec250b5716c3ed7a53b0d56aa51`
-- Git 状态：`git status --short --branch` 仅显示 `## master`，审计前工作区无未提交变更。
+- V1 审计基线分支：`master`
+- V1 审计基线 commit：`606c58873c422ec250b5716c3ed7a53b0d56aa51`
+- 本次复核执行分支：`codex/init-ai-collaboration`
+- 本次复核 HEAD：`8c665e339243fa0aba4989f51fbb196d20488085`
+- 工作区备注：存在上一轮协作机制任务遗留的 `AI_TASKS/handoff.md` 未提交修改；本次 Phase 0 未触碰业务代码、云函数和数据库逻辑。
 
 ## 3. V1 当前状态
 
