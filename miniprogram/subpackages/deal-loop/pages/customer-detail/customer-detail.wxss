@@ -1,0 +1,175 @@
+.deal-page {
+  min-height: 100vh;
+  padding: 32rpx;
+  background: #F6F7F8;
+  box-sizing: border-box;
+}
+
+.hero,
+.card {
+  border-radius: 16rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 28rpx rgba(15, 23, 42, 0.04);
+}
+
+.hero,
+.card {
+  padding: 30rpx;
+}
+
+.card {
+  margin-top: 18rpx;
+}
+
+.kicker {
+  color: #1B7A56;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.title {
+  margin-top: 10rpx;
+  color: #111827;
+  font-size: 44rpx;
+  font-weight: 800;
+}
+
+.desc,
+.muted,
+.timeline-text,
+.feedback {
+  color: #6B7280;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 18rpx;
+}
+
+.tag {
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: #EAF6F0;
+  color: #1B7A56;
+  font-size: 22rpx;
+}
+
+.section-title {
+  margin-bottom: 18rpx;
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.field-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 14rpx 0;
+  border-top: 1rpx solid #EEF1F3;
+  color: #111827;
+  font-size: 26rpx;
+}
+
+.field-row text:first-child {
+  color: #6B7280;
+  flex-shrink: 0;
+}
+
+.next-box {
+  margin-top: 18rpx;
+  padding: 18rpx;
+  border-radius: 12rpx;
+  background: #FAFBFC;
+}
+
+.next-box.small {
+  margin-top: 12rpx;
+}
+
+.next-label {
+  color: #6B7280;
+  font-size: 22rpx;
+}
+
+.next-text {
+  margin-top: 6rpx;
+  color: #111827;
+  font-size: 27rpx;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.timeline-item {
+  padding: 18rpx 0;
+  border-top: 1rpx solid #EEF1F3;
+}
+
+.timeline-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.timeline-title,
+.material-title {
+  color: #111827;
+  font-size: 27rpx;
+  font-weight: 800;
+}
+
+.timeline-text,
+.feedback {
+  margin-top: 10rpx;
+}
+
+.suggestion {
+  color: #111827;
+  font-size: 28rpx;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.risk-note {
+  margin-top: 10rpx;
+  color: #B45309;
+  font-size: 24rpx;
+}
+
+.button-row {
+  display: flex;
+  gap: 14rpx;
+  margin-top: 22rpx;
+}
+
+.primary-btn,
+.secondary-btn {
+  flex: 1;
+  height: 78rpx;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  line-height: 78rpx;
+}
+
+.primary-btn {
+  background: #1B7A56;
+  color: #FFFFFF;
+}
+
+.secondary-btn {
+  background: #EEF5F1;
+  color: #1B7A56;
+}
+
+.bottom-btn {
+  margin-top: 22rpx;
+}
+
+.material-item {
+  padding: 16rpx 0;
+  border-top: 1rpx solid #EEF1F3;
+}

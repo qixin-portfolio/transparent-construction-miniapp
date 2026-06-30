@@ -1,0 +1,57 @@
+<view class="deal-page" wx:if="{{customer}}">
+  <view class="hero">
+    <view class="kicker">Mock only</view>
+    <view class="title">AI 跟进助手</view>
+    <view class="desc">本页使用本地规则生成建议，不请求真实 AI API，不调用云函数。</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">选择客户</view>
+    <picker range="{{customers}}" range-key="name" value="{{selectedIndex}}" bindchange="onCustomerChange">
+      <view class="picker-row">
+        <view>
+          <view class="customer-name">{{customer.name}}</view>
+          <view class="muted">{{customer.stage}} · {{customer.budgetRange}} · {{customer.community}}</view>
+        </view>
+        <view class="picker-action">更换</view>
+      </view>
+    </picker>
+  </view>
+
+  <view class="card">
+    <view class="section-title">客户顾虑</view>
+    <view class="concern">{{suggestion.customerConcern}}</view>
+    <view class="muted">触发阶段：{{suggestion.triggerStage}} ｜ 生成方式：{{suggestion.generatedBy}}</view>
+  </view>
+
+  <view class="card output-card">
+    <view class="section-title">推荐话术</view>
+    <view class="message">{{suggestion.recommendedMessage}}</view>
+    <view class="next-box">
+      <view class="next-label">下一步动作</view>
+      <view class="next-text">{{suggestion.nextAction}}</view>
+    </view>
+    <view class="button-row">
+      <button class="primary-btn" bindtap="copyMessage">复制话术</button>
+      <button class="secondary-btn" bindtap="regenerate">重新生成 mock</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">推荐素材</view>
+    <view wx:for="{{suggestion.materials}}" wx:key="materialId" class="material-item">
+      <view class="material-title">{{item.title}}</view>
+      <view class="muted">{{item.typeLabel}} · {{item.summary}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">风险提示</view>
+    <view wx:for="{{suggestion.riskNotes}}" wx:key="*this" class="risk-note">{{item}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">Phase 2 保护规则</view>
+    <view wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
+  </view>
+</view>

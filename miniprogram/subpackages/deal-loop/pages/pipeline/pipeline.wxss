@@ -1,0 +1,208 @@
+.deal-page {
+  min-height: 100vh;
+  padding: 32rpx;
+  background: #F6F7F8;
+  box-sizing: border-box;
+}
+
+.hero,
+.customer-card,
+.guard-card,
+.stat-card {
+  border-radius: 16rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 28rpx rgba(15, 23, 42, 0.04);
+}
+
+.hero {
+  padding: 34rpx;
+}
+
+.kicker {
+  color: #1B7A56;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.title {
+  margin-top: 10rpx;
+  color: #111827;
+  font-size: 44rpx;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.desc,
+.muted,
+.info-row,
+.guard-item {
+  color: #6B7280;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.desc {
+  margin-top: 12rpx;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14rpx;
+  margin-top: 20rpx;
+}
+
+.stat-card {
+  padding: 22rpx 10rpx;
+  text-align: center;
+}
+
+.stat-num {
+  color: #111827;
+  font-size: 36rpx;
+  font-weight: 800;
+}
+
+.stat-num.warn {
+  color: #B45309;
+}
+
+.stat-num.success {
+  color: #1B7A56;
+}
+
+.stat-num.danger {
+  color: #B91C1C;
+}
+
+.stat-label {
+  margin-top: 8rpx;
+  color: #6B7280;
+  font-size: 22rpx;
+}
+
+.tabs {
+  margin-top: 24rpx;
+  white-space: nowrap;
+}
+
+.tabs-inner {
+  display: flex;
+  gap: 14rpx;
+  width: max-content;
+}
+
+.tab {
+  padding: 18rpx 26rpx;
+  border-radius: 999rpx;
+  background: #FFFFFF;
+  color: #4B5563;
+  font-size: 25rpx;
+}
+
+.tab.active {
+  background: #1B7A56;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.section-title {
+  margin-top: 28rpx;
+  margin-bottom: 16rpx;
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.customer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.customer-card {
+  padding: 28rpx;
+}
+
+.customer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.customer-name {
+  color: #111827;
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.stage-pill {
+  flex-shrink: 0;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: #EAF6F0;
+  color: #1B7A56;
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.info-row {
+  margin-top: 14rpx;
+}
+
+.next-box {
+  margin-top: 18rpx;
+  padding: 18rpx;
+  border-radius: 12rpx;
+  background: #FAFBFC;
+}
+
+.next-label {
+  color: #6B7280;
+  font-size: 22rpx;
+}
+
+.next-text {
+  margin-top: 6rpx;
+  color: #111827;
+  font-size: 27rpx;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18rpx;
+}
+
+.text-action {
+  color: #1B7A56;
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.risk {
+  color: #6B7280;
+  font-size: 22rpx;
+}
+
+.risk.high {
+  color: #B91C1C;
+}
+
+.risk.medium {
+  color: #B45309;
+}
+
+.guard-card {
+  margin-top: 24rpx;
+  padding: 28rpx;
+}
+
+.guard-item {
+  padding: 10rpx 0;
+  border-top: 1rpx solid #EEF1F3;
+}

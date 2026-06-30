@@ -1,0 +1,40 @@
+<view class="deal-page" wx:if="{{customer}}">
+  <view class="hero">
+    <view class="kicker">草案，不写库</view>
+    <view class="title">签约转工地</view>
+    <view class="desc">Phase 2 只生成工地创建 payload 草案，不调用 `createProject`。</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">客户</view>
+    <view class="customer-name">{{customer.name}}</view>
+    <view class="muted">{{customer.community}} · {{customer.area}} · {{customer.dealStatus}}</view>
+    <view class="next-box">
+      <view class="next-label">当前动作</view>
+      <view class="next-text">{{customer.nextAction}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">工地创建草案</view>
+    <view class="field-row"><text>name</text><text>{{projectDraft.name}}</text></view>
+    <view class="field-row"><text>customerName</text><text>{{projectDraft.customerName}}</text></view>
+    <view class="field-row"><text>address</text><text>{{projectDraft.address}}</text></view>
+    <view class="field-row"><text>statusCode</text><text>{{projectDraft.statusCode}}</text></view>
+    <button class="secondary-btn" bindtap="copyDraft">复制草案 JSON</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title">风险检查</view>
+    <view wx:for="{{checklist}}" wx:key="label" class="check-row">
+      <view class="check-dot {{item.ok ? 'ok' : ''}}">{{item.ok ? '通过' : '待补'}}</view>
+      <view class="check-label">{{item.label}}</view>
+    </view>
+    <view class="gate-box">{{gateMessage}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">Phase 2 保护规则</view>
+    <view wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
+  </view>
+</view>

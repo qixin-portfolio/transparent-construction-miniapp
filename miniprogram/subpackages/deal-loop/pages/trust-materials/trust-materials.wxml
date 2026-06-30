@@ -1,0 +1,40 @@
+<view class="deal-page">
+  <view class="hero">
+    <view class="kicker">只读素材 mock</view>
+    <view class="title">信任素材库</view>
+    <view class="desc">统一表达日报、照片、图纸、案例和质保素材。Phase 2 不读取真实 V1 数据。</view>
+  </view>
+
+  <scroll-view class="tabs" scroll-x enable-flex>
+    <view class="tabs-inner">
+      <view
+        wx:for="{{materialTypes}}"
+        wx:key="code"
+        class="tab {{activeType == item.code ? 'active' : ''}}"
+        data-type="{{item.code}}"
+        bindtap="switchType"
+      >{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="material-list">
+    <view wx:for="{{materials}}" wx:key="materialId" class="material-card">
+      <view class="material-head">
+        <view>
+          <view class="material-title">{{item.title}}</view>
+          <view class="muted">{{item.typeLabel}} · {{item.stageName}}</view>
+        </view>
+        <view class="auth-pill">{{item.authorizationStatus}}</view>
+      </view>
+      <view class="summary">{{item.summary}}</view>
+      <view class="tag-row">
+        <view wx:for="{{item.tags}}" wx:key="*this" class="tag">{{item}}</view>
+      </view>
+      <view class="meta-row">
+        <view>来源：{{item.sourceCollection}}</view>
+        <view>业主可见：{{item.ownerVisible ? '是' : '否'}}</view>
+      </view>
+      <button class="secondary-btn" data-id="{{item.materialId}}" bindtap="copyMaterial">复制素材说明</button>
+    </view>
+  </view>
+</view>

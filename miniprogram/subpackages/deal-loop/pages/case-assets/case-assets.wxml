@@ -1,0 +1,49 @@
+<view class="deal-page" wx:if="{{caseAsset}}">
+  <view class="hero">
+    <view class="kicker">案例草案 mock</view>
+    <view class="title">工地转案例资产</view>
+    <view class="desc">只整理内部案例草案，不自动发布，不修改案例授权。</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">选择案例资产</view>
+    <picker range="{{caseAssets}}" range-key="title" value="{{selectedIndex}}" bindchange="onCaseChange">
+      <view class="picker-row">
+        <view>
+          <view class="case-title">{{caseAsset.title}}</view>
+          <view class="muted">{{caseAsset.community}} · {{caseAsset.area}} · {{caseAsset.style}}</view>
+        </view>
+        <view class="picker-action">更换</view>
+      </view>
+    </picker>
+  </view>
+
+  <view class="card">
+    <view class="section-title">授权与隐私</view>
+    <view class="field-row"><text>授权状态</text><text>{{caseAsset.authorizationLabel}}</text></view>
+    <view class="field-row"><text>项目状态</text><text>{{caseAsset.projectStatusCode}}</text></view>
+    <view class="privacy-list">
+      <view wx:for="{{caseAsset.privacyFlags}}" wx:key="*this" class="privacy-pill">{{item}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">引用素材</view>
+    <view wx:for="{{materials}}" wx:key="materialId" class="material-item">
+      <view class="material-title">{{item.title}}</view>
+      <view class="muted">{{item.typeLabel}} · {{item.summary}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">内容草案</view>
+    <view wx:for="{{caseAsset.contentDrafts}}" wx:key="target" class="draft-card">
+      <view class="draft-head">
+        <view class="draft-title">{{item.title}}</view>
+        <view class="target-pill">{{item.target}}</view>
+      </view>
+      <view class="draft-body">{{item.body}}</view>
+      <button class="secondary-btn" data-index="{{index}}" bindtap="copyDraft">复制草案</button>
+    </view>
+  </view>
+</view>

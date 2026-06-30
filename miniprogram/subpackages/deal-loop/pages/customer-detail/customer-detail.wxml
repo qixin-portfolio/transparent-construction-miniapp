@@ -1,0 +1,59 @@
+<view class="deal-page" wx:if="{{customer}}">
+  <view class="hero">
+    <view class="kicker">客户详情 mock</view>
+    <view class="title">{{customer.name}}</view>
+    <view class="desc">{{customer.community}} · {{customer.area}} · {{customer.stylePreference}}</view>
+    <view class="tag-row">
+      <view wx:for="{{customer.tags}}" wx:key="*this" class="tag">{{item}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">客户画像</view>
+    <view class="field-row"><text>来源</text><text>{{customer.source}}</text></view>
+    <view class="field-row"><text>预算</text><text>{{customer.budgetRange}}</text></view>
+    <view class="field-row"><text>需求</text><text>{{customer.need}}</text></view>
+    <view class="field-row"><text>阶段</text><text>{{customer.stage}} / {{customer.dealStatus}}</text></view>
+    <view class="next-box">
+      <view class="next-label">下一步</view>
+      <view class="next-text">{{customer.nextAction}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">跟进记录</view>
+    <view wx:for="{{followRecords}}" wx:key="followId" class="timeline-item">
+      <view class="timeline-head">
+        <view class="timeline-title">{{item.typeLabel}} · {{item.createdByName}}</view>
+        <view class="muted">{{item.dateText}}</view>
+      </view>
+      <view class="timeline-text">{{item.content}}</view>
+      <view class="feedback">客户反馈：{{item.customerFeedback}}</view>
+      <view class="next-box small">
+        <view class="next-label">建议动作</view>
+        <view class="next-text">{{item.nextAction}}</view>
+      </view>
+    </view>
+    <view wx:if="{{!followRecords.length}}" class="muted">暂无跟进记录 mock。</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">AI mock 建议</view>
+    <view class="suggestion">{{suggestion.recommendedMessage}}</view>
+    <view class="risk-note" wx:for="{{suggestion.riskNotes}}" wx:key="*this">{{item}}</view>
+    <view class="button-row">
+      <button class="primary-btn" bindtap="goAssistant">打开 AI mock</button>
+      <button class="secondary-btn" bindtap="goMaterials">看素材库</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">推荐素材</view>
+    <view wx:for="{{materials}}" wx:key="materialId" class="material-item">
+      <view class="material-title">{{item.title}}</view>
+      <view class="muted">{{item.typeLabel}} · {{item.summary}}</view>
+    </view>
+  </view>
+
+  <button class="primary-btn bottom-btn" bindtap="goContractDraft">生成签约转工地草案</button>
+</view>

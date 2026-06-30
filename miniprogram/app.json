@@ -46,6 +46,18 @@
         "pages/deliver-form/deliver-form",
         "pages/plan-upgrade/plan-upgrade"
       ]
+    },
+    {
+      "root": "subpackages/deal-loop",
+      "name": "dealLoop",
+      "pages": [
+        "pages/pipeline/pipeline",
+        "pages/customer-detail/customer-detail",
+        "pages/ai-assistant/ai-assistant",
+        "pages/trust-materials/trust-materials",
+        "pages/contract-to-project/contract-to-project",
+        "pages/case-assets/case-assets"
+      ]
     }
   ],
   "preloadRule": {
