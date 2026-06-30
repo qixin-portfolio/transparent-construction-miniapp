@@ -348,6 +348,18 @@
       </view>
     </view>
 
+    <view wx:if="{{canViewDealLoopV2}}" class="deal-loop-entry-card" bindtap="goDealLoopV2">
+      <view class="deal-loop-entry-head">
+        <view class="deal-loop-entry-title-wrap">
+          <view class="deal-loop-entry-title">成交跟进</view>
+          <view class="deal-loop-entry-tag">试验功能</view>
+        </view>
+        <view class="deal-loop-entry-arrow">→</view>
+      </view>
+      <view class="deal-loop-entry-subtitle">看客户阶段、AI 话术和推荐素材</view>
+      <view class="deal-loop-entry-safe">V2 试验功能，不影响现有客户、工地和日报数据。</view>
+    </view>
+
     <view class="workflow-card">
       <view class="workflow-title-row">
         <view class="workflow-title">施工透明核心闭环</view>

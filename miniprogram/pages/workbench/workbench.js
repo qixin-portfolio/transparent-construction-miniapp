@@ -12,6 +12,8 @@ const TENANT_SLOGAN = {
   secondary: '每个节点都留痕'
 }
 
+const ENABLE_V2_DEAL_LOOP_ENTRY = false
+
 Page({
   data: {
     authReady: false,
@@ -28,6 +30,7 @@ Page({
     canUseAiAssistant: false,
     canManageStaff: false,
     canAfterSales: false,
+    canViewDealLoopV2: false,
     isBoss: false,
     isOwner: false,
     isWorker: false,
@@ -166,6 +169,7 @@ Page({
     user = displayUser
     const role = user && user.role
     const slogan = this.getWorkbenchSlogan(user)
+    const isBoss = ['admin', 'boss_qi', 'boss_hu'].indexOf(role) !== -1
     this.setData({
       user: user || null,
       workbenchSloganPrimary: slogan.primary,
@@ -178,7 +182,8 @@ Page({
       canManageStaff: ['admin', 'boss_qi', 'boss_hu'].indexOf(role) !== -1,
       canAfterSales: ['admin', 'boss_qi', 'boss_hu', 'designer', 'worker'].indexOf(role) !== -1,
       canPreviewOwner: ['admin', 'boss_qi', 'boss_hu'].indexOf(role) !== -1,
-      isBoss: ['admin', 'boss_qi', 'boss_hu'].indexOf(role) !== -1,
+      canViewDealLoopV2: ENABLE_V2_DEAL_LOOP_ENTRY && isBoss,
+      isBoss,
       isOwner: role === 'owner',
       isWorker: ['worker', 'project_manager'].indexOf(role) !== -1
     })
@@ -516,6 +521,10 @@ Page({
 
   goCustomers() {
     wx.navigateTo({ url: '/pages/customers/customers' })
+  },
+
+  goDealLoopV2() {
+    wx.navigateTo({ url: '/subpackages/deal-loop/pages/pipeline/pipeline' })
   },
 
   goReview() {
