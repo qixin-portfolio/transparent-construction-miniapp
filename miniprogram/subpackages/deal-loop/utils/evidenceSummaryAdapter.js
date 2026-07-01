@@ -2,8 +2,8 @@ const ERROR_COPY = {
   UNAUTHENTICATED: '请先登录后再查看证据摘要。',
   FORBIDDEN: '当前账号暂无查看证据摘要权限。',
   NOT_FOUND: '未找到可用工地证据，请返回客户列表重新打开。',
-  NO_EVIDENCE: '暂无可用证据摘要，可继续使用示例素材。',
-  NO_MARKETING_AUTHORIZATION: '可内部参考，暂不可公开发布。',
+  NO_EVIDENCE: '暂无可用证据摘要，可继续查看示例推荐素材。',
+  NO_MARKETING_AUTHORIZATION: '仅内部参考，暂不可公开发布。',
   READ_FAILED: '证据摘要读取失败，请稍后重试。'
 }
 
@@ -21,14 +21,6 @@ const PROOF_TYPE_LABELS = {
   warranty_card: '质保卡',
   after_sales_closed: '已关闭售后',
   case_authorization: '案例授权'
-}
-
-const PLATFORM_LABELS = {
-  internal: '内部',
-  xiaohongshu: '小红书',
-  douyin: '抖音',
-  website: '官网',
-  geo: 'GEO'
 }
 
 function toNumber(value) {
@@ -55,7 +47,7 @@ function buildEmptyEvidenceView(overrides = {}) {
     hasSummary: false,
     statusLabel: '未读取真实证据摘要',
     statusClass: 'mock',
-    statusHint: '提供真实客户 ID 后读取只读证据摘要。',
+    statusHint: '提供真实客户入口后读取只读证据摘要。',
     authLabel: '仅内部参考',
     authClass: 'internal',
     metrics: [],
@@ -63,6 +55,7 @@ function buildEmptyEvidenceView(overrides = {}) {
     proofTypesText: '暂无证据类型',
     platformText: '暂不可公开发布',
     blockedReasonText: '',
+    authorizationHint: '这些摘要可用于内部成交跟进参考，公开使用前需先确认案例授权。',
     safetyItems: [
       '仅摘要统计',
       '不含原始素材',
@@ -115,38 +108,43 @@ function buildEvidenceSummaryView(result) {
   if (!hasSummary) {
     const isNoEvidence = code === 'NO_EVIDENCE'
     const isReadFailed = code === 'READ_FAILED'
+    const isNoMarketingAuthorization = code === 'NO_MARKETING_AUTHORIZATION'
     return buildEmptyEvidenceView({
       code,
       statusLabel: isNoEvidence ? '暂无真实证据摘要' : '真实证据摘要不可用',
       statusClass: isNoEvidence ? 'empty' : (isReadFailed ? 'error' : 'warning'),
       statusHint: ERROR_COPY[code] || ERROR_COPY.READ_FAILED,
-      authLabel: '仅内部参考',
+      authLabel: isNoMarketingAuthorization ? ERROR_COPY.NO_MARKETING_AUTHORIZATION : '仅内部参考',
       authClass: 'internal',
-      blockedReasonText: ERROR_COPY[code] || ERROR_COPY.READ_FAILED
+      blockedReasonText: ERROR_COPY[code] || ERROR_COPY.READ_FAILED,
+      authorizationHint: isNoMarketingAuthorization
+        ? '如需用于小红书、抖音、官网或 GEO 内容，应先取得案例授权。'
+        : '为避免串用客户资料，本页不会自动切换到其它客户。'
     })
   }
 
   const proofTypeLabels = mapLabels(evidenceSummary.availableProofTypes, PROOF_TYPE_LABELS)
-  const platformLabels = canUseForMarketing
-    ? mapLabels(authorizationSummary.allowedPlatforms, PLATFORM_LABELS)
-    : []
   const blockedReasonText = noMarketingAuthorization
     ? ERROR_COPY.NO_MARKETING_AUTHORIZATION
     : ''
+  const authorizationHint = canUseForMarketing
+    ? '已具备公开使用授权，发布前仍建议人工复核授权范围、素材内容和平台规则。'
+    : '如需用于小红书、抖音、官网或 GEO 内容，应先取得案例授权。'
 
   return buildEmptyEvidenceView({
     code,
     hasSummary: true,
     statusLabel: '真实证据摘要',
     statusClass: 'real',
-    statusHint: '仅统计已审核、业主可见、已脱敏的工地证据。',
-    authLabel: canUseForMarketing ? '可公开使用' : '仅内部参考，暂不可公开发布',
+    statusHint: '仅统计已审核、业主可见的工地记录，不展示原始照片和日报正文。',
+    authLabel: canUseForMarketing ? '已具备公开使用授权' : '仅内部参考，暂不可公开发布',
     authClass: canUseForMarketing ? 'public' : 'internal',
     metrics: buildMetrics(projectSummary, evidenceSummary),
     stageCoverageText: joinText(evidenceSummary.stageCoverage, '暂无阶段覆盖'),
     proofTypesText: joinText(proofTypeLabels, '暂无证据类型'),
-    platformText: canUseForMarketing ? joinText(platformLabels, '已授权公开使用') : '暂不可公开发布',
-    blockedReasonText
+    platformText: canUseForMarketing ? '已具备公开使用授权，发布前仍建议人工复核。' : '仅内部参考，暂不可公开发布',
+    blockedReasonText,
+    authorizationHint
   })
 }
 

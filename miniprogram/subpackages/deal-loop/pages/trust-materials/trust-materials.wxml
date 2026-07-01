@@ -1,8 +1,9 @@
 <view class="deal-page">
   <view class="hero">
-    <view class="kicker">只读素材 mock</view>
+    <view class="kicker">V2 试验功能</view>
     <view class="title">信任证据库</view>
-    <view class="desc">把日报、照片、图纸、案例和质保说明变成销售跟进可发送的证据。</view>
+    <view class="desc">把已审核的工地记录整理成内部成交跟进参考，公开使用需先确认授权。</view>
+    <view class="risk-note">仅用于内部成交跟进，不影响现有客户、工地和日报数据。</view>
     <view class="source-row {{dataSourceClass}}">
       <view class="source-dot"></view>
       <view>
@@ -39,7 +40,7 @@
     <view class="material-head">
       <view>
         <view class="material-title">真实证据摘要</view>
-        <view class="muted">仅统计已审核、业主可见、已脱敏的工地证据</view>
+        <view class="muted">仅统计已审核、业主可见的工地记录，不展示原始照片和日报正文。</view>
       </view>
       <view class="readonly-pill">只读摘要</view>
     </view>
@@ -48,6 +49,10 @@
       <view class="auth-pill {{evidenceSummaryView.authClass}}">{{evidenceSummaryView.authLabel}}</view>
     </view>
     <view class="source-hint">{{evidenceSummaryView.statusHint}}</view>
+    <view class="auth-note {{evidenceSummaryView.authClass}}">
+      <view class="mini-label">公开授权提示</view>
+      <view class="summary">{{evidenceSummaryView.authorizationHint}}</view>
+    </view>
     <view wx:if="{{evidenceLoading}}" class="evidence-block">
       <view class="summary">正在读取摘要...</view>
     </view>
@@ -78,6 +83,7 @@
     <view class="safe-row">
       <view wx:for="{{evidenceSummaryView.safetyItems}}" wx:key="*this" class="safe-chip">{{item}}</view>
     </view>
+    <view class="safe-note">本区只展示脱敏摘要，不展示原始照片、文件地址、日报正文和个人隐私。</view>
   </view>
 
   <scroll-view class="tabs" scroll-x enable-flex>
@@ -94,6 +100,7 @@
 
   <view class="material-list">
     <view class="section-title">示例推荐素材</view>
+    <view class="section-desc">仅供话术和跟进思路参考，不代表当前客户的真实工地证据。</view>
     <view wx:for="{{materials}}" wx:key="materialId" class="material-card">
       <view class="material-head">
         <view>
@@ -111,7 +118,7 @@
         <view class="summary">{{item.matchedConcern || item.concernSolved}}</view>
       </view>
       <view class="evidence-block">
-        <view class="mini-label">推荐发送场景</view>
+        <view class="mini-label">参考跟进场景</view>
         <view class="summary">{{item.recommendedSendScene || item.sendScene}}</view>
       </view>
       <view class="stage-row">
@@ -125,13 +132,13 @@
       </view>
       <view class="meta-row">
         <view>来源：示例素材</view>
-        <view>业主可见：{{item.ownerVisible ? '是' : '否'}}</view>
+        <view>示例可见性：{{item.ownerVisible ? '业主可见' : '内部参考'}}</view>
       </view>
-      <button class="secondary-btn" data-id="{{item.materialId}}" bindtap="mockSendMaterial">mock 发送给客户</button>
+      <button class="secondary-btn" data-id="{{item.materialId}}" bindtap="previewExampleMaterial">查看示例话术</button>
     </view>
     <view wx:if="{{!materials.length && !contextError}}" class="material-card">
       <view class="material-title">暂无匹配素材</view>
-      <view class="muted">当前筛选下没有推荐素材，可以切换到“全部”查看。</view>
+      <view class="muted">当前筛选下没有示例推荐素材，可以切换到“全部”查看。</view>
     </view>
   </view>
 </view>

@@ -30,7 +30,7 @@ function makeDemoCustomer(customerId) {
       id: '',
       customerId: '',
       v1CustomerId: '',
-      name: 'Mock 演示客户'
+      name: '示例演示客户'
     })
   }
   return mapped
@@ -45,9 +45,9 @@ Page({
     allMaterials: [],
     materials: [],
     loading: true,
-    dataSourceLabel: 'Mock fallback',
+    dataSourceLabel: '示例客户字段 + 示例推荐素材',
     dataSourceClass: 'mock',
-    dataSourceHint: '正在准备 mock 信任素材',
+    dataSourceHint: '正在准备示例推荐素材。',
     contextError: '',
     recommendationSummary: '',
     evidenceLoading: false,
@@ -58,21 +58,21 @@ Page({
     const customerId = normalizeCustomerId(options.customerId || options.id)
     this.setData({
       customerId,
-      dataSourceLabel: customerId ? '真实客户字段 + Mock 素材' : 'Mock fallback',
+      dataSourceLabel: customerId ? '真实客户字段 + 示例推荐素材' : '示例客户字段 + 示例推荐素材',
       dataSourceClass: customerId ? 'real' : 'mock',
-      dataSourceHint: customerId ? '正在只读加载客户字段并匹配 mock 素材' : '未提供客户 ID，使用默认 mock 客户和 mock 素材',
+      dataSourceHint: customerId ? '正在只读加载客户字段，并匹配示例推荐素材。' : '未从客户列表进入，当前仅展示示例内容。',
       evidenceSummaryView: buildEmptyEvidenceView({
-        statusLabel: customerId ? '等待读取真实证据摘要' : 'Mock fallback',
+        statusLabel: customerId ? '等待读取真实证据摘要' : '示例素材模式',
         statusClass: customerId ? 'mock' : 'empty',
-        statusHint: customerId ? '客户字段读取成功后，再读取真实证据摘要。' : '未提供客户 ID，仅展示示例推荐素材。'
+        statusHint: customerId ? '客户字段读取成功后，再读取真实证据摘要。' : '未从客户列表进入，当前仅展示示例内容。'
       })
     })
     if (!customerId) {
       this.useCustomerForMaterials(
         makeDemoCustomer(''),
-        'Mock fallback',
+        '示例客户字段 + 示例推荐素材',
         'mock',
-        '未提供客户 ID，使用默认 mock 客户和 mock 素材'
+        '未从客户列表进入，当前仅展示示例内容。'
       )
       return
     }
@@ -96,18 +96,18 @@ Page({
         }
         this.useCustomerForMaterials(
           mapped,
-          '真实客户字段 + Mock 素材',
+          '真实客户字段 + 示例推荐素材',
           'real',
-          `URL customerId: ${customerId}；只读来自 getCustomer，素材仍为本地 mock。`
+          '客户字段只读加载成功，推荐素材仍为示例素材。'
         )
         this.loadEvidenceSummary(customerId)
       })
-      .catch((error) => {
+      .catch(() => {
         this.useCustomerForMaterials(
           makeDemoCustomer(customerId),
-          '客户读取失败，已回退 mock',
+          '示例客户字段 + 示例推荐素材',
           'mock',
-          `URL customerId: ${customerId}；${error && error.message ? error.message : '真实客户读取失败'}；已使用 mock 客户字段匹配 mock 素材。`
+          '客户字段暂时读取失败，已切换为示例客户字段和示例推荐素材。'
         )
       })
   },
@@ -144,11 +144,11 @@ Page({
         this.setData({
           evidenceLoading: false,
           evidenceSummaryView: view,
-          dataSourceLabel: hasSummary ? '真实客户字段 + 真实证据摘要 + Mock 推荐素材' : '真实客户字段 + Mock 推荐素材',
+          dataSourceLabel: hasSummary ? '真实客户字段 + 真实证据摘要 + 示例推荐素材' : '真实客户字段 + 示例推荐素材',
           dataSourceClass: hasSummary ? 'real' : 'mock',
           dataSourceHint: hasSummary
-            ? `URL customerId: ${customerId}；证据摘要来自 getV2EvidenceSummary，推荐素材仍为示例素材。`
-            : `URL customerId: ${customerId}；${view.statusHint}；推荐素材仍为示例素材。`
+            ? '证据摘要已只读加载，推荐素材仍为示例素材。'
+            : `${view.statusHint} 推荐素材仍为示例素材。`
         })
       })
       .catch(() => {
@@ -156,9 +156,9 @@ Page({
         this.setData({
           evidenceLoading: false,
           evidenceSummaryView: view,
-          dataSourceLabel: '真实客户字段 + Mock 推荐素材',
+          dataSourceLabel: '真实客户字段 + 示例推荐素材',
           dataSourceClass: 'mock',
-          dataSourceHint: `URL customerId: ${customerId}；证据摘要读取失败，推荐素材仍为示例素材。`
+          dataSourceHint: '证据摘要读取失败，推荐素材仍为示例素材。'
         })
       })
   },
@@ -174,7 +174,7 @@ Page({
       dataSourceClass: sourceClass,
       dataSourceHint: hint,
       contextError: '',
-      recommendationSummary: firstReason || '已基于当前客户阶段和顾虑匹配 mock 信任素材。',
+      recommendationSummary: firstReason || '已基于当前客户阶段和顾虑匹配示例推荐素材。',
       loading: false
     })
   },
@@ -186,7 +186,7 @@ Page({
       materials: [],
       dataSourceLabel: CONTEXT_ERROR_MESSAGE,
       dataSourceClass: 'error',
-      dataSourceHint: `URL customerId: ${customerId}；返回客户 ID: ${actualId || '空'}`,
+      dataSourceHint: '为避免串用客户资料，已停止展示真实证据摘要。',
       contextError: CONTEXT_ERROR_MESSAGE,
       recommendationSummary: '',
       evidenceLoading: false,
@@ -203,12 +203,12 @@ Page({
     })
   },
 
-  mockSendMaterial(event) {
+  previewExampleMaterial(event) {
     const id = event.currentTarget.dataset.id
     const material = this.data.materials.find((item) => item.materialId === id)
     wx.showModal({
-      title: 'Mock 发送',
-      content: material ? getMaterialSummary(material) : '当前仅为 mock 提示，不调用分享或接口。',
+      title: '示例话术',
+      content: material ? getMaterialSummary(material) : '当前仅为示例预览，不调用分享或接口。',
       showCancel: false
     })
   }

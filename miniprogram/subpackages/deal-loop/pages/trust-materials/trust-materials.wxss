@@ -85,6 +85,16 @@
   line-height: 1.5;
 }
 
+.risk-note {
+  margin-top: 18rpx;
+  padding: 16rpx 18rpx;
+  border-radius: 12rpx;
+  background: #F3F4F6;
+  color: #4B5563;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
 .tabs {
   margin-top: 24rpx;
   white-space: nowrap;
@@ -225,6 +235,17 @@
   background: #FFF7ED;
 }
 
+.auth-note {
+  margin-top: 18rpx;
+  padding: 18rpx;
+  border-radius: 12rpx;
+  background: #FFF7ED;
+}
+
+.auth-note.public {
+  background: #EAF6F0;
+}
+
 .safe-row {
   display: flex;
   flex-wrap: wrap;
@@ -238,6 +259,14 @@
   background: #F3F4F6;
   color: #4B5563;
   font-size: 22rpx;
+}
+
+.safe-note,
+.section-desc {
+  margin-top: 12rpx;
+  color: #6B7280;
+  font-size: 24rpx;
+  line-height: 1.5;
 }
 
 .section-title {

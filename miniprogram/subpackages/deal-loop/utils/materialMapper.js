@@ -181,7 +181,7 @@ function buildMatchedConcern(material, profile) {
 
 function buildMockSendText(material, profile) {
   const purpose = getMatchPurpose(profile)
-  return `mock 发送：已准备「${material.title}」，建议围绕“${purpose}”发送，不包含客户隐私信息。`
+  return `示例内容：已准备「${material.title}」，建议围绕“${purpose}”参考，不包含客户隐私信息。`
 }
 
 function enrichMaterialForCustomer(material, profile, score) {
