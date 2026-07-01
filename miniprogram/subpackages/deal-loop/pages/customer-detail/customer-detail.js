@@ -29,9 +29,9 @@ function buildMockDetail(id) {
       followRecords: [],
       suggestion: null,
       materials: [],
-      dataSourceLabel: 'Mock fallback',
+      dataSourceLabel: '示例内容',
       dataSourceClass: 'mock',
-      dataSourceHint: '未提供客户 ID，已使用本地 mock。'
+      dataSourceHint: '未从客户列表进入，当前展示示例内容。'
     }
   }
   const mapped = mapCustomerToDetail(customer)
@@ -42,9 +42,9 @@ function buildMockDetail(id) {
     followRecords: Array.isArray(followRecords) ? followRecords : [],
     suggestion,
     materials: getMaterialsByIds(suggestion.recommendedMaterialIds),
-    dataSourceLabel: 'Mock fallback',
+    dataSourceLabel: '示例内容',
     dataSourceClass: 'mock',
-    dataSourceHint: '未调用真实客户详情，已使用本地 mock。'
+    dataSourceHint: '当前展示本地示例内容，仅供内部参考。'
   }
 }
 
@@ -57,13 +57,14 @@ Page({
     loading: true,
     customerId: '',
     id: '',
-    dataSourceLabel: 'Mock fallback',
+    dataSourceLabel: '示例内容',
     dataSourceClass: 'mock',
-    dataSourceHint: '正在尝试只读加载真实客户详情',
+    dataSourceHint: '正在只读加载客户资料',
     guards: [],
     showGuards: false
   },
   onLoad(options = {}) {
+    wx.setNavigationBarTitle({ title: '客户成交详情' })
     const customerId = String(options.customerId || options.id || '').trim()
     this.setData({
       guards: this.makeReadonlyGuards(),
@@ -79,9 +80,9 @@ Page({
       return
     }
     this.setData({
-      dataSourceLabel: 'Mock fallback',
+      dataSourceLabel: '只读客户资料',
       dataSourceClass: 'mock',
-      dataSourceHint: '正在尝试只读加载真实客户详情'
+      dataSourceHint: '正在只读加载客户资料'
     })
     wx.cloud.callFunction({
       name: 'getCustomer',
@@ -90,7 +91,7 @@ Page({
       .then((res) => {
         const result = res.result || {}
         if (result.error) {
-          throw new Error(result.error.message || 'getCustomer 返回错误')
+          throw new Error('客户资料读取失败')
         }
         const customer = result.customer
         if (!customer || customer.deleted === true) {
@@ -105,9 +106,9 @@ Page({
           followRecords: Array.isArray(followRecords) ? followRecords : [],
           suggestion,
           materials,
-          dataSourceLabel: '真实客户详情',
+          dataSourceLabel: '只读客户资料',
           dataSourceClass: 'real',
-          dataSourceHint: '只读来自 getCustomer，未写入任何集合。',
+          dataSourceHint: '仅用于内部成交跟进，未修改任何数据。',
           loading: false
         })
       })
@@ -115,16 +116,16 @@ Page({
         const fallback = buildMockDetail(customerId)
         this.setData({
           ...fallback,
-          dataSourceLabel: '加载失败，已回退 mock',
-          dataSourceHint: error && error.message ? error.message : '真实客户详情加载失败'
+          dataSourceLabel: '示例内容',
+          dataSourceHint: '客户资料暂时读取失败，当前展示示例内容。'
         })
       })
   },
   makeReadonlyGuards() {
     return [
-      'Phase 3B-2 Readonly',
-      '仅可调用 getCustomer',
-      '不回写客户数据',
+      'V2 试验功能，只读资料',
+      '仅读取客户资料',
+      '不修改客户数据',
       '不创建跟进记录',
       '不调用真实 AI',
       '不影响 V1'
@@ -137,7 +138,7 @@ Page({
     const customerId = getCustomerIdFromContext(this.data.customer, this.data)
     if (!customerId) {
       wx.showToast({
-        title: '缺少客户ID，无法生成 AI 话术',
+        title: '未找到客户资料，无法生成 AI 话术',
         icon: 'none'
       })
       return
@@ -150,7 +151,7 @@ Page({
     const customerId = getCustomerIdFromContext(this.data.customer, this.data)
     if (!customerId) {
       wx.showToast({
-        title: '缺少客户ID，无法推荐素材',
+        title: '未找到客户资料，无法推荐素材',
         icon: 'none'
       })
       return
@@ -163,7 +164,7 @@ Page({
     const customerId = getCustomerIdFromContext(this.data.customer, this.data)
     if (!customerId) {
       wx.showToast({
-        title: '缺少客户ID，无法生成工地草案',
+        title: '未找到客户资料，无法生成工地草案',
         icon: 'none'
       })
       return

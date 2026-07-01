@@ -8,7 +8,6 @@ const {
   makePipelineStats,
   sortCustomersForAction
 } = require('../../utils/pipelineStatus')
-const { getPhase2Guards } = require('../../utils/riskGuards')
 const { mapCustomerListToPipelineCards } = require('../../utils/v1ReadonlyAdapters')
 
 Page({
@@ -26,9 +25,9 @@ Page({
     guards: [],
     showGuards: false,
     loading: true,
-    dataSourceLabel: 'Mock fallback',
+    dataSourceLabel: '示例内容',
     dataSourceClass: 'mock',
-    dataSourceHint: '正在尝试只读加载真实客户数据'
+    dataSourceHint: '正在只读加载客户资料'
   },
 
   onLoad() {
@@ -40,10 +39,14 @@ Page({
   },
 
   makeReadonlyGuards() {
-    return getPhase2Guards().map((item) => {
-      if (item === '不调用云函数') return '仅 pipeline 只读调用 listCustomers'
-      return item
-    })
+    return [
+      'V2 试验功能，只读资料',
+      '仅读取客户列表',
+      '仅用于内部成交跟进',
+      '不修改现有客户数据',
+      '不影响 V1',
+      '不部署，不上传体验版'
+    ]
   },
 
   prepareCustomers(customers) {
@@ -61,9 +64,9 @@ Page({
   loadPipelineCustomers() {
     this.setData({
       loading: true,
-      dataSourceLabel: 'Mock fallback',
+      dataSourceLabel: '只读客户资料',
       dataSourceClass: 'mock',
-      dataSourceHint: '正在尝试只读加载真实客户数据'
+      dataSourceHint: '正在只读加载客户资料'
     })
 
     wx.cloud.callFunction({
@@ -75,17 +78,17 @@ Page({
       .then((res) => {
         const result = res.result || {}
         if (result.error) {
-          throw new Error(result.error.message || 'listCustomers 返回错误')
+          throw new Error('客户列表读取失败')
         }
         const cards = mapCustomerListToPipelineCards(result.items)
         if (!cards.length) {
-          this.useMockCustomers('Mock fallback', 'listCustomers 暂无可展示客户，已使用本地 mock。')
+          this.useMockCustomers('示例内容', '暂无可展示客户，当前展示示例内容。')
           return
         }
-        this.useCustomers(cards, '真实客户数据', 'real', '只读来自 listCustomers，未写入任何集合。')
+        this.useCustomers(cards, '只读客户资料', 'real', '仅用于内部成交跟进，未修改任何数据。')
       })
       .catch((error) => {
-        this.useMockCustomers('加载失败，已回退 mock', error && error.message ? error.message : '真实客户数据加载失败')
+        this.useMockCustomers('示例内容', '当前无法读取客户资料，暂展示示例内容。')
       })
   },
 
@@ -133,7 +136,7 @@ Page({
     const id = event.currentTarget.dataset.id
     if (!id) {
       wx.showToast({
-        title: '缺少客户ID，无法推荐素材',
+        title: '未找到客户资料，无法推荐素材',
         icon: 'none'
       })
       return

@@ -28,7 +28,7 @@
   </view>
 
   <view class="card">
-    <view class="section-title">本地 mock 跟进记录</view>
+    <view class="section-title">示例跟进记录</view>
     <view wx:for="{{followRecords}}" wx:key="followId" class="timeline-item">
       <view class="timeline-head">
         <view class="timeline-title">{{item.typeLabel}} · {{item.createdByName}}</view>
@@ -41,12 +41,12 @@
         <view class="next-text">{{item.nextAction}}</view>
       </view>
     </view>
-    <view wx:if="{{!followRecords.length}}" class="muted">暂无本地 mock 跟进记录。</view>
+    <view wx:if="{{!followRecords.length}}" class="muted">暂无示例跟进记录。</view>
   </view>
 
   <view class="card">
     <view class="section-title">销售助手建议</view>
-    <view class="mock-note">当前为本地 mock 建议，不调用真实 AI。</view>
+    <view class="mock-note">当前为示例建议，不调用真实 AI。</view>
     <view class="assistant-grid">
       <view class="assistant-row">
         <view class="assistant-label">客户当前顾虑</view>
@@ -82,11 +82,11 @@
 
   <view class="card">
     <view class="section-title">客户安全说明</view>
-    <view class="muted">本页展示字段只用于销售跟进参考；完整手机号、身份证、openid、详细门牌地址均已脱敏隐藏。</view>
+    <view class="muted">本页只读展示客户资料，仅用于内部成交跟进；完整手机号、身份证、微信身份标识、详细门牌地址均已脱敏隐藏。</view>
   </view>
 
   <view class="guard-card weak" bindtap="toggleGuards">
-    <view class="guard-title">Phase 3B-2 本地 mock 保护规则</view>
+    <view class="guard-title">V2 试验功能保护说明</view>
     <view class="guard-hint">{{showGuards ? '收起' : '展开查看'}}</view>
     <view wx:if="{{showGuards}}" wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
   </view>

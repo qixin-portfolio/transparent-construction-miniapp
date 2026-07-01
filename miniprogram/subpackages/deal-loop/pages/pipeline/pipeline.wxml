@@ -2,7 +2,7 @@
   <view class="hero">
     <view class="hero-top">
       <view class="title">今日成交跟进</view>
-      <view class="kicker">Phase 3B-1 Readonly / 不影响 V1</view>
+      <view class="kicker">V2 试验功能 / 只读客户资料 / 不影响现有数据</view>
     </view>
     <view class="desc">看清客户阶段、下一步动作和可发送的信任素材</view>
     <view class="source-row {{dataSourceClass}}">
@@ -84,7 +84,7 @@
   </view>
 
   <view class="guard-card weak" bindtap="toggleGuards">
-    <view class="guard-title">Phase 2.5 本地 mock 保护规则</view>
+    <view class="guard-title">V2 试验功能保护说明</view>
     <view class="guard-hint">{{showGuards ? '收起' : '展开查看'}}</view>
     <view wx:if="{{showGuards}}" wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
   </view>
