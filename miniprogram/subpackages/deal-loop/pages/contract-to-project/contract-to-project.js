@@ -1,5 +1,4 @@
 const { customers, getMockCustomerById } = require('../../mock/customers')
-const { getPhase2Guards, makeHumanGateMessage } = require('../../utils/riskGuards')
 const {
   getCustomerIdentity,
   mapCustomerToDetail,
@@ -26,7 +25,7 @@ function makeDemoCustomer(customerId) {
       id: '',
       customerId: '',
       v1CustomerId: '',
-      name: 'Mock 演示客户'
+      name: '示例演示客户'
     })
   }
   return mapped
@@ -42,7 +41,7 @@ Page({
     gateMessage: '',
     showGuards: false,
     customerId: '',
-    dataSourceLabel: 'Mock fallback',
+    dataSourceLabel: '示例草案',
     dataSourceClass: 'mock',
     dataSourceHint: '正在准备工地创建草案',
     contextError: ''
@@ -52,18 +51,18 @@ Page({
     const customerId = normalizeCustomerId(options.customerId || options.id)
     this.setData({
       customerId,
-      guards: getPhase2Guards(),
-      gateMessage: makeHumanGateMessage('真实创建工地'),
-      dataSourceLabel: customerId ? '真实客户字段 + 工地草案' : 'Mock fallback',
+      guards: this.makeReadonlyGuards(),
+      gateMessage: '创建正式工地属于高风险动作，需要人工确认后再执行。',
+      dataSourceLabel: customerId ? '只读客户资料 + 工地草案' : '示例草案',
       dataSourceClass: customerId ? 'real' : 'mock',
-      dataSourceHint: customerId ? '正在只读加载客户字段并生成工地草案' : '未提供客户 ID，使用默认 mock 草案'
+      dataSourceHint: customerId ? '正在只读加载客户资料并整理工地草案' : '未从客户列表进入，当前展示示例草案。'
     })
     if (!customerId) {
       this.useCustomerForDraft(
         makeDemoCustomer(''),
-        'Mock fallback',
+        '示例草案',
         'mock',
-        '未提供客户 ID，使用默认 mock 草案。'
+        '未从客户列表进入，当前展示示例草案。'
       )
       return
     }
@@ -87,24 +86,35 @@ Page({
         }
         this.useCustomerForDraft(
           mapped,
-          '真实客户字段 + 工地草案',
+          '只读客户资料 + 工地草案',
           'real',
-          `URL customerId: ${customerId}；只读来自 getCustomer，未写入任何集合。`
+          '客户资料只读加载完成，当前仅整理工地草案。'
         )
       })
       .catch((error) => {
         this.useCustomerForDraft(
           makeDemoCustomer(customerId),
-          '客户读取失败，已回退 mock',
+          '客户资料读取失败，已展示示例草案',
           'mock',
-          `URL customerId: ${customerId}；${error && error.message ? error.message : '真实客户读取失败'}；已使用 mock 草案。`
+          '客户资料暂时读取失败，当前展示示例草案。'
         )
       })
   },
 
+  makeReadonlyGuards() {
+    return [
+      'V2 试验功能，只读展示',
+      '仅读取客户资料',
+      '当前仅整理工地草案',
+      '不创建真实工地',
+      '不修改现有项目数据',
+      '不影响 V1'
+    ]
+  },
+
   makeMappingRows(customer, draft) {
     return [
-      { from: 'customer._id / customerId', to: 'project.customerId', value: draft.customerId || '待确认' },
+      { from: '客户资料', to: '关联客户', value: draft.customerName || (customer && customer.name) || '待确认' },
       { from: '客户姓名', to: '业主姓名', value: draft.ownerName },
       { from: '小区 / 面积 / 风格', to: '工地基础信息', value: draft.baseInfoDraft },
       { from: '预算 / 需求', to: '项目备注', value: draft.projectRemarkDraft },
@@ -116,12 +126,12 @@ Page({
   makeChecklist(customer, draft) {
     return [
       { label: '客户已签约', ok: customer.dealStatus === '已成交' || customer.stage === '已签单' },
-      { label: '客户 ID 已归一', ok: !!draft.customerId || this.data.dataSourceClass === 'mock' },
+      { label: '客户资料已关联', ok: !!draft.customerId || this.data.dataSourceClass === 'mock' },
       { label: '工地名称草案', ok: !!draft.name },
       { label: '小区/地址简写', ok: !!draft.address },
       { label: '保留人工确认', ok: true },
-      { label: '不触发真实工地创建，不写 projects', ok: true },
-      { label: '不写 project_members / customers', ok: true }
+      { label: '不创建真实工地', ok: true },
+      { label: '不修改现有项目数据', ok: true }
     ]
   },
 
@@ -147,7 +157,7 @@ Page({
       checklist: [],
       dataSourceLabel: CONTEXT_ERROR_MESSAGE,
       dataSourceClass: 'error',
-      dataSourceHint: `URL customerId: ${customerId}；返回客户 ID: ${actualId || '空'}`,
+      dataSourceHint: '返回的客户资料与当前页面不一致，请返回客户列表重新打开。',
       contextError: CONTEXT_ERROR_MESSAGE
     })
     wx.showToast({
@@ -157,15 +167,26 @@ Page({
   },
 
   copyDraft() {
+    const draft = this.data.projectDraft || {}
+    const text = [
+      `关联客户：${draft.customerName || '待确认'}`,
+      `业主姓名草案：${draft.ownerName || '待确认'}`,
+      `工地小区草案：${draft.projectCommunity || '待确认'}`,
+      `工地面积草案：${draft.projectArea || '待确认'}`,
+      `装修风格草案：${draft.projectStyle || '待确认'}`,
+      `预算备注：${draft.budgetNote || '待确认'}`,
+      `项目备注草案：${draft.projectRemarkDraft || '待确认'}`,
+      '说明：当前仅为草案预览，不会创建真实工地。'
+    ].join('\n')
     wx.setClipboardData({
-      data: JSON.stringify(this.data.projectDraft, null, 2)
+      data: text
     })
   },
 
   mockGenerateDraft() {
     wx.showModal({
-      title: '生成工地草案（mock）',
-      content: 'Phase 3B-5 仅生成工地草案，不调用 createProject，不写 projects。',
+      title: '预览工地草案',
+      content: '当前仅预览工地草案，不会创建真实工地，也不会修改现有项目数据。',
       showCancel: false
     })
   },

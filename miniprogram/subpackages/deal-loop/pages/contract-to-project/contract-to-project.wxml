@@ -1,8 +1,8 @@
 <view class="deal-page">
   <view class="hero">
-    <view class="kicker">草案，不写库</view>
-    <view class="title">签约转工地</view>
-    <view class="desc">签约后，客户资料如何转换为工地创建草案。Phase 3B-5 不调用 createProject，不写 projects。</view>
+    <view class="kicker">草案预览 / 内部参考</view>
+    <view class="title">签约转工地草案</view>
+    <view class="desc">根据客户资料整理工地创建草案，当前不会写入正式工地，不影响现有项目数据。</view>
     <view class="source-row {{dataSourceClass}}">
       <view class="source-dot"></view>
       <view>
@@ -29,7 +29,7 @@
   </view>
 
   <view wx:if="{{mappingRows.length}}" class="card">
-    <view class="section-title">字段映射</view>
+    <view class="section-title">草案字段对应</view>
     <view wx:for="{{mappingRows}}" wx:key="from" class="mapping-row">
       <view class="mapping-head">
         <text>{{item.from}}</text>
@@ -42,7 +42,7 @@
 
   <view wx:if="{{projectDraft}}" class="card">
     <view class="section-title">工地创建草案</view>
-    <view class="field-row"><text>project.customerId</text><text>{{projectDraft.customerId}}</text></view>
+    <view class="field-row"><text>关联客户</text><text>{{projectDraft.customerName}}</text></view>
     <view class="field-row"><text>业主姓名草案</text><text>{{projectDraft.ownerName}}</text></view>
     <view class="field-row"><text>工地小区草案</text><text>{{projectDraft.projectCommunity}}</text></view>
     <view class="field-row"><text>工地面积草案</text><text>{{projectDraft.projectArea}}</text></view>
@@ -51,9 +51,9 @@
     <view class="field-row"><text>客户来源备注</text><text>{{projectDraft.sourceNote}}</text></view>
     <view class="field-row"><text>转工地前置状态</text><text>{{projectDraft.preProjectStatus}}</text></view>
     <view class="field-row"><text>项目备注草案</text><text>{{projectDraft.projectRemarkDraft}}</text></view>
-    <view class="safe-note">当前仅为草案预览，需人工确认后，未来才能进入真实创建工地流程。</view>
-    <button class="secondary-btn" bindtap="copyDraft">复制草案 JSON</button>
-    <button class="mock-primary-btn" bindtap="mockGenerateDraft">生成工地草案（mock）</button>
+    <view class="safe-note">当前仅为草案预览，不会创建真实工地，不影响现有项目数据。</view>
+    <button class="secondary-btn" bindtap="copyDraft">复制草案内容</button>
+    <button class="mock-primary-btn" bindtap="mockGenerateDraft">预览工地草案</button>
   </view>
 
   <view wx:if="{{checklist.length}}" class="card">
@@ -66,7 +66,7 @@
   </view>
 
   <view class="guard-card weak" bindtap="toggleGuards">
-    <view class="guard-title">Phase 2.5 本地 mock 保护规则</view>
+    <view class="guard-title">V2 试验功能保护说明</view>
     <view class="guard-hint">{{showGuards ? '收起' : '展开查看'}}</view>
     <view wx:if="{{showGuards}}" wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
   </view>

@@ -23,8 +23,8 @@ function makeGenericMockCustomer(customerId) {
     customerId: '',
     v1CustomerId: '',
     tenantId: 'tenant_shengjing_default',
-    name: 'Mock 案例演示客户',
-    source: 'mock 演示',
+    name: '示例案例演示客户',
+    source: '示例演示',
     community: '本地小区',
     area: '120平',
     layout: '三室两厅',
@@ -33,8 +33,8 @@ function makeGenericMockCustomer(customerId) {
     need: '透明工地过程留痕',
     concern: '担心施工过程看不见',
     stage: '案例草案演示',
-    dealStatus: 'Mock fallback',
-    primaryRiskReason: '真实客户读取失败，使用通用 mock 草案'
+    dealStatus: '示例草案',
+    primaryRiskReason: '客户资料读取失败，当前展示示例草案'
   }
 }
 
@@ -46,9 +46,9 @@ Page({
     guards: [],
     loading: true,
     customerId: '',
-    dataSourceLabel: 'Mock fallback',
+    dataSourceLabel: '示例案例草案',
     dataSourceClass: 'mock',
-    dataSourceHint: '正在准备 mock 案例资产草案',
+    dataSourceHint: '正在准备示例案例内容草案',
     contextError: ''
   },
 
@@ -57,17 +57,17 @@ Page({
     this.setData({
       customerId,
       guards: this.makeReadonlyGuards(),
-      dataSourceLabel: customerId ? '真实客户字段 + Mock 案例草案' : 'Mock fallback',
+      dataSourceLabel: customerId ? '只读客户资料 + 示例案例草案' : '示例案例草案',
       dataSourceClass: customerId ? 'real' : 'mock',
-      dataSourceHint: customerId ? '正在只读加载客户字段并生成 mock 案例草案' : '未提供客户 ID，使用默认 mock 案例草案'
+      dataSourceHint: customerId ? '正在只读加载客户资料并整理案例内容草案' : '未从客户列表进入，当前展示示例案例草案。'
     })
 
     if (!customerId) {
       this.useCustomerForCaseAsset(
         makeGenericMockCustomer(''),
-        'Mock fallback',
+        '示例案例草案',
         'mock',
-        '未提供客户 ID，使用默认 mock 案例草案。'
+        '未从客户列表进入，当前展示示例案例草案。'
       )
       return
     }
@@ -92,27 +92,27 @@ Page({
         }
         this.useCustomerForCaseAsset(
           mapped,
-          '真实客户字段 + Mock 案例草案',
+          '只读客户资料 + 示例案例草案',
           'real',
-          `URL customerId: ${customerId}；只读来自 getCustomer，案例资产仍为本地 mock 草案。`
+          '客户资料只读加载完成，当前仅整理案例内容草案。'
         )
       })
       .catch((error) => {
         this.useCustomerForCaseAsset(
           makeGenericMockCustomer(customerId),
-          '客户读取失败，已回退 mock',
+          '客户资料读取失败，已展示示例草案',
           'mock',
-          `URL customerId: ${customerId}；${error && error.message ? error.message : '真实客户读取失败'}；已使用 mock 案例草案。`
+          '客户资料暂时读取失败，当前展示示例案例草案。'
         )
       })
   },
 
   makeReadonlyGuards() {
     return [
-      'Phase 3B-6 Readonly',
-      '仅可调用 getCustomer',
-      '不读取真实工地、日报、照片、图纸或授权',
-      '不自动发布小红书/抖音/官网/GEO',
+      'V2 试验功能，只读展示',
+      '仅读取客户资料',
+      '不读取原始照片、日报正文、图纸或授权记录',
+      '不支持自动发布到小红书、抖音、官网或 GEO',
       '不写数据库',
       '不影响 V1'
     ]
@@ -131,7 +131,7 @@ Page({
       loading: false
     })
     wx.setNavigationBarTitle({
-      title: `案例资产-${customer && customer.name ? customer.name : 'Mock'}`
+      title: `案例内容草案-${customer && customer.name ? customer.name : '客户'}`
     })
   },
 
@@ -142,7 +142,7 @@ Page({
       materials: [],
       dataSourceLabel: CONTEXT_ERROR_MESSAGE,
       dataSourceClass: 'error',
-      dataSourceHint: `URL customerId: ${customerId}；返回客户 ID: ${actualId || '空'}`,
+      dataSourceHint: '返回的客户资料与当前页面不一致，请返回客户列表重新打开。',
       contextError: CONTEXT_ERROR_MESSAGE,
       loading: false
     })
@@ -175,8 +175,8 @@ Page({
 
   showPublishGuard() {
     wx.showModal({
-      title: '不自动发布',
-      content: 'Phase 3B-6 仅生成 mock 案例资产草案，不请求 API，不写数据库，不自动发布。',
+      title: '不支持自动发布',
+      content: '当前仅生成案例内容草案，不调用发布服务，不写数据库；如需用于小红书、抖音、官网或 GEO 内容，应先确认案例授权。',
       showCancel: false
     })
   }

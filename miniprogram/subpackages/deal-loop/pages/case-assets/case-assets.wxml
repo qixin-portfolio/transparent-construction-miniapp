@@ -1,8 +1,8 @@
 <view class="deal-page">
   <view class="hero">
-    <view class="kicker">案例资产 mock 草案</view>
-    <view class="title">工地转案例资产</view>
-    <view class="desc">基于客户字段生成小红书、抖音、官网和 GEO 的 mock 案例内容草案。当前不读取真实照片/日报，不自动发布，不修改 case_authorizations。</view>
+    <view class="kicker">示例草案 / 内部参考 / 需授权</view>
+    <view class="title">案例内容草案</view>
+    <view class="desc">当前仅根据客户资料整理小红书、抖音、官网和 GEO 的内容方向，不代表已获得公开发布授权。</view>
     <view class="source-row {{dataSourceClass}}">
       <view class="source-dot"></view>
       <view>
@@ -29,13 +29,13 @@
   <view wx:if="{{caseAsset}}" class="card">
     <view class="section-title">小红书标题草案</view>
     <view wx:for="{{caseAsset.xiaohongshuTitles}}" wx:key="*this" class="draft-line">{{item}}</view>
-    <button class="secondary-btn" bindtap="copyXiaohongshuTitle">复制小红书标题（mock）</button>
+    <button class="secondary-btn" bindtap="copyXiaohongshuTitle">复制小红书标题草案</button>
   </view>
 
   <view wx:if="{{caseAsset}}" class="card">
     <view class="section-title">抖音短视频选题</view>
     <view wx:for="{{caseAsset.douyinTopics}}" wx:key="*this" class="draft-line">{{item}}</view>
-    <button class="secondary-btn" bindtap="copyDouyinTopic">复制抖音选题（mock）</button>
+    <button class="secondary-btn" bindtap="copyDouyinTopic">复制抖音选题草案</button>
   </view>
 
   <view wx:if="{{caseAsset}}" class="card">
@@ -49,11 +49,11 @@
       <view class="qa-question">{{item.question}}</view>
       <view class="qa-answer">{{item.answer}}</view>
     </view>
-    <button class="secondary-btn" bindtap="copyGeoQa">复制 GEO 问答（mock）</button>
+    <button class="secondary-btn" bindtap="copyGeoQa">复制 GEO 问答草案</button>
   </view>
 
   <view wx:if="{{caseAsset}}" class="card">
-    <view class="section-title">可用素材清单 mock</view>
+    <view class="section-title">可用素材清单</view>
     <view class="checklist">
       <view wx:for="{{caseAsset.materialChecklist}}" wx:key="*this" class="check-pill">{{item}}</view>
     </view>
@@ -64,7 +64,7 @@
   </view>
 
   <view wx:if="{{caseAsset}}" class="card">
-    <view class="section-title">授权状态 mock</view>
+    <view class="section-title">授权状态说明</view>
     <view class="field-row"><text>授权状态</text><text>{{caseAsset.authorizationLabel}}</text></view>
     <view class="asset-value">{{caseAsset.authorizationHint}}</view>
     <view class="privacy-list">
@@ -82,11 +82,11 @@
       <view class="draft-body">{{item.body}}</view>
     </view>
     <view class="safe-note">{{caseAsset.safetyNote}}</view>
-    <button class="mock-primary-btn" bindtap="showPublishGuard">确认仅生成 mock 草案</button>
+    <button class="mock-primary-btn" bindtap="showPublishGuard">确认仅生成草案</button>
   </view>
 
   <view class="guard-card weak">
-    <view class="guard-title">Phase 3B-6 保护规则</view>
+    <view class="guard-title">V2 试验功能保护说明</view>
     <view wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
   </view>
 </view>

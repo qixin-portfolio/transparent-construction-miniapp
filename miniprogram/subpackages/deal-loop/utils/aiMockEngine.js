@@ -39,7 +39,7 @@ function buildFallbackSuggestion(customer) {
   const recommendedMaterial = safeText((customer && customer.recommendedMaterial) || '透明日报样例')
   const suggestedTalk = safeText((customer && customer.suggestedTalk) || '先确认客户当前最担心的点，再选择对应信任素材。')
   const riskNotes = [
-    'mock 建议不能替代人工判断',
+    '示例建议不能替代人工判断',
     '不能承诺获客或成交结果'
   ]
   if (riskLevel === '高风险' || pipelineStage === 'hot_follow') {

@@ -1,14 +1,13 @@
 <view class="deal-page" wx:if="{{customer}}">
   <view class="hero">
-    <view class="kicker">Mock only</view>
+    <view class="kicker">示例建议 / 内部参考</view>
     <view class="title">AI 跟进助手</view>
-    <view class="desc">当前为本地 mock 建议，不调用真实 AI。</view>
+    <view class="desc">当前仅根据客户阶段生成跟进建议，不调用真实 AI。</view>
   </view>
 
   <view class="card">
     <view class="section-title">客户上下文</view>
-    <view class="muted">当前 URL customerId：{{urlCustomerId ? urlCustomerId : '无'}}</view>
-    <view class="muted">当前客户姓名：{{currentCustomerName}}</view>
+    <view class="muted">当前关联客户：{{currentCustomerName}}</view>
     <view class="muted">数据源状态：{{contextStatus}}</view>
     <view wx:if="{{contextError}}" class="risk-note">{{contextError}}</view>
   </view>
@@ -29,7 +28,7 @@
   <view class="card">
     <view class="section-title">客户顾虑</view>
     <view class="concern">{{suggestion.customerConcern}}</view>
-    <view class="muted">触发阶段：{{suggestion.triggerStage}} ｜ 生成方式：{{suggestion.generatedBy}}</view>
+    <view class="muted">触发阶段：{{suggestion.triggerStage}} ｜ 建议来源：客户阶段与当前顾虑</view>
   </view>
 
   <view class="card">
@@ -50,7 +49,7 @@
     </view>
     <view class="button-row">
       <button class="primary-btn" bindtap="copyMessage">复制话术</button>
-      <button class="secondary-btn" bindtap="regenerate">重新生成 mock</button>
+      <button class="secondary-btn" bindtap="regenerate">重新生成示例建议</button>
     </view>
   </view>
 
@@ -70,7 +69,7 @@
   </view>
 
   <view class="guard-card weak" bindtap="toggleGuards">
-    <view class="guard-title">Phase 2.5 本地 mock 保护规则</view>
+    <view class="guard-title">V2 试验功能保护说明</view>
     <view class="guard-hint">{{showGuards ? '收起' : '展开查看'}}</view>
     <view wx:if="{{showGuards}}" wx:for="{{guards}}" wx:key="*this" class="guard-item">{{item}}</view>
   </view>

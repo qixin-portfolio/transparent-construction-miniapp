@@ -26,7 +26,7 @@ function safeText(value, fallback = '待确认') {
 function sanitizePublicText(value, fallback = '待确认') {
   return safeText(value, fallback)
     .replace(/\d{3}\s*\d{4}\s*\d{4}/g, '手机号已脱敏')
-    .replace(/openid[:：]?[A-Za-z0-9_-]+/gi, 'openid已脱敏')
+    .replace(/openid[:：]?[A-Za-z0-9_-]+/gi, '微信身份标识已脱敏')
     .replace(/身份证[:：]?[0-9A-Za-z]+/g, '身份证信息已脱敏')
     .replace(/\d+[-栋幢单元楼层室号]+/g, '')
     .replace(/[A-Za-z0-9_-]{12,}/g, '敏感编号已脱敏')
@@ -69,7 +69,7 @@ function makeWebsiteSummary(customer) {
   const style = safeText(customer.stylePreference || customer.style, '风格待确认')
   const budget = safeText(customer.budgetRange || customer.budget, '预算待确认')
   const need = sanitizePublicText(customer.need, '需求待补充')
-  return `${community}${area}${style}装修案例草案，预算段为${budget}。内容重点围绕“${need}”，用透明工地、节点留痕和售后说明降低签约前顾虑，适合沉淀为官网案例与 GEO 素材。`
+  return `${community}${area}${style}装修案例草案，预算段为${budget}。内容重点围绕“${need}”，用透明工地、节点留痕和售后说明降低签约前顾虑；如需用于官网案例或 GEO 内容，应先确认案例授权。`
 }
 
 function makeGeoQaMaterials(customer) {
@@ -119,7 +119,7 @@ function buildContentDrafts(customer, titles, topics, geoQaMaterials) {
 function buildCaseAssetDraftFromCustomer(customer) {
   const source = customer || {}
   const customerId = getCustomerId(source)
-  const name = safeText(source.name || source.customerName, 'Mock 案例演示客户')
+  const name = safeText(source.name || source.customerName, '示例案例演示客户')
   const community = safeText(source.community, '本地小区')
   const area = normalizeAreaLabel(source.area)
   const style = safeText(source.stylePreference || source.style, '风格待确认')
@@ -148,9 +148,9 @@ function buildCaseAssetDraftFromCustomer(customer) {
     projectStatusCode: 'mock_case_draft_only',
     materialIds: DEFAULT_MATERIAL_IDS,
     authorizationStatus: 'mock_not_started',
-    authorizationLabel: '未进入真实授权流程',
-    authorizationHint: '当前不读取 case_authorizations，不生成真实公开案例。',
-    privacyFlags: ['不展示完整手机号', '不展示 openid', '不展示详细门牌号', '不展示内部敏感备注'],
+    authorizationLabel: '暂未确认公开授权',
+    authorizationHint: '当前仅供内部参考，不代表已获得公开发布授权。',
+    privacyFlags: ['不展示完整手机号', '不展示微信身份标识', '不展示详细门牌号', '不展示内部敏感备注'],
     xiaohongshuTitles: titles,
     xiaohongshuTitle: titles[0],
     douyinTopics: topics,
@@ -161,7 +161,7 @@ function buildCaseAssetDraftFromCustomer(customer) {
     materialChecklist: DEFAULT_MATERIAL_CHECKLIST,
     contentDrafts: buildContentDrafts(source, titles, topics, geoQaMaterials),
     publishTargets: [],
-    safetyNote: '当前仅为 mock 案例资产草案，不读取真实照片/日报，不自动发布，不修改 case_authorizations。',
+    safetyNote: '当前仅为示例案例内容草案，不读取原始照片或日报正文，不支持自动发布，不修改真实授权记录；如需用于小红书、抖音、官网或 GEO 内容，应先确认案例授权。',
     createdAt: '2026-06-30T00:00:00+08:00'
   }
 }
@@ -170,7 +170,7 @@ const caseAssets = [
   buildCaseAssetDraftFromCustomer({
     customerId: 'mock_customer_001',
     tenantId: 'tenant_shengjing_default',
-    name: 'Mock 演示客户',
+    name: '示例演示客户',
     source: '老客户推荐',
     community: '万硕花园',
     area: '148平',
@@ -185,7 +185,7 @@ const caseAssets = [
   buildCaseAssetDraftFromCustomer({
     customerId: 'mock_customer_003',
     tenantId: 'tenant_shengjing_default',
-    name: 'Mock 签约前客户',
+    name: '示例签约前客户',
     source: '门店到访',
     community: '公园里',
     area: '128平',

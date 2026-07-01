@@ -1,6 +1,5 @@
 const { getMockCustomerById } = require('../../mock/customers')
 const { generateSuggestion } = require('../../utils/aiMockEngine')
-const { getPhase2Guards } = require('../../utils/riskGuards')
 const { getCustomerIdentity, mapCustomerToDetail } = require('../../utils/v1ReadonlyAdapters')
 
 const READ_FAILED_MESSAGE = '客户读取失败，请返回客户列表重新打开'
@@ -25,8 +24,8 @@ function makeBlockedCustomer(customerId, message, status) {
     customerId: customerId || '',
     v1CustomerId: customerId || '',
     name: message,
-    stage: status || '真实客户读取失败',
-    budgetRange: customerId ? `URL customerId: ${customerId}` : 'URL customerId: 无',
+    stage: status || '客户资料读取失败',
+    budgetRange: customerId ? '当前关联客户' : '未从客户列表进入',
     community: '请返回客户列表重新打开'
   }
 }
@@ -52,18 +51,18 @@ function makeBlockedSuggestion(message) {
 }
 
 function buildContextErrorState(customerId, message, hint) {
-  const customer = makeBlockedCustomer(customerId, message, '真实客户读取失败')
+  const customer = makeBlockedCustomer(customerId, message, '客户资料读取失败')
   return Object.assign({
     customers: [],
     selectedIndex: 0,
     customer,
     suggestion: makeBlockedSuggestion(message),
-    dataSourceLabel: '真实客户读取失败',
+    dataSourceLabel: '客户资料读取失败',
     dataSourceClass: 'error',
     dataSourceHint: hint || message,
     loading: false,
     contextBlocked: true
-  }, makeContextData(customerId, customer, '真实客户读取失败', message))
+  }, makeContextData(customerId, customer, '客户资料读取失败', message))
 }
 
 function isSameCustomer(customerId, customer) {
@@ -73,7 +72,7 @@ function isSameCustomer(customerId, customer) {
 
 function buildMockSuggestion(customer, customerId, hint) {
   const mapped = customer ? mapCustomerToDetail(customer) : null
-  const dataSourceLabel = 'Mock fallback'
+  const dataSourceLabel = '示例建议'
   return Object.assign({
     customers: mapped ? [mapped] : [],
     selectedIndex: 0,
@@ -81,7 +80,7 @@ function buildMockSuggestion(customer, customerId, hint) {
     suggestion: generateSuggestion(mapped || customer),
     dataSourceLabel,
     dataSourceClass: 'mock',
-    dataSourceHint: hint || '未调用真实客户详情，已使用本地 mock。',
+    dataSourceHint: hint || '当前展示本地示例建议，仅供内部参考。',
     contextBlocked: false
   }, makeContextData(customerId, mapped, dataSourceLabel))
 }
@@ -98,21 +97,22 @@ Page({
     customerId: '',
     urlCustomerId: '',
     currentCustomerName: '未读取',
-    contextStatus: 'Mock fallback',
+    contextStatus: '示例建议',
     contextError: '',
     contextBlocked: false,
-    dataSourceLabel: 'Mock fallback',
+    dataSourceLabel: '示例建议',
     dataSourceClass: 'mock',
-    dataSourceHint: '正在尝试只读加载真实客户字段'
+    dataSourceHint: '正在尝试只读加载客户资料'
   },
   onLoad(options = {}) {
+    wx.setNavigationBarTitle({ title: 'AI 跟进助手' })
     const customerId = normalizeCustomerId(options.customerId || options.id)
     this.setData({
       guards: this.makeReadonlyGuards(),
       customerId,
       urlCustomerId: customerId,
       currentCustomerName: '未读取',
-      contextStatus: customerId ? '正在读取真实客户字段' : 'Mock fallback',
+      contextStatus: customerId ? '正在读取客户资料' : '示例建议',
       contextError: '',
       contextBlocked: false
     })
@@ -120,19 +120,18 @@ Page({
       const fallback = buildMockSuggestion(
         getMockCustomerById(''),
         '',
-        '未提供客户 ID，已使用默认 mock 演示客户。'
+        '未从客户列表进入，当前展示示例建议。'
       )
       this.setData({
         ...fallback,
         loading: false
       })
-      wx.setNavigationBarTitle({ title: 'AI 话术 Mock 演示' })
       return
     }
     this.setData({
-      dataSourceLabel: '真实客户字段',
+      dataSourceLabel: '只读客户资料',
       dataSourceClass: 'real',
-      dataSourceHint: `URL customerId: ${customerId}；正在尝试只读加载真实客户字段`
+      dataSourceHint: '正在只读加载客户资料，不调用真实 AI。'
     })
     wx.cloud.callFunction({
       name: 'getCustomer',
@@ -152,7 +151,7 @@ Page({
           this.setData(buildContextErrorState(
             customerId,
             CONTEXT_ERROR_MESSAGE,
-            `URL customerId: ${customerId}；返回客户 ID: ${getCustomerIdentity(mapped) || '空'}`
+            '返回的客户资料与当前页面不一致，请返回客户列表重新打开。'
           ))
           wx.showToast({
             title: CONTEXT_ERROR_MESSAGE,
@@ -166,14 +165,14 @@ Page({
           selectedIndex: 0,
           customer: mapped,
           suggestion,
-          dataSourceLabel: '真实客户字段',
+          dataSourceLabel: '只读客户资料',
           dataSourceClass: 'real',
-          dataSourceHint: `URL customerId: ${customerId}；当前客户：${mapped.name || '未命名客户'}；只读来自 getCustomer，未调用真实 AI。`,
+          dataSourceHint: `当前关联客户：${mapped.name || '未命名客户'}；仅根据客户阶段和当前顾虑生成建议，不调用真实 AI。`,
           loading: false,
           contextBlocked: false,
-          ...makeContextData(customerId, mapped, '真实客户字段')
+          ...makeContextData(customerId, mapped, '只读客户资料')
         })
-        wx.setNavigationBarTitle({ title: `AI 话术-${mapped.name || '客户'}` })
+        wx.setNavigationBarTitle({ title: 'AI 跟进助手' })
       })
       .catch((error) => {
         this.useFallbackOrError(customerId, error)
@@ -181,11 +180,11 @@ Page({
   },
   makeReadonlyGuards() {
     return [
-      'Phase 3B-3 Readonly',
-      '仅可调用 getCustomer',
-      '不回写客户数据',
+      'V2 试验功能，只读展示',
+      '仅读取客户资料',
+      '不修改客户数据',
       '不调用真实 AI',
-      '不调用 aiGenerateOwnerSummary',
+      '不调用自动总结服务',
       '不影响 V1'
     ]
   },
@@ -212,7 +211,7 @@ Page({
       this.setData(buildContextErrorState(
         customerId,
         CONTEXT_ERROR_MESSAGE,
-        `URL customerId: ${customerId}；当前客户 ID: ${getCustomerIdentity(mapped) || '空'}`
+        '当前客户资料与页面来源不一致，请返回客户列表重新打开。'
       ))
       return
     }
@@ -223,27 +222,26 @@ Page({
     })
   },
   useFallbackOrError(customerId, error) {
-    const message = error && error.message ? error.message : '真实客户字段加载失败'
     const mockCustomer = getMockCustomerById(customerId)
     if (mockCustomer) {
       const fallback = buildMockSuggestion(
         mockCustomer,
         customerId,
-        `URL customerId: ${customerId}；getCustomer 失败：${message}；已使用同 ID mock。`
+        '客户资料暂时读取失败，当前展示同一客户的本地示例建议。'
       )
       this.setData({
         ...fallback,
-        dataSourceLabel: 'Mock fallback',
+        dataSourceLabel: '示例建议',
         dataSourceHint: fallback.dataSourceHint,
         loading: false
       })
-      wx.setNavigationBarTitle({ title: `AI 话术-${fallback.currentCustomerName || 'Mock'}` })
+      wx.setNavigationBarTitle({ title: 'AI 跟进助手' })
       return
     }
     this.setData(buildContextErrorState(
       customerId,
       READ_FAILED_MESSAGE,
-      `URL customerId: ${customerId}；getCustomer 失败：${message}；本地 mock 无同 ID。`
+      '客户资料暂时读取失败，请返回客户列表重新打开。'
     ))
     wx.showToast({
       title: READ_FAILED_MESSAGE,
@@ -260,7 +258,7 @@ Page({
     }
     this.useCustomer(this.data.customer)
     wx.showToast({
-      title: '已生成 mock 建议',
+      title: '已生成示例建议',
       icon: 'none'
     })
   },
@@ -274,7 +272,7 @@ Page({
     const customerId = getCustomerIdentity(this.data.customer) || this.data.customerId || ''
     if (!customerId) {
       wx.showToast({
-        title: '缺少客户ID，无法返回客户详情',
+        title: '未找到客户资料，无法返回详情',
         icon: 'none'
       })
       return
@@ -294,7 +292,7 @@ Page({
     const customerId = getCustomerIdentity(this.data.customer) || this.data.customerId || ''
     if (!customerId) {
       wx.showToast({
-        title: '缺少客户ID，无法推荐素材',
+        title: '未找到客户资料，无法推荐素材',
         icon: 'none'
       })
       return
