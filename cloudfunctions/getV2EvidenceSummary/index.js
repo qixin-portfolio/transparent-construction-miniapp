@@ -7,23 +7,18 @@ const _ = db.command
 
 const VERSION = 'v1'
 const SOURCE = 'real-evidence-summary'
-const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
-const DEFAULT_TENANT_NAME = '晟景装饰'
 const ALLOWED_ROLES = ['admin', 'boss_qi', 'boss_hu']
+const PUBLIC_ERROR_CODES = ['UNAUTHENTICATED', 'FORBIDDEN', 'NOT_FOUND', 'NO_EVIDENCE', 'NO_MARKETING_AUTHORIZATION', 'READ_FAILED']
 const COMPLETED_PROJECT_CODES = ['completed', 'delivered']
 const COMPLETED_PROJECT_STATUS = ['已完工', '完工', '已竣工', '竣工验收', '已交付']
 const CLOSED_TICKET_STATUS = ['completed', 'done', 'closed', 'rejected']
 
 const ERROR_MESSAGES = {
-  INVALID_PARAM: '缺少客户 ID',
   UNAUTHENTICATED: '请先登录',
   FORBIDDEN: '当前账号无权查看该客户证据摘要',
-  CUSTOMER_NOT_FOUND: '客户不存在',
-  TENANT_MISMATCH: '客户或证据不属于当前门店',
-  PROJECT_NOT_FOUND: '工地不存在或不属于该客户',
-  NO_PROJECT: '该客户暂无关联工地',
+  NOT_FOUND: '未找到可用工地证据，请返回客户列表重新打开',
   NO_EVIDENCE: '暂无可用证据摘要',
-  NO_AUTHORIZATION: '存在证据但暂无公开案例授权',
+  NO_MARKETING_AUTHORIZATION: '可内部参考，暂不可公开发布',
   READ_FAILED: '读取证据摘要失败'
 }
 
@@ -92,7 +87,7 @@ function makeBase(eventIds) {
 }
 
 function makeError(code, eventIds, overrides = {}) {
-  const message = ERROR_MESSAGES[code] || ERROR_MESSAGES.READ_FAILED
+  const message = overrides.message || ERROR_MESSAGES[code] || ERROR_MESSAGES.READ_FAILED
   return Object.assign(makeBase(eventIds), {
     ok: false,
     code,
@@ -108,10 +103,10 @@ function makeError(code, eventIds, overrides = {}) {
   })
 }
 
-function makeSuccess(eventIds, payload) {
+function makeSuccess(eventIds, payload, code = 'OK') {
   return Object.assign(makeBase(eventIds), {
     ok: true,
-    code: 'OK',
+    code,
     projectSummary: payload.projectSummary,
     evidenceSummary: payload.evidenceSummary,
     authorizationSummary: payload.authorizationSummary,
@@ -124,14 +119,39 @@ function toId(value) {
   return String(value || '').trim()
 }
 
-function createError(code) {
-  const error = new Error(ERROR_MESSAGES[code] || ERROR_MESSAGES.READ_FAILED)
-  error.code = code
+function createError(code, internalReason, message) {
+  const safeCode = PUBLIC_ERROR_CODES.indexOf(code) !== -1 ? code : 'READ_FAILED'
+  const error = new Error(message || ERROR_MESSAGES[safeCode] || ERROR_MESSAGES.READ_FAILED)
+  error.code = safeCode
+  error.internalReason = internalReason || safeCode
+  if (message) error.publicMessage = message
   return error
 }
 
 function getErrorCode(error) {
-  return ERROR_MESSAGES[error && error.code] ? error.code : 'READ_FAILED'
+  return PUBLIC_ERROR_CODES.indexOf(error && error.code) !== -1 ? error.code : 'READ_FAILED'
+}
+
+function getErrorMessage(error) {
+  if (error && error.publicMessage) return error.publicMessage
+  const code = getErrorCode(error)
+  return ERROR_MESSAGES[code] || ERROR_MESSAGES.READ_FAILED
+}
+
+function createNotFound(internalReason) {
+  return createError('NOT_FOUND', internalReason)
+}
+
+function createForbidden(internalReason, message) {
+  return createError('FORBIDDEN', internalReason, message)
+}
+
+function createNoEvidence(internalReason) {
+  return createError('NO_EVIDENCE', internalReason)
+}
+
+function createUnauthenticated(internalReason) {
+  return createError('UNAUTHENTICATED', internalReason)
 }
 
 async function getCurrentUser() {
@@ -147,17 +167,13 @@ async function getCurrentUser() {
     })
     .limit(1)
     .get()
-  const user = res.data[0] || null
-  if (user && !user.tenantId) {
-    user.tenantId = DEFAULT_TENANT_ID
-    user.tenantName = DEFAULT_TENANT_NAME
-  }
-  return user
+  return res.data[0] || null
 }
 
 function assertUser(user) {
-  if (!user) throw createError('UNAUTHENTICATED')
-  if (ALLOWED_ROLES.indexOf(user.role) === -1) throw createError('FORBIDDEN')
+  if (!user) throw createUnauthenticated('USER_NOT_FOUND')
+  if (ALLOWED_ROLES.indexOf(user.role) === -1) throw createForbidden('ROLE_FORBIDDEN')
+  if (!user.tenantId) throw createForbidden('NO_TENANT', '当前账号未绑定门店，无法查看证据摘要')
 }
 
 async function getCustomerForAccess(customerId) {
@@ -174,8 +190,8 @@ async function getCustomerForAccess(customerId) {
 }
 
 function assertCustomer(customer, tenantId) {
-  if (!customer || customer.deleted === true) throw createError('CUSTOMER_NOT_FOUND')
-  if (customer.tenantId !== tenantId) throw createError('TENANT_MISMATCH')
+  if (!customer || customer.deleted === true) throw createNotFound('CUSTOMER_NOT_FOUND')
+  if (customer.tenantId !== tenantId) throw createNotFound('TENANT_MISMATCH')
 }
 
 function projectFields() {
@@ -207,10 +223,10 @@ async function listProjects(tenantId, customerId, projectId) {
   if (projectId) {
     const project = await getProjectById(projectId)
     if (!project || project.deleted === true || project.status === 'deleted') {
-      throw createError('PROJECT_NOT_FOUND')
+      throw createNotFound('PROJECT_NOT_FOUND')
     }
-    if (project.tenantId !== tenantId) throw createError('TENANT_MISMATCH')
-    if (project.customerId !== customerId) throw createError('PROJECT_NOT_FOUND')
+    if (project.tenantId !== tenantId) throw createNotFound('TENANT_MISMATCH')
+    if (project.customerId !== customerId) throw createNotFound('CUSTOMER_PROJECT_MISMATCH')
     return [project]
   }
 
@@ -387,8 +403,7 @@ function makeAuthorizationSummary(authorizations) {
   const hasApprovedCase = approvedItems.length > 0
   const canUseForMarketing = marketingItems.length > 0
   const blockedReasons = []
-  if (!hasApprovedCase) blockedReasons.push('NO_AUTHORIZATION')
-  else if (!canUseForMarketing) blockedReasons.push('AUTHORIZATION_NOT_PUBLIC')
+  if (!hasApprovedCase || !canUseForMarketing) blockedReasons.push('NO_MARKETING_AUTHORIZATION')
 
   return {
     hasApprovedCase,
@@ -482,17 +497,17 @@ exports.main = async (event = {}) => {
   }
 
   try {
-    if (!eventIds.customerId) throw createError('INVALID_PARAM')
+    if (!eventIds.customerId) throw createNotFound('INVALID_PARAM')
 
     const user = await getCurrentUser()
     assertUser(user)
-    const tenantId = user.tenantId || DEFAULT_TENANT_ID
+    const tenantId = user.tenantId
 
     const customer = await getCustomerForAccess(eventIds.customerId)
     assertCustomer(customer, tenantId)
 
     const projects = await listProjects(tenantId, eventIds.customerId, eventIds.projectId)
-    if (!projects.length) throw createError('NO_PROJECT')
+    if (!projects.length) throw createNoEvidence('NO_PROJECT')
 
     const projectIds = projects.map((project) => project._id).filter(Boolean)
     const projectSummary = makeProjectSummary(projects)
@@ -510,14 +525,16 @@ exports.main = async (event = {}) => {
       })
     }
 
+    const responseCode = authorizationSummary.canUseForMarketing ? 'OK' : 'NO_MARKETING_AUTHORIZATION'
+
     return makeSuccess(eventIds, {
       projectSummary,
       evidenceSummary,
       authorizationSummary,
       recommendedUse
-    })
+    }, responseCode)
   } catch (error) {
     const code = getErrorCode(error)
-    return makeError(code, eventIds)
+    return makeError(code, eventIds, { message: getErrorMessage(error) })
   }
 }
