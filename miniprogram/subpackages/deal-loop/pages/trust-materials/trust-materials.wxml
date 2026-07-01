@@ -35,6 +35,51 @@
     </view>
   </view>
 
+  <view wx:if="{{customer}}" class="material-card evidence-summary-card">
+    <view class="material-head">
+      <view>
+        <view class="material-title">真实证据摘要</view>
+        <view class="muted">仅统计已审核、业主可见、已脱敏的工地证据</view>
+      </view>
+      <view class="readonly-pill">只读摘要</view>
+    </view>
+    <view class="evidence-status-row">
+      <view class="evidence-status {{evidenceSummaryView.statusClass}}">{{evidenceSummaryView.statusLabel}}</view>
+      <view class="auth-pill {{evidenceSummaryView.authClass}}">{{evidenceSummaryView.authLabel}}</view>
+    </view>
+    <view class="source-hint">{{evidenceSummaryView.statusHint}}</view>
+    <view wx:if="{{evidenceLoading}}" class="evidence-block">
+      <view class="summary">正在读取摘要...</view>
+    </view>
+    <view wx:else>
+      <view wx:if="{{evidenceSummaryView.metrics.length}}" class="evidence-grid">
+        <view wx:for="{{evidenceSummaryView.metrics}}" wx:key="label" class="evidence-metric">
+          <view class="metric-value">{{item.value}}</view>
+          <view class="mini-label">{{item.label}}</view>
+        </view>
+      </view>
+      <view class="evidence-block">
+        <view class="mini-label">阶段覆盖</view>
+        <view class="summary">{{evidenceSummaryView.stageCoverageText}}</view>
+      </view>
+      <view class="evidence-block">
+        <view class="mini-label">可用证据类型</view>
+        <view class="summary">{{evidenceSummaryView.proofTypesText}}</view>
+      </view>
+      <view class="evidence-block">
+        <view class="mini-label">公开使用状态</view>
+        <view class="summary">{{evidenceSummaryView.platformText}}</view>
+      </view>
+      <view wx:if="{{evidenceSummaryView.blockedReasonText}}" class="evidence-block warning-block">
+        <view class="mini-label">使用限制</view>
+        <view class="summary">{{evidenceSummaryView.blockedReasonText}}</view>
+      </view>
+    </view>
+    <view class="safe-row">
+      <view wx:for="{{evidenceSummaryView.safetyItems}}" wx:key="*this" class="safe-chip">{{item}}</view>
+    </view>
+  </view>
+
   <scroll-view class="tabs" scroll-x enable-flex>
     <view class="tabs-inner">
       <view
@@ -48,6 +93,7 @@
   </scroll-view>
 
   <view class="material-list">
+    <view class="section-title">示例推荐素材</view>
     <view wx:for="{{materials}}" wx:key="materialId" class="material-card">
       <view class="material-head">
         <view>
@@ -78,7 +124,7 @@
         <view wx:for="{{item.tags}}" wx:key="*this" class="tag">{{item}}</view>
       </view>
       <view class="meta-row">
-        <view>来源：本地 mock</view>
+        <view>来源：示例素材</view>
         <view>业主可见：{{item.ownerVisible ? '是' : '否'}}</view>
       </view>
       <button class="secondary-btn" data-id="{{item.materialId}}" bindtap="mockSendMaterial">mock 发送给客户</button>
