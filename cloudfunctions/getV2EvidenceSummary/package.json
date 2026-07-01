@@ -1,0 +1,9 @@
+{
+  "name": "getV2EvidenceSummary",
+  "version": "1.0.0",
+  "description": "V2 真实工地证据摘要只读接口",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
