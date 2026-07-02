@@ -10,6 +10,12 @@ const {
 } = require('../../utils/pipelineStatus')
 const { mapCustomerListToPipelineCards } = require('../../utils/v1ReadonlyAdapters')
 
+const PIPELINE_FEEDBACK_QUESTIONS = [
+  '1. 你能一眼看懂今天应该重点跟进谁吗？',
+  '2. 当前客户阶段和跟进建议是否清楚？',
+  '3. 哪个信息最能帮助你判断成交机会？'
+]
+
 Page({
   data: {
     stageTabs: [],
@@ -27,7 +33,14 @@ Page({
     loading: true,
     dataSourceLabel: '示例内容',
     dataSourceClass: 'mock',
-    dataSourceHint: '正在只读加载客户资料'
+    dataSourceHint: '正在只读加载客户资料',
+    feedbackQuestions: PIPELINE_FEEDBACK_QUESTIONS,
+    followupTips: [
+      '优先看高意向客户',
+      '先确认客户顾虑',
+      '再准备信任证据',
+      '最后推进下一步动作'
+    ]
   },
 
   onLoad() {
@@ -43,6 +56,9 @@ Page({
       'V2 试验功能，只读资料',
       '仅读取客户列表',
       '仅用于内部成交跟进',
+      '不调用真实 AI',
+      '不创建真实工地',
+      '不自动发布内容',
       '不修改现有客户数据',
       '不影响 V1',
       '不部署，不上传体验版'
@@ -148,5 +164,21 @@ Page({
 
   toggleGuards() {
     this.setData({ showGuards: !this.data.showGuards })
+  },
+
+  copyFeedbackQuestions() {
+    wx.setClipboardData({
+      data: [
+        '本轮体验反馈',
+        '看完成交跟进后，请老板重点反馈：是否看得懂、哪个客户最值得跟、下一步动作是否清楚。',
+        ...PIPELINE_FEEDBACK_QUESTIONS
+      ].join('\n'),
+      success: () => {
+        wx.showToast({
+          title: '已复制反馈问题',
+          icon: 'none'
+        })
+      }
+    })
   }
 })

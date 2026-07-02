@@ -47,6 +47,7 @@
   <view class="card">
     <view class="section-title">销售助手建议</view>
     <view class="mock-note">当前为示例建议，不调用真实 AI。</view>
+    <view class="followup-note">下一步跟进建议仅供内部参考，请人工判断后使用。</view>
     <view class="assistant-grid">
       <view class="assistant-row">
         <view class="assistant-label">客户当前顾虑</view>
@@ -70,6 +71,19 @@
       <button class="primary-btn" bindtap="goAssistant">打开 AI 话术</button>
       <button class="secondary-btn" bindtap="goMaterials">推荐素材</button>
     </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">成交跟进复盘</view>
+    <view class="feedback-desc">进入客户详情后，先确认顾虑、下一步动作和需要补充的信任材料。</view>
+    <view class="feedback-question" wx:for="{{feedbackQuestions}}" wx:key="*this">{{item}}</view>
+    <view class="tip-list">
+      <view class="tip-item" wx:for="{{followupReviewTips}}" wx:key="*this">
+        <view class="tip-dot"></view>
+        <view>{{item}}</view>
+      </view>
+    </view>
+    <button class="secondary-btn bottom-btn" bindtap="copyCustomerFeedbackQuestions">复制客户反馈问题</button>
   </view>
 
   <view class="card">

@@ -4,6 +4,13 @@ const { generateSuggestion } = require('../../utils/aiMockEngine')
 const { getMaterialsByIds } = require('../../utils/materialMapper')
 const { mapCustomerToDetail } = require('../../utils/v1ReadonlyAdapters')
 
+const CUSTOMER_FEEDBACK_QUESTIONS = [
+  '1. 这个客户当前最大的顾虑是什么？',
+  '2. 下一步应该约沟通、补资料，还是推进签约？',
+  '3. 需要给客户看哪些工地证据或案例？',
+  '4. 当前建议有没有误导或看不懂的地方？'
+]
+
 function normalizeCustomerId(value) {
   return String(value || '').trim()
 }
@@ -61,7 +68,14 @@ Page({
     dataSourceClass: 'mock',
     dataSourceHint: '正在只读加载客户资料',
     guards: [],
-    showGuards: false
+    showGuards: false,
+    feedbackQuestions: CUSTOMER_FEEDBACK_QUESTIONS,
+    followupReviewTips: [
+      '先确认客户顾虑',
+      '再判断下一步动作',
+      '补充信任材料后再推进',
+      '请人工判断后使用'
+    ]
   },
   onLoad(options = {}) {
     wx.setNavigationBarTitle({ title: '客户成交详情' })
@@ -125,14 +139,33 @@ Page({
     return [
       'V2 试验功能，只读资料',
       '仅读取客户资料',
+      '仅用于内部成交跟进',
       '不修改客户数据',
       '不创建跟进记录',
       '不调用真实 AI',
+      '不创建真实工地',
+      '不自动发布内容',
       '不影响 V1'
     ]
   },
   toggleGuards() {
     this.setData({ showGuards: !this.data.showGuards })
+  },
+  copyCustomerFeedbackQuestions() {
+    const customerName = this.data.customer && this.data.customer.name ? this.data.customer.name : '当前客户'
+    wx.setClipboardData({
+      data: [
+        `成交跟进复盘：${customerName}`,
+        '进入客户详情后，先确认顾虑、下一步动作和需要补充的信任材料。',
+        ...CUSTOMER_FEEDBACK_QUESTIONS
+      ].join('\n'),
+      success: () => {
+        wx.showToast({
+          title: '已复制反馈问题',
+          icon: 'none'
+        })
+      }
+    })
   },
   goAssistant() {
     const customerId = getCustomerIdFromContext(this.data.customer, this.data)

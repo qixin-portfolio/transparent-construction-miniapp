@@ -46,6 +46,24 @@
   </scroll-view>
 
   <view class="section-title">成交作战队列</view>
+
+  <view class="feedback-card">
+    <view class="section-title inline">本轮体验反馈</view>
+    <view class="feedback-desc">看完成交跟进后，请老板重点反馈：是否看得懂、哪个客户最值得跟、下一步动作是否清楚。</view>
+    <view class="feedback-question" wx:for="{{feedbackQuestions}}" wx:key="*this">{{item}}</view>
+    <button class="copy-btn" bindtap="copyFeedbackQuestions">复制反馈问题</button>
+  </view>
+
+  <view class="followup-card">
+    <view class="section-title inline">销售跟进提示</view>
+    <view class="tip-list">
+      <view class="tip-item" wx:for="{{followupTips}}" wx:key="*this">
+        <view class="tip-dot"></view>
+        <view>{{item}}</view>
+      </view>
+    </view>
+  </view>
+
   <view class="customer-list">
     <view wx:for="{{visibleCustomers}}" wx:key="customerId" class="customer-card">
       <view class="customer-head">
