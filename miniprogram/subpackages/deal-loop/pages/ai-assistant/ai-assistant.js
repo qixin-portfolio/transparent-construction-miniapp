@@ -4,9 +4,33 @@ const { getCustomerIdentity, mapCustomerToDetail } = require('../../utils/v1Read
 
 const READ_FAILED_MESSAGE = '客户读取失败，请返回客户列表重新打开'
 const CONTEXT_ERROR_MESSAGE = '客户上下文异常，请返回重新打开'
+const STAGE_DISPLAY_LABELS = {
+  quoted: '已报价',
+  signed: '已签约',
+  visited: '已到店',
+  new: '新线索',
+  new_lead: '新线索',
+  highRisk: '高风险',
+  high_risk: '高风险',
+  pending: '待跟进',
+  unknown: '当前阶段',
+  blocked: '当前阶段'
+}
 
 function normalizeCustomerId(value) {
   return String(value || '').trim()
+}
+
+function getStageDisplayLabel(value) {
+  const key = String(value || '').trim()
+  return STAGE_DISPLAY_LABELS[key] || key || '当前阶段'
+}
+
+function buildSuggestionView(suggestion) {
+  if (!suggestion || typeof suggestion !== 'object') return suggestion
+  return Object.assign({}, suggestion, {
+    triggerStageLabel: getStageDisplayLabel(suggestion.triggerStage)
+  })
 }
 
 function makeContextData(customerId, customer, status, errorMessage = '') {
@@ -46,7 +70,8 @@ function makeBlockedSuggestion(message) {
     riskNotes: [message],
     generatedBy: 'context_guard',
     createdAt: '2026-06-30T00:00:00+08:00',
-    materials: []
+    materials: [],
+    triggerStageLabel: '当前阶段'
   }
 }
 
@@ -77,7 +102,7 @@ function buildMockSuggestion(customer, customerId, hint) {
     customers: mapped ? [mapped] : [],
     selectedIndex: 0,
     customer: mapped,
-    suggestion: generateSuggestion(mapped || customer),
+    suggestion: buildSuggestionView(generateSuggestion(mapped || customer)),
     dataSourceLabel,
     dataSourceClass: 'mock',
     dataSourceHint: hint || '当前展示本地示例建议，仅供内部参考。',
@@ -159,7 +184,7 @@ Page({
           })
           return
         }
-        const suggestion = generateSuggestion(mapped)
+        const suggestion = buildSuggestionView(generateSuggestion(mapped))
         this.setData({
           customers: [mapped],
           selectedIndex: 0,
@@ -217,7 +242,7 @@ Page({
     }
     this.setData({
       customer: mapped,
-      suggestion: generateSuggestion(mapped || customer),
+      suggestion: buildSuggestionView(generateSuggestion(mapped || customer)),
       ...makeContextData(customerId, mapped, this.data.dataSourceLabel)
     })
   },

@@ -28,7 +28,7 @@
   <view class="card">
     <view class="section-title">客户顾虑</view>
     <view class="concern">{{suggestion.customerConcern}}</view>
-    <view class="muted">触发阶段：{{suggestion.triggerStage}} ｜ 建议来源：客户阶段与当前顾虑</view>
+    <view class="muted">触发阶段：{{suggestion.triggerStageLabel}} ｜ 建议来源：客户阶段与当前顾虑</view>
   </view>
 
   <view class="card">
