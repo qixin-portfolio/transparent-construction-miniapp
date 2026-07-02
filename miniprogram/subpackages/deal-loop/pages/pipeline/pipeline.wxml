@@ -93,6 +93,21 @@
         <view class="risk-pill {{item.riskClass}}">{{item.riskLevel}}</view>
         <view class="risk-reason">{{item.primaryRiskReason}}</view>
       </view>
+      <view class="sales-action-card">
+        <view class="sales-action-head">
+          <view class="sales-action-title">下一步动作</view>
+          <view class="sales-action-tag">内部参考</view>
+        </view>
+        <view class="sales-action-main">{{item.salesNextAction.action}}</view>
+        <view class="sales-action-row">
+          <text>跟进重点</text>
+          <text>{{item.salesNextAction.focus}}</text>
+        </view>
+        <view class="sales-action-row">
+          <text>提示</text>
+          <text>{{item.salesNextAction.hint}}</text>
+        </view>
+      </view>
       <view class="card-actions">
         <button class="mock-btn" data-id="{{item.customerId}}" bindtap="goCustomerDetail">看客户</button>
         <button class="mock-btn primary" data-id="{{item.customerId}}" bindtap="goAssistant">AI 话术</button>

@@ -11,6 +11,42 @@ const CUSTOMER_FEEDBACK_QUESTIONS = [
   '4. 当前建议有没有误导或看不懂的地方？'
 ]
 
+function makeNextActionCard(customer) {
+  const stage = customer && customer.pipelineStage
+  const riskLevel = customer && customer.riskLevel
+  const concern = (customer && customer.concern) || '客户顾虑待确认'
+  if (stage === 'signed') {
+    return {
+      judgement: '客户已成交，下一步重点是核对开工前资料。',
+      actions: ['核对合同、地址和开工时间', '整理工地创建草案，等待人工确认', '提醒团队不要重复录入关键信息'],
+      talk: '您好，我们先把合同信息、开工时间和房屋资料再核对一遍。我会先整理一份工地创建草案，确认无误后再进入下一步。',
+      note: '内部参考，不创建真实工地'
+    }
+  }
+  if (riskLevel === '高风险' || stage === 'hot_follow') {
+    return {
+      judgement: `客户当前顾虑是“${concern}”，需要先降低疑虑再推进。`,
+      actions: ['先确认客户最担心的问题', '准备售后、工地管理或施工证据', '沟通后再判断是否推进签约'],
+      talk: '您好，我这边根据您目前关注的点，先帮您整理了几个关键问题：施工过程怎么看、材料怎么确认、后期有没有保障。我们可以先把这些讲清楚，再决定下一步方案。',
+      note: '内部参考，请人工判断后使用'
+    }
+  }
+  if (stage === 'quoted' || stage === 'proposal') {
+    return {
+      judgement: '客户已进入方案或报价沟通，重点是解释差异和补充信任证据。',
+      actions: ['24 小时内回访报价反馈', '说明方案差异和材料边界', '补充案例或工地证据'],
+      talk: '您好，方案和报价您可以先重点看材料、施工项和后期保障这几块。我这边也可以把相近案例和工地证据整理给您，方便您对比判断。',
+      note: '只读客户资料，不写入跟进记录'
+    }
+  }
+  return {
+    judgement: '客户仍在需求确认阶段，先把预算、房屋信息和下一次沟通时间问清楚。',
+    actions: ['补齐需求、预算和房屋信息', '邀约到店、量房或方案沟通', '提前准备同风格案例'],
+    talk: '您好，我先把您的装修需求、预算范围和房屋情况整理清楚，再给您安排下一步沟通。这样方案会更贴近您家里的实际情况。',
+    note: '示例建议，不调用真实 AI'
+  }
+}
+
 function normalizeCustomerId(value) {
   return String(value || '').trim()
 }
@@ -49,6 +85,7 @@ function buildMockDetail(id) {
     followRecords: Array.isArray(followRecords) ? followRecords : [],
     suggestion,
     materials: getMaterialsByIds(suggestion.recommendedMaterialIds),
+    nextActionCard: makeNextActionCard(mapped),
     dataSourceLabel: '示例内容',
     dataSourceClass: 'mock',
     dataSourceHint: '当前展示本地示例内容，仅供内部参考。'
@@ -61,6 +98,7 @@ Page({
     followRecords: [],
     suggestion: null,
     materials: [],
+    nextActionCard: null,
     loading: true,
     customerId: '',
     id: '',
@@ -120,6 +158,7 @@ Page({
           followRecords: Array.isArray(followRecords) ? followRecords : [],
           suggestion,
           materials,
+          nextActionCard: makeNextActionCard(mapped),
           dataSourceLabel: '只读客户资料',
           dataSourceClass: 'real',
           dataSourceHint: '仅用于内部成交跟进，未修改任何数据。',
@@ -162,6 +201,22 @@ Page({
       success: () => {
         wx.showToast({
           title: '已复制反馈问题',
+          icon: 'none'
+        })
+      }
+    })
+  },
+  copyNextActionTalk() {
+    const card = this.data.nextActionCard || {}
+    const customerName = this.data.customer && this.data.customer.name ? this.data.customer.name : '当前客户'
+    wx.setClipboardData({
+      data: [
+        `跟进话术：${customerName}`,
+        card.talk || '请先确认客户顾虑，再人工判断下一步跟进方式。'
+      ].join('\n'),
+      success: () => {
+        wx.showToast({
+          title: '已复制跟进话术',
           icon: 'none'
         })
       }

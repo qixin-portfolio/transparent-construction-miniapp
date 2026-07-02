@@ -16,6 +16,44 @@ const PIPELINE_FEEDBACK_QUESTIONS = [
   '3. 哪个信息最能帮助你判断成交机会？'
 ]
 
+function makeSalesNextAction(customer) {
+  const stage = customer && customer.pipelineStage
+  const riskLevel = customer && customer.riskLevel
+  if (stage === 'signed') {
+    return {
+      action: '核对签约信息，整理工地创建草案',
+      focus: '确认合同、地址和开工信息是否完整',
+      hint: '只做内部参考，不创建真实工地'
+    }
+  }
+  if (riskLevel === '高风险' || stage === 'hot_follow') {
+    return {
+      action: '先确认客户当前最大顾虑',
+      focus: '把价格、售后或施工疑问逐条讲清楚',
+      hint: '风险较高，请人工判断后推进'
+    }
+  }
+  if (stage === 'quoted' || stage === 'proposal') {
+    return {
+      action: '报价后 24 小时内回访',
+      focus: '解释方案差异，再补充案例或工地证据',
+      hint: '重点看客户是否还在比价'
+    }
+  }
+  if (stage === 'measured' || stage === 'contacted') {
+    return {
+      action: '邀约客户确认方案',
+      focus: '补齐需求、预算和房屋信息',
+      hint: '先把下一次沟通时间约清楚'
+    }
+  }
+  return {
+    action: '准备信任证据后再跟进',
+    focus: '先解释透明工地和施工留痕',
+    hint: '内部参考，不写入跟进记录'
+  }
+}
+
 Page({
   data: {
     stageTabs: [],
@@ -72,7 +110,8 @@ Page({
         pipelineStage,
         pipelineLabel: getPipelineLabel(pipelineStage),
         riskClass: getRiskClass(customer.riskLevel),
-        primaryRiskReason: (customer.riskReasons || [])[0] || '暂无风险备注'
+        primaryRiskReason: (customer.riskReasons || [])[0] || '暂无风险备注',
+        salesNextAction: makeSalesNextAction(Object.assign({}, customer, { pipelineStage }))
       })
     })
   },

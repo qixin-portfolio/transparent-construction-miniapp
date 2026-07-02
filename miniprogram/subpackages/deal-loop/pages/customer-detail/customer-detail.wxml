@@ -74,6 +74,27 @@
   </view>
 
   <view class="card">
+    <view class="section-title">下一步跟进动作</view>
+    <view class="followup-note">内部参考，请人工判断后使用；不写入跟进记录。</view>
+    <view class="action-judgement">
+      <view class="assistant-label">当前判断</view>
+      <view class="assistant-value">{{nextActionCard.judgement}}</view>
+    </view>
+    <view class="action-list">
+      <view class="action-item" wx:for="{{nextActionCard.actions}}" wx:key="*this">
+        <view class="tip-dot"></view>
+        <view>{{item}}</view>
+      </view>
+    </view>
+    <view class="next-box">
+      <view class="next-label">可复制跟进话术</view>
+      <view class="next-text">{{nextActionCard.talk}}</view>
+    </view>
+    <view class="risk-note">{{nextActionCard.note}}</view>
+    <button class="secondary-btn bottom-btn" bindtap="copyNextActionTalk">复制跟进话术</button>
+  </view>
+
+  <view class="card">
     <view class="section-title">成交跟进复盘</view>
     <view class="feedback-desc">进入客户详情后，先确认顾虑、下一步动作和需要补充的信任材料。</view>
     <view class="feedback-question" wx:for="{{feedbackQuestions}}" wx:key="*this">{{item}}</view>
