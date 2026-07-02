@@ -12,7 +12,7 @@ const TENANT_SLOGAN = {
   secondary: '每个节点都留痕'
 }
 
-const ENABLE_V2_DEAL_LOOP_ENTRY = false
+const ENABLE_V2_DEAL_LOOP_ENTRY = true
 
 Page({
   data: {
