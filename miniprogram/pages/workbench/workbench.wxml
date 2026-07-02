@@ -352,12 +352,16 @@
       <view class="deal-loop-entry-head">
         <view class="deal-loop-entry-title-wrap">
           <view class="deal-loop-entry-title">成交跟进</view>
-          <view class="deal-loop-entry-tag">试验功能</view>
+          <view class="deal-loop-entry-tags">
+            <view class="deal-loop-entry-tag primary">V2 试验功能</view>
+            <view class="deal-loop-entry-tag">仅老板内部体验</view>
+            <view class="deal-loop-entry-tag muted">只读客户资料</view>
+          </view>
         </view>
         <view class="deal-loop-entry-arrow">→</view>
       </view>
-      <view class="deal-loop-entry-subtitle">看客户阶段、AI 话术和推荐素材</view>
-      <view class="deal-loop-entry-safe">V2 试验功能，不影响现有客户、工地和日报数据。</view>
+      <view class="deal-loop-entry-subtitle">用于内部查看客户成交跟进建议，不影响现有客户、工地和日报数据。</view>
+      <view class="deal-loop-entry-safe">当前为试验功能，不创建真实工地，不调用真实 AI，不自动发布内容。</view>
     </view>
 
     <view class="workflow-card">
