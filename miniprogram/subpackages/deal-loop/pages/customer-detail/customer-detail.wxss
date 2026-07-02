@@ -34,6 +34,17 @@
   font-weight: 800;
 }
 
+.safe-note {
+  margin-top: 16rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 12rpx;
+  background: #EAF6F0;
+  color: #1B7A56;
+  font-size: 23rpx;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
 .desc,
 .muted,
 .timeline-text,

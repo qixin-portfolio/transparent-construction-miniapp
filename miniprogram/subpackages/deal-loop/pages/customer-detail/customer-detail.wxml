@@ -5,6 +5,7 @@
       <view class="stage-pill {{riskClass}}">{{pipelineLabel}} ｜ {{riskLevel}}</view>
     </view>
     <view class="desc">{{community}} · {{area}} · {{stylePreference}}</view>
+    <view class="safe-note">以下内容为内部参考，请结合实际情况人工判断；复制话术仅复制到剪贴板，不会自动发送。</view>
     <view class="source-row {{dataSourceClass}}">
       <view class="source-dot"></view>
       <view>
@@ -68,14 +69,14 @@
     </view>
     <view class="risk-note" wx:for="{{suggestion.riskNotes}}" wx:key="*this">{{item}}</view>
     <view class="button-row">
-      <button class="primary-btn" bindtap="goAssistant">打开 AI 话术</button>
+      <button class="primary-btn" bindtap="goAssistant">打开话术建议</button>
       <button class="secondary-btn" bindtap="goMaterials">推荐素材</button>
     </view>
   </view>
 
   <view class="card">
     <view class="section-title">下一步跟进动作</view>
-    <view class="followup-note">内部参考，请人工判断后使用；不写入跟进记录。</view>
+    <view class="followup-note">内部参考，请人工判断后使用；不写入跟进记录，不调用真实 AI。</view>
     <view class="action-judgement">
       <view class="assistant-label">当前判断</view>
       <view class="assistant-value">{{nextActionCard.judgement}}</view>

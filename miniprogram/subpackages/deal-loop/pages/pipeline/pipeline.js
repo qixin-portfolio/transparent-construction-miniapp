@@ -19,38 +19,46 @@ const PIPELINE_FEEDBACK_QUESTIONS = [
 function makeSalesNextAction(customer) {
   const stage = customer && customer.pipelineStage
   const riskLevel = customer && customer.riskLevel
+  const riskReason = (customer && customer.riskReasons && customer.riskReasons[0]) || ''
   if (stage === 'signed') {
     return {
-      action: '核对签约信息，整理工地创建草案',
-      focus: '确认合同、地址和开工信息是否完整',
-      hint: '只做内部参考，不创建真实工地'
+      action: '整理工地创建草案',
+      focus: '业主信息、房屋信息、施工阶段',
+      hint: '只是草案，请人工确认，不创建真实工地'
     }
   }
-  if (riskLevel === '高风险' || stage === 'hot_follow') {
+  if (riskLevel === '高风险') {
     return {
-      action: '先确认客户当前最大顾虑',
-      focus: '把价格、售后或施工疑问逐条讲清楚',
-      hint: '风险较高，请人工判断后推进'
+      action: '先解释透明工地和施工留痕',
+      focus: riskReason || '施工过程、材料验收、售后保障',
+      hint: '先解决信任问题，再推动下一步'
+    }
+  }
+  if (stage === 'hot_follow') {
+    return {
+      action: '准备信任证据后跟进',
+      focus: '案例、工地过程、材料说明',
+      hint: '客户已经有兴趣，重点是降低顾虑'
     }
   }
   if (stage === 'quoted' || stage === 'proposal') {
     return {
       action: '报价后 24 小时内回访',
-      focus: '解释方案差异，再补充案例或工地证据',
-      hint: '重点看客户是否还在比价'
+      focus: '价格顾虑、方案取舍、付款节奏',
+      hint: '不要只问考虑得怎么样，要帮客户拆顾虑'
     }
   }
   if (stage === 'measured' || stage === 'contacted') {
     return {
       action: '邀约客户确认方案',
-      focus: '补齐需求、预算和房屋信息',
-      hint: '先把下一次沟通时间约清楚'
+      focus: '方案方向、预算范围、下一次沟通时间',
+      hint: '先把客户期待讲清楚，再进入报价'
     }
   }
   return {
-    action: '准备信任证据后再跟进',
-    focus: '先解释透明工地和施工留痕',
-    hint: '内部参考，不写入跟进记录'
+    action: '先补齐需求信息',
+    focus: '房屋情况、预算范围、装修时间',
+    hint: '不要急着报价，先确认真实需求'
   }
 }
 
@@ -77,7 +85,9 @@ Page({
       '优先看高意向客户',
       '先确认客户顾虑',
       '再准备信任证据',
-      '最后推进下一步动作'
+      '最后推进下一步动作',
+      '内部参考，人工判断',
+      '不写入跟进记录'
     ]
   },
 

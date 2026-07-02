@@ -5,6 +5,7 @@
       <view class="kicker">V2 试验功能 / 只读客户资料 / 不影响现有数据</view>
     </view>
     <view class="desc">看清客户阶段、下一步动作和可发送的信任素材</view>
+    <view class="safe-note">以下内容为内部参考，请结合实际情况人工判断；当前不写入跟进记录，不调用真实 AI。</view>
     <view class="source-row {{dataSourceClass}}">
       <view class="source-dot"></view>
       <view>
@@ -95,7 +96,7 @@
       </view>
       <view class="sales-action-card">
         <view class="sales-action-head">
-          <view class="sales-action-title">下一步动作</view>
+        <view class="sales-action-title">下一步动作</view>
           <view class="sales-action-tag">内部参考</view>
         </view>
         <view class="sales-action-main">{{item.salesNextAction.action}}</view>
@@ -110,7 +111,7 @@
       </view>
       <view class="card-actions">
         <button class="mock-btn" data-id="{{item.customerId}}" bindtap="goCustomerDetail">看客户</button>
-        <button class="mock-btn primary" data-id="{{item.customerId}}" bindtap="goAssistant">AI 话术</button>
+        <button class="mock-btn primary" data-id="{{item.customerId}}" bindtap="goAssistant">话术建议</button>
         <button class="mock-btn" data-id="{{item.customerId}}" bindtap="goMaterials">推荐素材</button>
       </view>
     </view>
