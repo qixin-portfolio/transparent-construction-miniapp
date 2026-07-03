@@ -411,27 +411,6 @@
   background: #FAFBFC;
 }
 
-.voice-provider-warning {
-  margin-bottom: 16rpx;
-  padding: 18rpx;
-  border-radius: 18rpx;
-  background: #FFF8E1;
-}
-
-.voice-provider-title {
-  color: #8A5A00;
-  font-size: 24rpx;
-  line-height: 1.35;
-  font-weight: 900;
-}
-
-.voice-provider-desc {
-  margin-top: 6rpx;
-  color: #8A5A00;
-  font-size: 22rpx;
-  line-height: 1.45;
-}
-
 .manual-note-card {
   margin-top: 14rpx;
   padding: 18rpx;

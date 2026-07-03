@@ -17,6 +17,19 @@
 
 ---
 
+### 2026-07-03 — 上传日报恢复语音输入主流程并保留手写补充
+
+- 来源：用户明确要求保留原来的“语音输入 AI 整理”，只补一个打字功能
+- 分支：`codex/init-ai-collaboration`
+- PR：未创建，当前仓库没有配置 Git remote
+- 本次做了什么：移除上传日报页中过重的语音插件诊断提示；恢复“AI 识别并整理”主文案；保留识别失败时的手写补充输入框；保留手写内容可绕过无识别文字 warning 的兜底逻辑
+- 修改文件：`miniprogram/subpackages/internal/pages/upload-log/upload-log.js`、`miniprogram/subpackages/internal/pages/upload-log/upload-log.wxml`、`miniprogram/subpackages/internal/pages/upload-log/upload-log.wxss`
+- 检查结果：`node --check miniprogram/subpackages/internal/pages/upload-log/upload-log.js` 通过；`git diff --check` 通过；确认 `ENABLE_V2_DEAL_LOOP_ENTRY = false`
+- 风险与未决问题：`WechatSI` 真机/开发者工具识别稳定性仍取决于微信插件能力；本阶段只保证识别失败时能打字继续 AI 整理
+- 下一步建议：重新编译后按“录音 -> 失败则手写一句 -> AI 识别并整理”验证回填
+
+---
+
 ### 2026-07-03 — 上传日报手写兜底仍被语音 warning 卡住修复
 
 - 来源：用户截图反馈已手写“今天开工交底”后仍提示语音未识别，点击流程仍不通

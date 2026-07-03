@@ -29,8 +29,6 @@ Page({
     voiceTranscript: '',
     manualNoteFocus: false,
     fallbackManualNoteFocus: false,
-    voiceRecognitionReady: false,
-    voiceRecognitionProblem: '',
     ownerSummary: '',
     reviewFocus: '',
     aiDraft: null,
@@ -83,39 +81,14 @@ Page({
       if (plugin && plugin.getRecordRecognitionManager) {
         this.recognitionManager = plugin.getRecordRecognitionManager()
         this.recorderMode = 'wechat_si'
-        this.setData({
-          voiceRecognitionReady: true,
-          voiceRecognitionProblem: ''
-        })
         this.bindRecognitionManager()
-      } else {
-        this.setVoiceRecognitionProblem('没有拿到微信同声传译识别管理器，当前只能普通录音后手写补充。')
       }
     } catch (error) {
       console.warn('[upload-log] WechatSI plugin unavailable', error)
       this.recognitionManager = null
-      this.setVoiceRecognitionProblem(`微信同声传译插件不可用：${this.formatVoiceError(error)}`)
     }
 
     this.initNativeRecorder()
-  },
-
-  formatVoiceError(error) {
-    if (!error) return '未返回错误原因'
-    if (error.errMsg) return error.errMsg
-    if (error.message) return error.message
-    try {
-      return JSON.stringify(error)
-    } catch (_) {
-      return String(error)
-    }
-  },
-
-  setVoiceRecognitionProblem(message) {
-    this.setData({
-      voiceRecognitionReady: false,
-      voiceRecognitionProblem: message || '语音识别暂不可用，当前只能普通录音后手写补充。'
-    })
   },
 
   initNativeRecorder() {
@@ -153,9 +126,7 @@ Page({
       this.recognizingText = ''
       this.setData({
         recording: true,
-        aiWarning: '正在识别语音，讲完后点“停止录制”。',
-        voiceRecognitionReady: true,
-        voiceRecognitionProblem: ''
+        aiWarning: '正在识别语音，讲完后点“停止录制”。'
       })
     }
 
@@ -189,7 +160,6 @@ Page({
 
     manager.onError = (error) => {
       console.warn('[upload-log] WechatSI recognition failed', error)
-      this.setVoiceRecognitionProblem(`微信同声传译识别失败：${this.formatVoiceError(error)}`)
       const canFallbackToNative = (this.data.recording || this.pendingRecognitionStart) && this.recorderManager
       this.pendingRecognitionStart = false
       this.recognizingText = ''
@@ -466,7 +436,7 @@ Page({
     const hasVoice = !!(this.data.voiceTempPath || this.data.voiceFileID)
     if (hasVoice && !this.data.voiceTranscript && !manualText) {
       this.setData({
-        aiWarning: '这段语音已保存，但没有拿到识别文字；请先手写补一句现场情况，再点 AI 整理日报。'
+        aiWarning: '这段语音已保存，但没有拿到识别文字；请先手写补一句现场情况，再点 AI 识别并整理。'
       })
       this.focusManualNote({ silent: true })
       showError('请先补一句现场情况')
@@ -584,7 +554,6 @@ Page({
             })
           } catch (error) {
             console.warn('[upload-log] WechatSI recognition start failed', error)
-            this.setVoiceRecognitionProblem(`微信同声传译启动失败：${this.formatVoiceError(error)}`)
             this.pendingRecognitionStart = false
             this.recorderMode = 'native'
             this.setData({
