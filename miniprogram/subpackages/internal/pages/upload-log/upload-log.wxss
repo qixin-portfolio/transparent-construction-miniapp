@@ -411,6 +411,38 @@
   background: #FAFBFC;
 }
 
+.manual-note-card {
+  margin-top: 14rpx;
+  padding: 18rpx;
+  border-radius: 18rpx;
+  background: #FFF8E1;
+}
+
+.manual-note-title {
+  color: #8A5A00;
+  font-size: 24rpx;
+  line-height: 1.35;
+  font-weight: 900;
+}
+
+.manual-note-desc {
+  margin-top: 6rpx;
+  color: #8A5A00;
+  font-size: 22rpx;
+  line-height: 1.45;
+}
+
+.manual-note-btn {
+  margin-top: 14rpx;
+  height: 64rpx;
+  border-radius: 16rpx;
+  background: #FFFFFF;
+  color: #1B7A56;
+  font-size: 24rpx;
+  line-height: 64rpx;
+  font-weight: 900;
+}
+
 .quick-actions,
 .submit-actions {
   display: grid;

@@ -60,7 +60,20 @@
       <view class="quick-step">2 拍照</view>
       <view class="quick-step">3 AI 回填</view>
     </view>
-    <textarea class="textarea quick-note" placeholder="可选：补一句现场情况，例如：水电开槽完成，厨房插座位置需要和业主确认。" value="{{quickNote}}" bindinput="onQuickNoteInput"></textarea>
+    <textarea
+      class="textarea quick-note"
+      placeholder="可选：补一句现场情况，例如：水电开槽完成，厨房插座位置需要和业主确认。"
+      value="{{quickNote}}"
+      focus="{{manualNoteFocus}}"
+      cursor-spacing="80"
+      show-confirm-bar="{{false}}"
+      bindinput="onQuickNoteInput"
+    ></textarea>
+    <view wx:if="{{voiceTempPath && !voiceTranscript}}" class="manual-note-card">
+      <view class="manual-note-title">语音已保存，但没有识别出文字</view>
+      <view class="manual-note-desc">先手写一句现场情况，再点 AI 识别并整理。这样不会卡在语音识别失败上。</view>
+      <button class="manual-note-btn" bindtap="focusManualNote">手写补充</button>
+    </view>
     <view class="quick-actions">
       <button class="button-secondary" disabled="{{recording || aiGenerating || voiceUploading}}" bindtap="startRecording">{{voiceTempPath ? '重新录制' : '开始录制'}}</button>
       <button class="button-secondary" disabled="{{!recording || aiGenerating || voiceUploading}}" bindtap="stopRecording">停止录制</button>

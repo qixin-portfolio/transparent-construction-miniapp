@@ -27,6 +27,7 @@ Page({
     aiGenerating: false,
     aiWarning: '',
     voiceTranscript: '',
+    manualNoteFocus: false,
     ownerSummary: '',
     reviewFocus: '',
     aiDraft: null,
@@ -156,6 +157,7 @@ Page({
     }
 
     manager.onError = (error) => {
+      console.warn('[upload-log] WechatSI recognition failed', error)
       const canFallbackToNative = (this.data.recording || this.pendingRecognitionStart) && this.recorderManager
       this.pendingRecognitionStart = false
       this.recognizingText = ''
@@ -349,8 +351,23 @@ Page({
   },
 
   onQuickNoteInput(event) {
-    this.setData({ quickNote: event.detail.value || '' })
+    this.setData({
+      quickNote: event.detail.value || '',
+      manualNoteFocus: false
+    })
     this.saveDraft({ silent: true })
+  },
+
+  focusManualNote(options = {}) {
+    this.setData({ manualNoteFocus: false }, () => {
+      this.setData({ manualNoteFocus: true })
+    })
+    if (!options.silent) {
+      wx.showToast({
+        title: '请在输入框补一句现场情况',
+        icon: 'none'
+      })
+    }
   },
 
   saveDraft(options = {}) {
@@ -379,6 +396,7 @@ Page({
       aiGenerating: false,
       aiWarning: '',
       voiceTranscript: '',
+      manualNoteFocus: false,
       ownerSummary: '',
       reviewFocus: '',
       aiDraft: null,
@@ -399,7 +417,16 @@ Page({
     const stage = this.getCurrentStage()
     if (!stage) return Promise.reject(new Error('你今天的所有工序节点已提交'))
     const note = String(this.data.quickNote || this.data.voiceTranscript || this.data.form.workContent || '').trim()
+    const manualText = String(this.data.quickNote || this.data.form.workContent || '').trim()
     const hasVoice = !!(this.data.voiceTempPath || this.data.voiceFileID)
+    if (hasVoice && !this.data.voiceTranscript && !manualText) {
+      this.setData({
+        aiWarning: '这段语音已保存，但没有拿到识别文字；请先手写补一句现场情况，再点 AI 识别并整理。'
+      })
+      this.focusManualNote({ silent: true })
+      showError('请先补一句现场情况')
+      return Promise.reject(new Error('请先补一句现场情况'))
+    }
     if (!note && !hasVoice) {
       showError('请先录音或写一句现场情况')
       return Promise.reject(new Error('请先录音或写一句现场情况'))
@@ -451,7 +478,11 @@ Page({
       })
       .catch((error) => {
         if (!options.silent) {
-          showError(error && error.message ? error.message : 'AI 整理失败')
+          const message = error && error.message ? error.message : 'AI 整理失败'
+          if (/语音|识别|现场情况|补一句/.test(message)) {
+            this.focusManualNote({ silent: true })
+          }
+          showError(message)
         }
         throw error
       })
@@ -508,6 +539,7 @@ Page({
               lang: 'zh_CN'
             })
           } catch (error) {
+            console.warn('[upload-log] WechatSI recognition start failed', error)
             this.pendingRecognitionStart = false
             this.recorderMode = 'native'
             this.setData({
