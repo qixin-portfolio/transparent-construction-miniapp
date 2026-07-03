@@ -30,6 +30,19 @@
 
 ---
 
+### 2026-07-03 — 上传日报录音权限链路与手写入口修复
+
+- 来源：用户截图反馈 `WechatSI` 仍返回 `-30001: record manager record failed`，要求彻底排查语音输入不可用问题
+- 分支：`codex/init-ai-collaboration`
+- PR：未创建，当前仓库没有配置 Git remote
+- 本次做了什么：按微信官方文档确认 `WechatSI` 语音输入配额为每小程序 250 条/分钟、3w 条/天，当前 `-30001` 官方定义为“录音接口出错”，不是配额错误；上传日报页录音前新增隐私授权、系统微信麦克风权限、小程序 `scope.record` 权限三段检查；`WechatSI` 失败后根据权限状态给出更明确提示；修复启动阶段失败时没有 `voiceTempPath` 导致手写补充卡片不出现的问题
+- 修改文件：`miniprogram/subpackages/internal/pages/upload-log/upload-log.js`、`miniprogram/subpackages/internal/pages/upload-log/upload-log.wxml`
+- 检查结果：`node --check miniprogram/subpackages/internal/pages/upload-log/upload-log.js` 通过；`miniprogram/app.json` JSON 解析通过；`git diff --check` 通过；确认 `ENABLE_V2_DEAL_LOOP_ENTRY = false`
+- 风险与未决问题：本地无法代替真机验证 iOS/微信系统麦克风权限；如果修复后仍返回 `-30001` 且权限提示均正常，问题将收敛到 WechatSI 插件录音层/真机环境/微信后台隐私声明，而不是代码额度或云函数额度
+- 下一步建议：重新编译后真机测试；如提示“微信没有系统麦克风权限”，去手机设置打开微信麦克风；如提示“小程序录音权限已被拒绝”，去小程序右上角设置打开麦克风；如仍是 `-30001`，截图页面新提示并查看开发者工具 Console
+
+---
+
 ### 2026-07-03 — 上传日报 WechatSI 语音识别链路排查与修复
 
 - 来源：用户反馈语音输入仍不能用，要求全面排查根因

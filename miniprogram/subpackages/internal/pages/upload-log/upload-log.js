@@ -27,6 +27,7 @@ Page({
     aiGenerating: false,
     aiWarning: '',
     voiceTranscript: '',
+    voiceRecognitionFailed: false,
     manualNoteFocus: false,
     fallbackManualNoteFocus: false,
     ownerSummary: '',
@@ -134,6 +135,7 @@ Page({
       this.recognizingText = ''
       this.setData({
         recording: true,
+        voiceRecognitionFailed: false,
         aiWarning: '正在识别语音，讲完后点“停止录制”。'
       })
     }
@@ -145,6 +147,7 @@ Page({
       this.setData({
         voiceTranscript: text,
         quickNote: this.data.quickNote || text,
+        voiceRecognitionFailed: false,
         aiWarning: ''
       })
       this.saveDraft({ silent: true })
@@ -161,6 +164,7 @@ Page({
         voiceUploaded: false,
         voiceTranscript: text,
         quickNote: this.data.quickNote || text,
+        voiceRecognitionFailed: !text,
         aiWarning: text ? '' : '没有识别到文字，可重录或手动补一句现场情况。'
       })
       this.saveDraft({ silent: true })
@@ -170,11 +174,14 @@ Page({
       console.warn('[upload-log] WechatSI recognition failed', error)
       this.pendingRecognitionStart = false
       this.recognizingText = ''
-      this.setData({
-        recording: false,
-        aiWarning: `语音识别失败：${this.getRecognitionErrorText(error)}。请重录，或手写补一句现场情况。`
+      this.buildRecordFailureHint(error).then((hint) => {
+        this.setData({
+          recording: false,
+          voiceRecognitionFailed: true,
+          aiWarning: hint
+        })
+        this.focusManualNote({ silent: true })
       })
-      this.focusManualNote({ silent: true })
       showError('语音识别失败，请重录或手写补充')
     }
   },
@@ -203,6 +210,7 @@ Page({
       voiceFileID: draft.voiceFileID || '',
       voiceUploaded: !!draft.voiceFileID,
       voiceTranscript: draft.voiceTranscript || '',
+      voiceRecognitionFailed: !!draft.voiceRecognitionFailed,
       ownerSummary: draft.ownerSummary || '',
       reviewFocus: draft.reviewFocus || '',
       aiWarning: draft.aiWarning || '',
@@ -319,6 +327,7 @@ Page({
       voiceDuration: this.data.voiceDuration,
       voiceFileID: this.data.voiceFileID,
       voiceTranscript: this.data.voiceTranscript,
+      voiceRecognitionFailed: this.data.voiceRecognitionFailed,
       ownerSummary: this.data.ownerSummary,
       reviewFocus: this.data.reviewFocus,
       aiWarning: this.data.aiWarning,
@@ -367,7 +376,7 @@ Page({
   },
 
   focusManualNote(options = {}) {
-    const focusFallback = !!(this.data.voiceTempPath && !this.data.voiceTranscript)
+    const focusFallback = !!((this.data.voiceTempPath && !this.data.voiceTranscript) || this.data.voiceRecognitionFailed)
     this.setData({
       manualNoteFocus: false,
       fallbackManualNoteFocus: false
@@ -410,6 +419,7 @@ Page({
       aiGenerating: false,
       aiWarning: '',
       voiceTranscript: '',
+      voiceRecognitionFailed: false,
       manualNoteFocus: false,
       fallbackManualNoteFocus: false,
       ownerSummary: '',
@@ -541,35 +551,137 @@ Page({
       }
       return
     }
-    wx.authorize({
-      scope: 'scope.record',
-      success: () => {
+    this.ensureRecordAccess()
+      .then(() => {
         if (this.recognitionManager) {
-          this.recorderMode = 'wechat_si'
-          this.pendingRecognitionStart = true
-          try {
-            this.recognitionManager.start({
-              duration: 60000,
-              lang: 'zh_CN'
-            })
-          } catch (error) {
-            console.warn('[upload-log] WechatSI recognition start failed', error)
-            this.pendingRecognitionStart = false
-            this.recorderMode = 'wechat_si'
-            this.setData({
-              recording: false,
-              aiWarning: `语音识别启动失败：${this.getRecognitionErrorText(error)}。请重录，或手写补一句现场情况。`
-            })
-            this.focusManualNote({ silent: true })
-          }
+          this.startWechatRecognition()
           return
         }
         this.recorderMode = 'native'
         this.startNativeRecording()
-      },
-      fail: () => {
-        showError('请先授权麦克风权限')
+      })
+      .catch((error) => {
+        const message = error && error.message ? error.message : '请先授权麦克风权限'
+        this.setData({
+          recording: false,
+          voiceRecognitionFailed: true,
+          aiWarning: `${message}；也可以先手写补一句现场情况，再点 AI 识别并整理。`
+        })
+        this.focusManualNote({ silent: true })
+        showError(message)
+      })
+  },
+
+  startWechatRecognition() {
+    this.recorderMode = 'wechat_si'
+    this.pendingRecognitionStart = true
+    this.setData({ voiceRecognitionFailed: false })
+    try {
+      this.recognitionManager.start({
+        duration: 60000,
+        lang: 'zh_CN'
+      })
+    } catch (error) {
+      console.warn('[upload-log] WechatSI recognition start failed', error)
+      this.pendingRecognitionStart = false
+      this.recorderMode = 'wechat_si'
+      this.setData({
+        recording: false,
+        voiceRecognitionFailed: true,
+        aiWarning: `语音识别启动失败：${this.getRecognitionErrorText(error)}。请重录，或手写补一句现场情况。`
+      })
+      this.focusManualNote({ silent: true })
+    }
+  },
+
+  ensureRecordAccess() {
+    return this.ensurePrivacyAuthorization()
+      .then(() => this.ensureSystemMicrophoneAccess())
+      .then(() => this.ensureMiniProgramRecordAccess())
+  },
+
+  ensurePrivacyAuthorization() {
+    if (!wx.getPrivacySetting || !wx.requirePrivacyAuthorize) return Promise.resolve()
+    return new Promise((resolve, reject) => {
+      wx.getPrivacySetting({
+        success: (res) => {
+          if (!res || !res.needAuthorization) {
+            resolve()
+            return
+          }
+          wx.requirePrivacyAuthorize({
+            success: resolve,
+            fail: () => reject(new Error('请先同意小程序隐私授权'))
+          })
+        },
+        fail: () => resolve()
+      })
+    })
+  },
+
+  ensureSystemMicrophoneAccess() {
+    if (!wx.getAppAuthorizeSetting) return Promise.resolve()
+    const setting = wx.getAppAuthorizeSetting()
+    if (setting && setting.microphoneAuthorized === 'denied') {
+      return Promise.reject(new Error('微信没有系统麦克风权限，请到手机设置里打开微信麦克风权限'))
+    }
+    return Promise.resolve()
+  },
+
+  ensureMiniProgramRecordAccess() {
+    return new Promise((resolve, reject) => {
+      wx.getSetting({
+        success: (res) => {
+          const authSetting = (res && res.authSetting) || {}
+          if (authSetting['scope.record'] === true) {
+            resolve()
+            return
+          }
+          if (authSetting['scope.record'] === false) {
+            reject(new Error('小程序录音权限已被拒绝，请在右上角设置中打开麦克风权限'))
+            return
+          }
+          wx.authorize({
+            scope: 'scope.record',
+            success: resolve,
+            fail: () => reject(new Error('请先授权小程序使用麦克风'))
+          })
+        },
+        fail: () => {
+          wx.authorize({
+            scope: 'scope.record',
+            success: resolve,
+            fail: () => reject(new Error('请先授权小程序使用麦克风'))
+          })
+        }
+      })
+    })
+  },
+
+  buildRecordFailureHint(error) {
+    return Promise.resolve().then(() => {
+      const base = `语音识别失败：${this.getRecognitionErrorText(error)}。`
+      const fallback = '请重录，或手写补一句现场情况。'
+      let systemSetting = null
+      if (wx.getAppAuthorizeSetting) {
+        systemSetting = wx.getAppAuthorizeSetting()
       }
+      if (systemSetting && systemSetting.microphoneAuthorized === 'denied') {
+        return `${base}微信没有系统麦克风权限，请到手机设置里打开微信麦克风权限；也可以先手写补一句现场情况。`
+      }
+      return new Promise((resolve) => {
+        wx.getSetting({
+          success: (res) => {
+            const authSetting = (res && res.authSetting) || {}
+            if (authSetting['scope.record'] === false) {
+              resolve(`${base}小程序录音权限已被拒绝，请在右上角设置中打开麦克风权限；也可以先手写补一句现场情况。`)
+              return
+            }
+            resolve(`${base}${fallback}`)
+          },
+          fail: () => resolve(`${base}${fallback}`)
+        })
+      })
     })
   },
 
@@ -604,6 +716,7 @@ Page({
       voiceFileID: '',
       voiceUploaded: false,
       voiceTranscript: '',
+      voiceRecognitionFailed: false,
       aiWarning: ''
     })
     this.saveDraft({ silent: true })
