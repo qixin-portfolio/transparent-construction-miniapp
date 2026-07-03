@@ -51,7 +51,7 @@
     <view class="ai-draft-head">
       <view>
         <view class="sub-title">语音/文字快速录入</view>
-        <view class="muted">微信语音识别转文字，AI 自动整理成可编辑日报。</view>
+        <view class="muted">支持语音识别转文字；识别不可用时可普通录音，并手动补一句现场情况。</view>
       </view>
       <view wx:if="{{draftLoaded}}" class="tag tag-info">草稿 {{draftSavedAtText}}</view>
     </view>

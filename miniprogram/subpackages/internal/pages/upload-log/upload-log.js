@@ -61,6 +61,10 @@ Page({
   },
 
   onUnload() {
+    if (this.data.recording && this.recorderMode === 'wechat_si' && this.recognitionManager) {
+      this.recognitionManager.stop()
+      return
+    }
     if (this.data.recording && this.recorderManager) {
       this.recorderManager.stop()
     }
@@ -69,18 +73,22 @@ Page({
   initRecorder() {
     this.recorderMode = 'native'
     this.recognizingText = ''
+    this.pendingRecognitionStart = false
     try {
       const plugin = requirePlugin('WechatSI')
       if (plugin && plugin.getRecordRecognitionManager) {
         this.recognitionManager = plugin.getRecordRecognitionManager()
         this.recorderMode = 'wechat_si'
         this.bindRecognitionManager()
-        return
       }
     } catch (error) {
       this.recognitionManager = null
     }
 
+    this.initNativeRecorder()
+  },
+
+  initNativeRecorder() {
     if (!wx.getRecorderManager) return
     this.recorderManager = wx.getRecorderManager()
     this.recorderManager.onStart(() => {
@@ -94,7 +102,9 @@ Page({
         voiceFileID: '',
         voiceUploaded: false,
         voiceTranscript: '',
-        aiWarning: ''
+        aiWarning: this.recorderMode === 'native'
+          ? '普通录音已保存；如需 AI 整理，请补一句现场情况。'
+          : ''
       })
       this.saveDraft({ silent: true })
     })
@@ -109,6 +119,7 @@ Page({
     if (!manager) return
 
     manager.onStart = () => {
+      this.pendingRecognitionStart = false
       this.recognizingText = ''
       this.setData({
         recording: true,
@@ -129,6 +140,7 @@ Page({
     }
 
     manager.onStop = (res) => {
+      this.pendingRecognitionStart = false
       const text = String((res && res.result) || this.recognizingText || '').trim()
       this.setData({
         recording: false,
@@ -144,13 +156,22 @@ Page({
     }
 
     manager.onError = (error) => {
+      const canFallbackToNative = (this.data.recording || this.pendingRecognitionStart) && this.recorderManager
+      this.pendingRecognitionStart = false
+      this.recognizingText = ''
+      if (canFallbackToNative) {
+        this.recorderMode = 'native'
+        this.setData({
+          recording: false,
+          aiWarning: '语音识别暂不可用，已切换为普通录音；录完后可手动补一句现场情况。'
+        }, () => this.startNativeRecording())
+        return
+      }
       this.setData({
         recording: false,
-        aiWarning: ''
+        aiWarning: '语音识别暂不可用，可手动补一句现场情况。'
       })
-      showError('语音识别失败', {
-        message: (error && (error.msg || error.message)) || '请重录或手动补一句现场情况'
-      })
+      showError('语音识别暂不可用')
     }
   },
 
@@ -478,24 +499,43 @@ Page({
     wx.authorize({
       scope: 'scope.record',
       success: () => {
-        if (this.recognitionManager) {
-          this.recognitionManager.start({
-            duration: 60000,
-            lang: 'zh_CN'
-          })
+        if (this.recognitionManager && this.recorderMode !== 'native') {
+          this.recorderMode = 'wechat_si'
+          this.pendingRecognitionStart = true
+          try {
+            this.recognitionManager.start({
+              duration: 60000,
+              lang: 'zh_CN'
+            })
+          } catch (error) {
+            this.pendingRecognitionStart = false
+            this.recorderMode = 'native'
+            this.setData({
+              aiWarning: '语音识别启动失败，已切换为普通录音；录完后可手动补一句现场情况。'
+            }, () => this.startNativeRecording())
+          }
           return
         }
-        this.recorderManager.start({
-          duration: 60000,
-          sampleRate: 16000,
-          numberOfChannels: 1,
-          encodeBitRate: 48000,
-          format: 'mp3'
-        })
+        this.recorderMode = 'native'
+        this.startNativeRecording()
       },
       fail: () => {
         showError('请先授权麦克风权限')
       }
+    })
+  },
+
+  startNativeRecording() {
+    if (!this.recorderManager) {
+      showError('当前微信版本不支持普通录音')
+      return
+    }
+    this.recorderManager.start({
+      duration: 60000,
+      sampleRate: 16000,
+      numberOfChannels: 1,
+      encodeBitRate: 48000,
+      format: 'mp3'
     })
   },
 
