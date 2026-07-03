@@ -17,6 +17,19 @@
 
 ---
 
+### 2026-07-03 — 上传日报手写兜底仍被语音 warning 卡住修复
+
+- 来源：用户截图反馈已手写“今天开工交底”后仍提示语音未识别，点击流程仍不通
+- 分支：`codex/init-ai-collaboration`
+- PR：未创建，当前仓库没有配置 Git remote
+- 本次做了什么：修复手写补充后旧语音 warning 不清理的问题；AI 整理阶段如果没有语音识别文字，则只把手写文本传给 `generateStageLogDraft`，不再提前上传无 transcript 的语音文件触发云函数 warning；将按钮文案从“AI 识别并整理”改为“AI 整理日报”，避免误导
+- 修改文件：`miniprogram/subpackages/internal/pages/upload-log/upload-log.js`、`miniprogram/subpackages/internal/pages/upload-log/upload-log.wxml`
+- 检查结果：`node --check miniprogram/subpackages/internal/pages/upload-log/upload-log.js` 通过；`git diff --check` 通过
+- 风险与未决问题：`WechatSI` 仍可能在开发者工具或当前环境不返回识别文字；该修复保证手写文本兜底可继续生成日报，但不等同于新增真实语音转文字服务
+- 下一步建议：重新编译后用“录音失败/无识别文字 + 手写一句 + AI 整理日报”验证今日完成是否回填
+
+---
+
 ### 2026-07-03 — 上传日报语音识别不可用诊断增强
 
 - 来源：用户反馈上传日报语音仍无法识别，且找不到同声传译 / WechatSI 插件

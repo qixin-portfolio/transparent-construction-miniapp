@@ -58,7 +58,7 @@
     <view wx:if="{{voiceRecognitionProblem}}" class="voice-provider-warning">
       <view class="voice-provider-title">语音转文字当前不可用</view>
       <view class="voice-provider-desc">{{voiceRecognitionProblem}}</view>
-      <view class="voice-provider-desc">可继续普通录音，或直接手写一句现场情况后点 AI 识别并整理。</view>
+      <view class="voice-provider-desc">可继续普通录音，或直接手写一句现场情况后点 AI 整理日报。</view>
     </view>
     <view class="quick-step-row">
       <view class="quick-step active">1 录音</view>
@@ -76,7 +76,7 @@
     ></textarea>
     <view wx:if="{{voiceTempPath && !voiceTranscript}}" class="manual-note-card">
       <view class="manual-note-title">语音已保存，但没有识别出文字</view>
-      <view class="manual-note-desc">先手写一句现场情况，再点 AI 识别并整理。这样不会卡在语音识别失败上。</view>
+      <view class="manual-note-desc">先手写一句现场情况，再点 AI 整理日报。这样不会卡在语音识别失败上。</view>
       <textarea
         class="textarea manual-note-textarea"
         placeholder="在这里手写补一句现场情况，例如：水电开槽完成，厨房插座位置需要和业主确认。"
@@ -92,7 +92,7 @@
       <button class="button-secondary" disabled="{{recording || aiGenerating || voiceUploading}}" bindtap="startRecording">{{voiceTempPath ? '重新录制' : '开始录制'}}</button>
       <button class="button-secondary" disabled="{{!recording || aiGenerating || voiceUploading}}" bindtap="stopRecording">停止录制</button>
       <button class="button-secondary" bindtap="saveDraft">保存草稿</button>
-      <button class="button-primary" loading="{{aiGenerating || voiceUploading}}" disabled="{{aiGenerating || voiceUploading}}" bindtap="generateAiReport">{{aiGenerating ? '识别整理中' : 'AI 识别并整理'}}</button>
+      <button class="button-primary" loading="{{aiGenerating || voiceUploading}}" disabled="{{aiGenerating || voiceUploading}}" bindtap="generateAiReport">{{aiGenerating ? '整理中' : 'AI 整理日报'}}</button>
     </view>
     <view wx:if="{{voiceTempPath}}" class="voice-status">
       <view class="voice-dot"></view>
@@ -114,7 +114,7 @@
   <!-- 表单内容 -->
   <view class="card form-card work-card">
     <view class="form-label">今日完成 <text wx:if="{{sourceType !== 'manual'}}" class="form-label-hint">（AI 已整理，可修改）</text></view>
-    <textarea class="textarea" placeholder="录音后点击 AI 识别并整理，会自动回填这里。" value="{{form.workContent}}" data-key="workContent" bindinput="onInput"></textarea>
+    <textarea class="textarea" placeholder="录音或手写补充后点击 AI 整理日报，会自动回填这里。" value="{{form.workContent}}" data-key="workContent" bindinput="onInput"></textarea>
   </view>
 
   <view class="card form-card risk-card">

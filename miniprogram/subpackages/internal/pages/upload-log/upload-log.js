@@ -383,10 +383,15 @@ Page({
   },
 
   onQuickNoteInput(event) {
+    const quickNote = event.detail.value || ''
+    const hasManualText = !!String(quickNote).trim()
     this.setData({
-      quickNote: event.detail.value || '',
+      quickNote,
       manualNoteFocus: false,
-      fallbackManualNoteFocus: false
+      fallbackManualNoteFocus: false,
+      aiWarning: hasManualText && /语音|识别|现场情况|补一句/.test(this.data.aiWarning || '')
+        ? ''
+        : this.data.aiWarning
     })
     this.saveDraft({ silent: true })
   },
@@ -461,7 +466,7 @@ Page({
     const hasVoice = !!(this.data.voiceTempPath || this.data.voiceFileID)
     if (hasVoice && !this.data.voiceTranscript && !manualText) {
       this.setData({
-        aiWarning: '这段语音已保存，但没有拿到识别文字；请先手写补一句现场情况，再点 AI 识别并整理。'
+        aiWarning: '这段语音已保存，但没有拿到识别文字；请先手写补一句现场情况，再点 AI 整理日报。'
       })
       this.focusManualNote({ silent: true })
       showError('请先补一句现场情况')
@@ -474,9 +479,8 @@ Page({
     if (this.data.aiGenerating) return Promise.resolve(this.data.aiDraft)
 
     this.setData({ aiGenerating: true, aiWarning: '' })
-    const voiceTask = hasVoice && !this.data.voiceTranscript
-      ? this.uploadVoice()
-      : Promise.resolve(this.data.voiceFileID || '')
+    const shouldSendVoiceToDraft = hasVoice && !!this.data.voiceTranscript
+    const voiceTask = Promise.resolve(shouldSendVoiceToDraft ? (this.data.voiceFileID || '') : '')
     return voiceTask
       .then((voiceFileID) => call('generateStageLogDraft', {
         projectId: this.data.projectId,
