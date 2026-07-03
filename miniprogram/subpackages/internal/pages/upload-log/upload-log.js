@@ -82,6 +82,7 @@ Page({
         this.recognitionManager = plugin.getRecordRecognitionManager()
         this.recorderMode = 'wechat_si'
         this.bindRecognitionManager()
+        return
       }
     } catch (error) {
       console.warn('[upload-log] WechatSI plugin unavailable', error)

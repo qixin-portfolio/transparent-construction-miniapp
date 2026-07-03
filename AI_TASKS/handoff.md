@@ -17,6 +17,19 @@
 
 ---
 
+### 2026-07-03 — 上传日报 -30001 record manager 冲突修复
+
+- 来源：用户真机截图显示 `-30001: record manager record failed`
+- 分支：`codex/init-ai-collaboration`
+- PR：未创建，当前仓库没有配置 Git remote
+- 本次做了什么：对照微信同声传译文档确认插件内部调用 `wx.getRecorderManager`；修复插件可用时仍初始化普通 `RecorderManager` 的冲突，避免两个录音管理器抢同一录音通道
+- 修改文件：`miniprogram/subpackages/internal/pages/upload-log/upload-log.js`
+- 检查结果：`node --check miniprogram/subpackages/internal/pages/upload-log/upload-log.js` 通过；`miniprogram/app.json` JSON 解析通过；`git diff --check` 通过
+- 风险与未决问题：如仍出现 `-30001`，下一步只查系统麦克风权限、真机占用和微信插件环境，不再改业务逻辑
+- 下一步建议：重新编译后真机测试“开始录制 -> 停止录制 -> 是否出现识别原文”
+
+---
+
 ### 2026-07-03 — 上传日报 WechatSI 语音识别链路排查与修复
 
 - 来源：用户反馈语音输入仍不能用，要求全面排查根因
