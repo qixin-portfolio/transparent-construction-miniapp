@@ -17,6 +17,20 @@
 
 ---
 
+### 2026-07-03 — 上传日报 WechatSI 语音识别链路排查与修复
+
+- 来源：用户反馈语音输入仍不能用，要求全面排查根因
+- 分支：`codex/init-ai-collaboration`
+- PR：未创建，当前仓库没有配置 Git remote
+- 本次做了什么：对照微信同声传译官方文档和 `Tencent/Face2FaceTranslator` 示例，确认 `duration/lang` 参数合法；根据开发者工具提示将 `WechatSI` 插件从 `0.3.6` 升到 `0.3.7`；取消 `WechatSI` 失败后自动切普通录音，避免普通录音被误认为语音转文字；失败时直接显示错误码/错误信息并聚焦手写补充
+- 修改文件：`miniprogram/app.json`、`miniprogram/subpackages/internal/pages/upload-log/upload-log.js`
+- 本地配置：`project.private.config.json` 为 skip-worktree 文件，已在本机改为 `useApiHook: false`，用于关闭开发者工具 API Hook 干扰，但不进入提交
+- 检查结果：`node --check miniprogram/subpackages/internal/pages/upload-log/upload-log.js` 通过；`miniprogram/app.json` JSON 解析通过；`project.private.config.json` JSON 解析通过；`git diff --check` 通过
+- 风险与未决问题：如果真机仍返回 `WechatSI` 错误码，则问题在微信插件服务/网络/环境，不再由普通录音兜底掩盖；页面会显示具体错误码用于下一步定位
+- 下一步建议：重新编译后先在开发者工具测一次，再用真机预览测一次；如仍失败，记录页面/Console 中的 `retcode/msg`
+
+---
+
 ### 2026-07-03 — 上传日报恢复语音输入主流程并保留手写补充
 
 - 来源：用户明确要求保留原来的“语音输入 AI 整理”，只补一个打字功能

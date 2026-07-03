@@ -91,6 +91,13 @@ Page({
     this.initNativeRecorder()
   },
 
+  getRecognitionErrorText(error) {
+    if (!error) return '未返回错误原因'
+    const code = error.retcode !== undefined ? `错误码 ${error.retcode}` : ''
+    const message = error.msg || error.errMsg || error.message || ''
+    return [code, message].filter(Boolean).join('：') || '未返回错误原因'
+  },
+
   initNativeRecorder() {
     if (!wx.getRecorderManager) return
     this.recorderManager = wx.getRecorderManager()
@@ -160,22 +167,14 @@ Page({
 
     manager.onError = (error) => {
       console.warn('[upload-log] WechatSI recognition failed', error)
-      const canFallbackToNative = (this.data.recording || this.pendingRecognitionStart) && this.recorderManager
       this.pendingRecognitionStart = false
       this.recognizingText = ''
-      if (canFallbackToNative) {
-        this.recorderMode = 'native'
-        this.setData({
-          recording: false,
-          aiWarning: '语音识别暂不可用，已切换为普通录音；录完后可手动补一句现场情况。'
-        }, () => this.startNativeRecording())
-        return
-      }
       this.setData({
         recording: false,
-        aiWarning: '语音识别暂不可用，可手动补一句现场情况。'
+        aiWarning: `语音识别失败：${this.getRecognitionErrorText(error)}。请重录，或手写补一句现场情况。`
       })
-      showError('语音识别暂不可用')
+      this.focusManualNote({ silent: true })
+      showError('语音识别失败，请重录或手写补充')
     }
   },
 
@@ -555,10 +554,12 @@ Page({
           } catch (error) {
             console.warn('[upload-log] WechatSI recognition start failed', error)
             this.pendingRecognitionStart = false
-            this.recorderMode = 'native'
+            this.recorderMode = 'wechat_si'
             this.setData({
-              aiWarning: '语音识别启动失败，已切换为普通录音；录完后可手动补一句现场情况。'
-            }, () => this.startNativeRecording())
+              recording: false,
+              aiWarning: `语音识别启动失败：${this.getRecognitionErrorText(error)}。请重录，或手写补一句现场情况。`
+            })
+            this.focusManualNote({ silent: true })
           }
           return
         }
