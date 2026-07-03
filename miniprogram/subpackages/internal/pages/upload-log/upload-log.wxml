@@ -51,9 +51,14 @@
     <view class="ai-draft-head">
       <view>
         <view class="sub-title">语音/文字快速录入</view>
-        <view class="muted">支持语音识别转文字；识别不可用时可普通录音，并手动补一句现场情况。</view>
+        <view class="muted">优先使用微信同声传译识别；不可用时可普通录音，并手动补一句现场情况。</view>
       </view>
       <view wx:if="{{draftLoaded}}" class="tag tag-info">草稿 {{draftSavedAtText}}</view>
+    </view>
+    <view wx:if="{{voiceRecognitionProblem}}" class="voice-provider-warning">
+      <view class="voice-provider-title">语音转文字当前不可用</view>
+      <view class="voice-provider-desc">{{voiceRecognitionProblem}}</view>
+      <view class="voice-provider-desc">可继续普通录音，或直接手写一句现场情况后点 AI 识别并整理。</view>
     </view>
     <view class="quick-step-row">
       <view class="quick-step active">1 录音</view>
@@ -76,6 +81,7 @@
         class="textarea manual-note-textarea"
         placeholder="在这里手写补一句现场情况，例如：水电开槽完成，厨房插座位置需要和业主确认。"
         value="{{quickNote}}"
+        focus="{{fallbackManualNoteFocus}}"
         cursor-spacing="100"
         show-confirm-bar="{{false}}"
         bindinput="onQuickNoteInput"

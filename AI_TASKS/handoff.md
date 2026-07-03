@@ -17,6 +17,19 @@
 
 ---
 
+### 2026-07-03 — 上传日报语音识别不可用诊断增强
+
+- 来源：用户反馈上传日报语音仍无法识别，且找不到同声传译 / WechatSI 插件
+- 分支：`codex/init-ai-collaboration`
+- PR：未创建，当前仓库没有配置 Git remote
+- 本次做了什么：确认上传日报语音转文字依赖微信同声传译 `WechatSI` 插件；增强插件不可用、启动失败、识别失败的页面提示；保留普通录音和手写补充兜底；修复手写补充按钮优先聚焦兜底输入框
+- 修改文件：`miniprogram/subpackages/internal/pages/upload-log/upload-log.js`、`miniprogram/subpackages/internal/pages/upload-log/upload-log.wxml`、`miniprogram/subpackages/internal/pages/upload-log/upload-log.wxss`
+- 检查结果：`node --check miniprogram/subpackages/internal/pages/upload-log/upload-log.js` 通过；`git diff --check` 通过；确认 `ENABLE_V2_DEAL_LOOP_ENTRY = false`
+- 风险与未决问题：本地无法读取微信公众平台插件状态或额度；如后台确实无法添加同声传译插件，则当前项目没有可用的真实语音转文字能力，只能普通录音 + 手写补充，或后续接入新的 ASR 服务
+- 下一步建议：在微信开发者工具重新编译后测试；若页面提示插件不可用，优先确认小程序后台插件/隐私权限，或进入独立阶段接入新的语音识别服务
+
+---
+
 ### 2026-06-29 — 初始化 AI 协作机制
 
 - 来源：用户要求初始化 ChatGPT + Codex + GitHub 协作机制
