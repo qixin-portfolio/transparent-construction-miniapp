@@ -6,7 +6,8 @@ const db = cloud.database()
 const _ = db.command
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
-const COMPLETED_STATUS = ['已完工', '完工', '已竣工', '竣工验收']
+const COMPLETED_STATUS_CODES = ['completed', 'delivered']
+const COMPLETED_STATUS = ['已完工', '完工', '已竣工', '竣工验收', '已交付']
 
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
@@ -20,8 +21,11 @@ async function getCurrentUser() {
 }
 
 function isCompleted(project) {
+  const statusCode = project.statusCode || ''
   const status = project.status || ''
-  return COMPLETED_STATUS.indexOf(status) !== -1 || Number(project.progress || 0) >= 100
+  return COMPLETED_STATUS_CODES.indexOf(statusCode) !== -1 ||
+    COMPLETED_STATUS.indexOf(status) !== -1 ||
+    Number(project.progress || 0) >= 100
 }
 
 async function listOwnerProjects(openid, tenantId) {
