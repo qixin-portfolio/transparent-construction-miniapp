@@ -68,7 +68,7 @@
         </view>
         <view class="info-cell">
           <view class="info-cell-label">楼栋房号</view>
-          <view class="info-cell-value">{{archive.houseInfo.building ? archive.houseInfo.building + '栋' : ''}}{{archive.houseInfo.room ? archive.houseInfo.room + '室' : (archive.houseInfo.building ? '' : '暂未填写')}}</view>
+          <view class="info-cell-value">{{archive.houseInfo.building || ''}}{{archive.houseInfo.building && archive.houseInfo.room ? ' ' : ''}}{{archive.houseInfo.room || (archive.houseInfo.building ? '' : '暂未填写')}}</view>
         </view>
         <view class="info-cell">
           <view class="info-cell-label">户型</view>

@@ -82,8 +82,13 @@ Page({
 
   loadAlbum() {
     this.setData({ loading: true })
-    getApp().ensureLogin()
-      .then(() => call('getOwnerArchive', { projectId: this.data.projectId }))
+    const isShareMode = this.data.shareMode
+    const ready = isShareMode ? Promise.resolve() : getApp().ensureLogin()
+    ready
+      .then(() => call(isShareMode ? 'getCompletionAlbum' : 'getOwnerArchive', {
+        projectId: this.data.projectId,
+        share: isShareMode ? 1 : 0
+      }))
       .then((res) => {
         const project = res.project || null
         const archive = res.archive || null
@@ -129,7 +134,19 @@ Page({
           albumStatus
         })
       })
-      .catch((error) => showError('纪念册加载失败', error))
+      .catch((error) => {
+        this.setData({
+          project: null,
+          archive: null,
+          coverUrl: '',
+          coverPhotos: [],
+          decorateDays: 0,
+          processPhotos: [],
+          hasData: false,
+          albumStatus: 'pending'
+        })
+        showError('纪念册加载失败', error)
+      })
       .finally(() => this.setData({ loading: false }))
   },
 

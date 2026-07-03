@@ -7,6 +7,19 @@
 
   <view class="card">
     <view class="card-title">房屋档案信息</view>
+    <view class="card-desc">已优先带入现有工地资料，交付前请再核对一遍。</view>
+    <view class="form-group">
+      <view class="form-label">小区名称</view>
+      <input class="form-input" placeholder="如：万硕花园" data-field="community" value="{{community}}" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <view class="form-label">楼栋 / 单元</view>
+      <input class="form-input" placeholder="如：3栋2单元" data-field="building" value="{{building}}" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <view class="form-label">房号</view>
+      <input class="form-input" placeholder="如：1201" data-field="room" value="{{room}}" bindinput="onInput" />
+    </view>
     <view class="form-group">
       <view class="form-label">户型</view>
       <input class="form-input" placeholder="如：三室两厅" data-field="layout" value="{{layout}}" bindinput="onInput" />
@@ -66,7 +79,7 @@
   </view>
 
   <view class="action-area">
-    <button class="btn-primary" bindtap="submitDeliver">确认交付</button>
-    <view class="action-tip">确认后系统将自动生成电子质保卡，并在业主端开放售后报修入口。</view>
+    <button class="btn-primary" bindtap="submitDeliver">{{isDelivered ? '保存交付资料' : '确认交付'}}</button>
+    <view class="action-tip">{{isDelivered ? '保存后，业主端家装档案会使用最新房屋信息。' : '确认后系统将自动生成电子质保卡，并在业主端开放售后报修入口。'}}</view>
   </view>
 </view>

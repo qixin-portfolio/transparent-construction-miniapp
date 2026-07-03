@@ -241,10 +241,6 @@ Page({
       showError('缺少工地信息')
       return
     }
-    if (this.isProjectDelivered(project)) {
-      wx.showToast({ title: '该项目已交付', icon: 'none' })
-      return
-    }
     // 跳转到交付表单页（补全房屋档案 + 上传完工照片）
     wx.navigateTo({ url: `/subpackages/internal/pages/deliver-form/deliver-form?projectId=${project._id}` })
   },

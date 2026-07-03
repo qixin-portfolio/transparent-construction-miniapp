@@ -56,9 +56,9 @@
           <view class="info-label">小区</view>
           <view class="info-value">{{archive.houseInfo.community || '暂未填写'}}</view>
         </view>
-        <view class="info-cell">
+        <view wx:if="{{!shareMode}}" class="info-cell">
           <view class="info-label">房号</view>
-          <view class="info-value">{{archive.houseInfo.building ? archive.houseInfo.building + '栋' : ''}}{{archive.houseInfo.room ? archive.houseInfo.room + '室' : (archive.houseInfo.building ? '' : '暂未填写')}}</view>
+          <view class="info-value">{{archive.houseInfo.building || ''}}{{archive.houseInfo.building && archive.houseInfo.room ? ' ' : ''}}{{archive.houseInfo.room || (archive.houseInfo.building ? '' : '暂未填写')}}</view>
         </view>
         <view class="info-cell">
           <view class="info-label">户型</view>
@@ -158,7 +158,7 @@
     </view>
 
     <!-- 模块9：相关推荐 -->
-    <view class="recommend-section">
+    <view wx:if="{{!shareMode}}" class="recommend-section">
       <view class="recommend-card" bindtap="goArchive">
         <view class="recommend-icon">📋</view>
         <view class="recommend-info">

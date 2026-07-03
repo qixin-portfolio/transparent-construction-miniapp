@@ -99,9 +99,9 @@
       <view class="detail-action-icon">工</view>
       <view class="detail-action-text">绑定工长</view>
     </view>
-    <view wx:if="{{project && canDeliverProject && project.statusCode !== 'delivered' && project.status !== '已交付'}}" class="detail-action-cell action-deliver" bindtap="confirmDeliverProject">
+    <view wx:if="{{project && canDeliverProject}}" class="detail-action-cell action-deliver" bindtap="confirmDeliverProject">
       <view class="detail-action-icon">交</view>
-      <view class="detail-action-text">确认竣工交付</view>
+      <view class="detail-action-text">{{project.statusCode === 'delivered' || project.status === '已交付' ? '补充交付资料' : '确认竣工交付'}}</view>
     </view>
     <view class="detail-action-cell" bindtap="toggleTimeline">
       <view class="detail-action-icon">🧾</view>

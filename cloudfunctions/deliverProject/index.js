@@ -53,6 +53,10 @@ function formatDate(value) {
   return `${year}-${month}-${day}`
 }
 
+function text(value) {
+  return String(value || '').trim()
+}
+
 function getPrimaryOwner(project) {
   const ownerOpenids = Array.isArray(project.ownerOpenids) ? project.ownerOpenids.filter(Boolean) : []
   const ownerUserIds = Array.isArray(project.ownerUserIds) ? project.ownerUserIds.filter(Boolean) : []
@@ -213,8 +217,9 @@ exports.main = async (event) => {
 
     const warrantyResult = await ensureWarrantyCard(project, Object.assign({}, user, { openid }), tenantId, tenantName, deliveredDate, deliveredAt)
 
+    const updateData = {}
     if (needsProjectDeliveryUpdate) {
-      const updateData = {
+      Object.assign(updateData, {
         tenantId,
         tenantName,
         statusCode: 'delivered',
@@ -225,18 +230,27 @@ exports.main = async (event) => {
         updatedBy: user._id || openid,
         updatedByOpenid: openid,
         updatedAt: now
-      }
-      // 补全房屋档案字段（仅写入非空值，不覆盖已有值）
-      if (houseInfo.layout && !project.layout) updateData.layout = houseInfo.layout
-      if (houseInfo.area && !project.area) updateData.area = houseInfo.area
-      if (houseInfo.style && !project.style) updateData.style = houseInfo.style
-      if (houseInfo.decorateType && !project.decorateType) updateData.decorateType = houseInfo.decorateType
-      if (houseInfo.startDate && !project.startDate) updateData.startDate = houseInfo.startDate
-      if (houseInfo.completedAt && !project.completedAt) updateData.completedAt = houseInfo.completedAt
-      // 完工照片单独存储
-      if (completionPhotoFileIDs.length) {
-        updateData.completionPhotoFileIDs = completionPhotoFileIDs
-      }
+      })
+    }
+    // 交付时人工核对后的房屋档案字段，允许用非空值补写或纠正旧值。
+    if (text(houseInfo.community)) updateData.community = text(houseInfo.community)
+    if (text(houseInfo.building)) updateData.building = text(houseInfo.building)
+    if (text(houseInfo.room)) {
+      updateData.room = text(houseInfo.room)
+      updateData.houseNo = text(houseInfo.room)
+    }
+    if (text(houseInfo.layout)) updateData.layout = text(houseInfo.layout)
+    if (houseInfo.area !== '' && houseInfo.area !== undefined && houseInfo.area !== null) updateData.area = houseInfo.area
+    if (text(houseInfo.style)) updateData.style = text(houseInfo.style)
+    if (text(houseInfo.decorateType)) updateData.decorateType = text(houseInfo.decorateType)
+    if (text(houseInfo.startDate)) updateData.startDate = text(houseInfo.startDate)
+    if (text(houseInfo.completedAt)) updateData.completedAt = text(houseInfo.completedAt)
+    // 完工照片单独存储
+    if (completionPhotoFileIDs.length) updateData.completionPhotoFileIDs = completionPhotoFileIDs
+    if (Object.keys(updateData).length) {
+      updateData.updatedBy = user._id || openid
+      updateData.updatedByOpenid = openid
+      updateData.updatedAt = now
       await db.collection('projects').doc(projectId).update({ data: updateData })
     }
 
@@ -249,9 +263,11 @@ exports.main = async (event) => {
         customerId: project.customerId || ''
       })
     }
-    await recordOperationLog(warrantyResult.created ? 'warranty_card_created' : 'warranty_card_reused', tenantId, tenantName, user, openid, project, {
-      warrantyCardId: warrantyResult.warrantyCard._id || ''
-    })
+    if (!alreadyDelivered || warrantyResult.created) {
+      await recordOperationLog(warrantyResult.created ? 'warranty_card_created' : 'warranty_card_reused', tenantId, tenantName, user, openid, project, {
+        warrantyCardId: warrantyResult.warrantyCard._id || ''
+      })
+    }
 
     return {
       ok: true,
