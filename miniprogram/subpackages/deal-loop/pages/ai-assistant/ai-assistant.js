@@ -1,5 +1,6 @@
 const { getMockCustomerById } = require('../../mock/customers')
 const { generateSuggestion } = require('../../utils/aiMockEngine')
+const { guardDealLoopPage } = require('../../utils/accessGuard')
 const { getCustomerIdentity, mapCustomerToDetail } = require('../../utils/v1ReadonlyAdapters')
 
 const READ_FAILED_MESSAGE = '客户读取失败，请返回客户列表重新打开'
@@ -130,6 +131,7 @@ Page({
     dataSourceHint: '正在尝试只读加载客户资料'
   },
   onLoad(options = {}) {
+    if (!guardDealLoopPage()) return
     wx.setNavigationBarTitle({ title: 'AI 跟进助手' })
     const customerId = normalizeCustomerId(options.customerId || options.id)
     this.setData({

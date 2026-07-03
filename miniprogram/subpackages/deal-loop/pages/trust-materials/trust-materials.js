@@ -9,6 +9,7 @@ const {
   buildEmptyEvidenceView,
   buildEvidenceSummaryView
 } = require('../../utils/evidenceSummaryAdapter')
+const { guardDealLoopPage } = require('../../utils/accessGuard')
 const { getCustomerIdentity, mapCustomerToDetail } = require('../../utils/v1ReadonlyAdapters')
 
 const CONTEXT_ERROR_MESSAGE = '客户上下文异常，请返回重新打开'
@@ -55,6 +56,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    if (!guardDealLoopPage()) return
     const customerId = normalizeCustomerId(options.customerId || options.id)
     this.setData({
       customerId,

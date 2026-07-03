@@ -1,4 +1,5 @@
 const { pipelineStages, customers: mockCustomers } = require('../../mock/customers')
+const { guardDealLoopPage } = require('../../utils/accessGuard')
 const {
   ACTION_FILTERS,
   getPipelineStage,
@@ -92,6 +93,7 @@ Page({
   },
 
   onLoad() {
+    if (!guardDealLoopPage()) return
     this.setData({
       stageTabs: ACTION_FILTERS.concat([{ code: 'all', label: '全部', desc: '所有客户' }], pipelineStages),
       guards: this.makeReadonlyGuards()

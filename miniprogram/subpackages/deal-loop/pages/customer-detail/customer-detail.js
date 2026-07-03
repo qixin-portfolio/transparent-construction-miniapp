@@ -1,6 +1,7 @@
 const { getCustomerById } = require('../../mock/customers')
 const { getFollowRecordsByCustomer } = require('../../mock/followRecords')
 const { generateSuggestion } = require('../../utils/aiMockEngine')
+const { guardDealLoopPage } = require('../../utils/accessGuard')
 const { getMaterialsByIds } = require('../../utils/materialMapper')
 const { mapCustomerToDetail } = require('../../utils/v1ReadonlyAdapters')
 
@@ -127,6 +128,7 @@ Page({
     ]
   },
   onLoad(options = {}) {
+    if (!guardDealLoopPage()) return
     wx.setNavigationBarTitle({ title: '客户成交详情' })
     const customerId = String(options.customerId || options.id || '').trim()
     this.setData({

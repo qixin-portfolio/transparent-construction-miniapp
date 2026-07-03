@@ -1,4 +1,5 @@
 const { customers, getMockCustomerById } = require('../../mock/customers')
+const { guardDealLoopPage } = require('../../utils/accessGuard')
 const {
   getCustomerIdentity,
   mapCustomerToDetail,
@@ -48,6 +49,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    if (!guardDealLoopPage()) return
     const customerId = normalizeCustomerId(options.customerId || options.id)
     this.setData({
       customerId,

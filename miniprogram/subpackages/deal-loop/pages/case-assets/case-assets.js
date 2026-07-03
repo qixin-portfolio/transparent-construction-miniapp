@@ -1,5 +1,6 @@
 const { getMockCustomerById } = require('../../mock/customers')
 const { buildCaseAssetDraftFromCustomer } = require('../../mock/caseAssets')
+const { guardDealLoopPage } = require('../../utils/accessGuard')
 const { getMaterialsByIds } = require('../../utils/materialMapper')
 const { getCustomerIdentity, mapCustomerToDetail } = require('../../utils/v1ReadonlyAdapters')
 
@@ -53,6 +54,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    if (!guardDealLoopPage()) return
     const customerId = normalizeCustomerId(options.customerId || options.id)
     this.setData({
       customerId,
