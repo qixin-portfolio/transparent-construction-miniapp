@@ -72,6 +72,14 @@
     <view wx:if="{{voiceTempPath && !voiceTranscript}}" class="manual-note-card">
       <view class="manual-note-title">语音已保存，但没有识别出文字</view>
       <view class="manual-note-desc">先手写一句现场情况，再点 AI 识别并整理。这样不会卡在语音识别失败上。</view>
+      <textarea
+        class="textarea manual-note-textarea"
+        placeholder="在这里手写补一句现场情况，例如：水电开槽完成，厨房插座位置需要和业主确认。"
+        value="{{quickNote}}"
+        cursor-spacing="100"
+        show-confirm-bar="{{false}}"
+        bindinput="onQuickNoteInput"
+      ></textarea>
       <button class="manual-note-btn" bindtap="focusManualNote">手写补充</button>
     </view>
     <view class="quick-actions">

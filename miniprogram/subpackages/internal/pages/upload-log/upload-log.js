@@ -520,9 +520,9 @@ Page({
       return
     }
     if (this.data.recording) {
-      if (this.recognitionManager) {
+      if (this.recorderMode === 'wechat_si' && this.recognitionManager) {
         this.recognitionManager.stop()
-      } else {
+      } else if (this.recorderManager) {
         this.recorderManager.stop()
       }
       return
@@ -530,7 +530,7 @@ Page({
     wx.authorize({
       scope: 'scope.record',
       success: () => {
-        if (this.recognitionManager && this.recorderMode !== 'native') {
+        if (this.recognitionManager) {
           this.recorderMode = 'wechat_si'
           this.pendingRecognitionStart = true
           try {

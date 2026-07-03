@@ -432,6 +432,20 @@
   line-height: 1.45;
 }
 
+.manual-note-textarea {
+  margin-top: 14rpx;
+  width: 100%;
+  min-height: 104rpx;
+  padding: 16rpx;
+  border: 1rpx solid #F5D58A;
+  border-radius: 16rpx;
+  background: #FFFFFF;
+  color: #111827;
+  font-size: 24rpx;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
 .manual-note-btn {
   margin-top: 14rpx;
   height: 64rpx;
