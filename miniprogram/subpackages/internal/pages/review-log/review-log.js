@@ -1,6 +1,32 @@
 const { call, showError } = require('../../../../services/cloud')
 const { DEMO_MODE, demoLogs } = require('../../../../utils/demo')
 
+function normalizeIssueText(value) {
+  const text = String(value || '').trim().slice(0, 300)
+  const compact = text.replace(/[，。！？；：,.!?;:\s]/g, '')
+  const noIssueTexts = [
+    '无',
+    '无问题',
+    '暂无问题',
+    '没有问题',
+    '无现场问题',
+    '暂无现场问题',
+    '没有现场问题',
+    '无明显现场问题',
+    '暂无明显现场问题',
+    '没有明显现场问题',
+    '暂未发现现场问题',
+    '暂未发现明显现场问题',
+    '未发现现场问题',
+    '未发现明显现场问题',
+    '无明显异常',
+    '暂无明显异常',
+    '没有明显异常',
+    '现场验收合格'
+  ]
+  return noIssueTexts.indexOf(compact) !== -1 ? '' : text
+}
+
 Page({
   data: {
     loading: false,
@@ -44,6 +70,7 @@ Page({
   prepareItems(items) {
     return (items || []).map((item) => Object.assign({}, item, {
       photoFileIDs: item.photoFileIDs || item.photos || [],
+      issue: normalizeIssueText(item.issue),
       dateText: this.formatTime(item.createdAt || item.updatedAt),
       submitterText: item.submittedByName || '内部人员',
       aiGenerated: !!item.aiGenerated || /^ai_/.test(item.sourceType || ''),

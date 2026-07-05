@@ -50,6 +50,32 @@ function stripSensitiveText(value, limit = 1000) {
     .replace(/\b[a-f0-9]{24}\b/gi, '[ID已省略]')
 }
 
+function normalizeIssueText(value) {
+  const text = normalizeText(value, 300)
+  const compact = text.replace(/[，。！？；：,.!?;:\s]/g, '')
+  const noIssueTexts = [
+    '无',
+    '无问题',
+    '暂无问题',
+    '没有问题',
+    '无现场问题',
+    '暂无现场问题',
+    '没有现场问题',
+    '无明显现场问题',
+    '暂无明显现场问题',
+    '没有明显现场问题',
+    '暂未发现现场问题',
+    '暂未发现明显现场问题',
+    '未发现现场问题',
+    '未发现明显现场问题',
+    '无明显异常',
+    '暂无明显异常',
+    '没有明显异常',
+    '现场验收合格'
+  ]
+  return noIssueTexts.indexOf(compact) !== -1 ? '' : text
+}
+
 function getPhotoCount(stageLog) {
   const photoFileIDs = Array.isArray(stageLog.photoFileIDs) ? stageLog.photoFileIDs : []
   const photos = Array.isArray(stageLog.photos) ? stageLog.photos : []
@@ -261,7 +287,7 @@ exports.main = async (event = {}) => {
       projectName: project.name || stageLog.projectName || '',
       stage: stageLog.stage || stageLog.stageName || '',
       workContent: stageLog.workContent || '',
-      issue: stageLog.issue || '',
+      issue: normalizeIssueText(stageLog.issue),
       nextPlan: stageLog.nextPlan || stageLog.tomorrowPlan || '',
       photoCount: getPhotoCount(stageLog),
       reviewStatus: stageLog.reviewStatus || 'pending'

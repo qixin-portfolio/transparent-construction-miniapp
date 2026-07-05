@@ -2,6 +2,32 @@ const { call, showError } = require('../../../../services/cloud')
 const { DEMO_MODE, demoProjects, demoLogs } = require('../../../../utils/demo')
 const { STAGES } = require('../../../../utils/constants')
 
+function normalizeIssueText(value) {
+  const text = String(value || '').trim().slice(0, 300)
+  const compact = text.replace(/[，。！？；：,.!?;:\s]/g, '')
+  const noIssueTexts = [
+    '无',
+    '无问题',
+    '暂无问题',
+    '没有问题',
+    '无现场问题',
+    '暂无现场问题',
+    '没有现场问题',
+    '无明显现场问题',
+    '暂无明显现场问题',
+    '没有明显现场问题',
+    '暂未发现现场问题',
+    '暂未发现明显现场问题',
+    '未发现现场问题',
+    '未发现明显现场问题',
+    '无明显异常',
+    '暂无明显异常',
+    '没有明显异常',
+    '现场验收合格'
+  ]
+  return noIssueTexts.indexOf(compact) !== -1 ? '' : text
+}
+
 Page({
   data: {
     projectId: '',
@@ -297,6 +323,7 @@ Page({
     return logs.map((item) => {
       const status = item.reviewStatus || 'pending'
       return Object.assign({}, item, {
+        issue: normalizeIssueText(item.issue),
         photos: item.photos || [],
         dateText: this.formatTime(item.createdAt || item.updatedAt || item.reviewedAt),
         statusText: this.getStatusText(status),

@@ -1,6 +1,32 @@
 const { STAGES } = require('../../../../utils/constants')
 const { call, uploadImage, showError } = require('../../../../services/cloud')
 
+function normalizeIssueText(value) {
+  const text = String(value || '').trim().slice(0, 300)
+  const compact = text.replace(/[，。！？；：,.!?;:\s]/g, '')
+  const noIssueTexts = [
+    '无',
+    '无问题',
+    '暂无问题',
+    '没有问题',
+    '无现场问题',
+    '暂无现场问题',
+    '没有现场问题',
+    '无明显现场问题',
+    '暂无明显现场问题',
+    '没有明显现场问题',
+    '暂未发现现场问题',
+    '暂未发现明显现场问题',
+    '未发现现场问题',
+    '未发现明显现场问题',
+    '无明显异常',
+    '暂无明显异常',
+    '没有明显异常',
+    '现场验收合格'
+  ]
+  return noIssueTexts.indexOf(compact) !== -1 ? '' : text
+}
+
 Page({
   data: {
     projectId: '',
@@ -200,6 +226,8 @@ Page({
     const draft = wx.getStorageSync(this.makeDraftKey())
     if (!draft) return
     const draftStage = STAGES[Number(draft.stageIndex || 0)] || STAGES[0]
+    const draftForm = Object.assign({}, this.data.form, draft.form || {})
+    draftForm.issue = normalizeIssueText(draftForm.issue)
     this.setData({
       stageIndex: Number(draft.stageIndex || 0),
       selectedStageCode: draft.stageCode || draft.selectedStageCode || draftStage.code,
@@ -216,7 +244,7 @@ Page({
       aiWarning: draft.aiWarning || '',
       aiDraft: draft.aiDraft || null,
       sourceType: draft.sourceType || 'manual',
-      form: Object.assign({}, this.data.form, draft.form || {}),
+      form: draftForm,
       draftLoaded: true,
       draftSavedAtText: draft.savedAtText || ''
     })
@@ -477,9 +505,10 @@ Page({
       }))
       .then((res) => {
         const draft = res.draft || {}
+        const draftIssue = normalizeIssueText(draft.issue)
         const nextForm = Object.assign({}, this.data.form, {
           workContent: draft.workContent || this.data.form.workContent,
-          issue: draft.issue || this.data.form.issue,
+          issue: draftIssue || normalizeIssueText(this.data.form.issue),
           needConfirm: draft.needConfirm !== undefined ? draft.needConfirm : this.data.form.needConfirm,
           tomorrowPlan: draft.tomorrowPlan || this.data.form.tomorrowPlan
         })
@@ -786,7 +815,7 @@ Page({
         stageCode: stage.code,
         progress: stage.progress,
         workContent: this.data.form.workContent,
-        issue: this.data.form.issue,
+        issue: normalizeIssueText(this.data.form.issue),
         needConfirm: this.data.form.needConfirm,
         tomorrowPlan: this.data.form.tomorrowPlan,
         photoFileIDs,

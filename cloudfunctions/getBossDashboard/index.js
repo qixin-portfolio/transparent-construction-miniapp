@@ -54,6 +54,32 @@ function formatDate(value) {
   return `${month}月${day}日 ${hour}:${minute}`
 }
 
+function normalizeIssueText(value) {
+  const text = String(value || '').trim().slice(0, 300)
+  const compact = text.replace(/[，。！？；：,.!?;:\s]/g, '')
+  const noIssueTexts = [
+    '无',
+    '无问题',
+    '暂无问题',
+    '没有问题',
+    '无现场问题',
+    '暂无现场问题',
+    '没有现场问题',
+    '无明显现场问题',
+    '暂无明显现场问题',
+    '没有明显现场问题',
+    '暂未发现现场问题',
+    '暂未发现明显现场问题',
+    '未发现现场问题',
+    '未发现明显现场问题',
+    '无明显异常',
+    '暂无明显异常',
+    '没有明显异常',
+    '现场验收合格'
+  ]
+  return noIssueTexts.indexOf(compact) !== -1 ? '' : text
+}
+
 function makeStaffRank(logs) {
   const map = {}
   logs.forEach((log) => {
@@ -144,7 +170,10 @@ exports.main = async () => {
     const staleProjects = activeProjects
       .filter((item) => toTime(item.updatedAt || item.createdAt) < staleBefore.getTime())
       .slice(0, 10)
-    const issueLogs = logs.filter((item) => String(item.issue || '').trim()).slice(0, 10)
+    const issueLogs = logs
+      .map((item) => Object.assign({}, item, { issue: normalizeIssueText(item.issue) }))
+      .filter((item) => item.issue)
+      .slice(0, 10)
     const signedCustomers = customers.filter((item) => item.dealStatus === '已成交' || item.stage === '已签单')
     const conversionRate = customers.length ? Math.round((signedCustomers.length / customers.length) * 100) : 0
 

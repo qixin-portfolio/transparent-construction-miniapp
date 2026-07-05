@@ -114,7 +114,7 @@
 
   <view class="card form-card risk-card">
     <view class="form-label">现场问题 <text class="form-label-hint">（AI 会自动提取，没有可不填）</text></view>
-    <textarea class="textarea" placeholder="有问题就保留，没有问题可写“暂无明显现场问题”。" value="{{form.issue}}" data-key="issue" bindinput="onInput"></textarea>
+    <textarea class="textarea" placeholder="有问题再填写；没有问题留空。" value="{{form.issue}}" data-key="issue" bindinput="onInput"></textarea>
   </view>
 
   <view class="card form-card confirm-card">

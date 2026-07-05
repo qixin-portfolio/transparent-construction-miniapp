@@ -52,6 +52,32 @@ function compactSentence(text, fallback = '') {
   return /[。！？]$/.test(value) ? value : `${value}。`
 }
 
+function normalizeIssueText(value) {
+  const text = normalizeText(value, 300)
+  const compact = text.replace(/[，。！？；：,.!?;:\s]/g, '')
+  const noIssueTexts = [
+    '无',
+    '无问题',
+    '暂无问题',
+    '没有问题',
+    '无现场问题',
+    '暂无现场问题',
+    '没有现场问题',
+    '无明显现场问题',
+    '暂无明显现场问题',
+    '没有明显现场问题',
+    '暂未发现现场问题',
+    '暂未发现明显现场问题',
+    '未发现现场问题',
+    '未发现明显现场问题',
+    '无明显异常',
+    '暂无明显异常',
+    '没有明显异常',
+    '现场验收合格'
+  ]
+  return noIssueTexts.indexOf(compact) !== -1 ? '' : text
+}
+
 function extractMatchedSentence(text, keywords) {
   const sentences = normalizeText(text, 1200)
     .split(/[。！？；;.!?]/)
@@ -75,7 +101,7 @@ function makeFallbackDraft(input) {
   const workBase = rawText
     ? `${stage}：${compactSentence(rawText, '')}${photoText}`
     : `${stage}节点按计划推进，已完成现场检查与关键工序记录。${photoText}`
-  const issue = issueSentence ? compactSentence(issueSentence) : '暂无明显现场问题。'
+  const issue = issueSentence ? normalizeIssueText(compactSentence(issueSentence)) : ''
   const needConfirm = confirmSentence ? compactSentence(confirmSentence) : ''
   const tomorrowPlan = input.tomorrowPlan ||
     `明日继续推进${stage}相关施工，并复核现场质量和现场成品保护。`
@@ -175,7 +201,7 @@ async function polishDraftWithZhipu(input) {
           rawText,
           outputSchema: {
             workContent: '今日完成，给管理员和内部人员看，80字以内',
-            issue: '现场问题，没有则写“暂无明显现场问题。”',
+            issue: '现场问题，没有则返回空字符串',
             needConfirm: '需要业主或内部确认，没有则空字符串',
             tomorrowPlan: '明日计划，60字以内',
             ownerSummary: '业主端友好文案，真实安心，60字以内',
@@ -196,9 +222,10 @@ async function polishDraftWithZhipu(input) {
 }
 
 function sanitizeDraft(draft, source) {
+  const issue = normalizeIssueText(draft.issue)
   return {
     workContent: compactSentence(draft.workContent, source.workContent || ''),
-    issue: compactSentence(draft.issue, '暂无明显现场问题。'),
+    issue: issue ? compactSentence(issue) : '',
     needConfirm: normalizeText(draft.needConfirm || '', 240),
     tomorrowPlan: compactSentence(draft.tomorrowPlan, source.tomorrowPlan || ''),
     ownerSummary: compactSentence(draft.ownerSummary, source.ownerSummary || ''),
