@@ -257,9 +257,11 @@ App({
 
   shouldAllowGuestFlow(options = {}) {
     if (options.allowGuestFlow) return true
-    const entryContext = this.getEntryContext()
-    if (entryContext && ['owner_bind', 'staff_join', 'worker_bind', 'public'].indexOf(entryContext.type) !== -1) {
-      return true
+    if (!options.ignoreEntryContext) {
+      const entryContext = this.getEntryContext()
+      if (entryContext && ['owner_bind', 'staff_join', 'worker_bind', 'public'].indexOf(entryContext.type) !== -1) {
+        return true
+      }
     }
 
     const pageInfo = this.getCurrentPageInfo()

@@ -108,7 +108,7 @@ Page({
     this.setData({ authReady: false, pendingCount: 0, showRoleEntry: false })
     const loginOptions = isStaffEntry || isWorkerEntry
       ? { allowGuestFlow: true }
-      : { skipRegisterRedirect: true }
+      : { skipRegisterRedirect: true, ignoreEntryContext: true }
     app.ensureLogin(loginOptions)
       .then((loginUser) => {
         this.setAccess(loginUser)

@@ -166,3 +166,14 @@
 - 当前 V2 状态：`ENABLE_V2_DEAL_LOOP_ENTRY = false`
 - 未发布正式版
 - 下一步建议：用新微信或清缓存后扫码体验版，点击“我是装修公司 / 管理员”，确认注册页不再闪退
+
+---
+
+### 2026-07-08 — 新用户首页三入口消失问题修复
+
+- 来源：用户录屏反馈新用户扫码后没有角色选择入口，直接进入“我的施工进度 / 还未绑定工地”业主页
+- 根因：workbench 默认登录时仍可能因为残留入口上下文触发 `allowGuestFlow`，`login` 云函数会把新用户创建为 `owner`；已经创建过的无租户 `owner` 又被旧兼容逻辑补默认租户，导致首页不显示三入口
+- 修复：workbench 默认登录传入 `ignoreEntryContext`，避免首页被扫码上下文误判为游客业主流；`login` 云函数不再把 `owner` 纳入内部旧角色默认租户兼容
+- 修改文件：`miniprogram/app.js`、`miniprogram/pages/workbench/workbench.js`、`cloudfunctions/login/index.js`
+- 检查结果：`node --check` 通过；`git diff --check` 通过；`ENABLE_V2_DEAL_LOOP_ENTRY = false`
+- 后续生效要求：需要部署 `login` 云函数，并重新上传体验版

@@ -5,7 +5,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
-const LEGACY_ROLES = ['admin', 'boss_qi', 'boss_hu', 'worker', 'designer', 'sales', 'project_manager', 'owner']
+const LEGACY_ROLES = ['admin', 'boss_qi', 'boss_hu', 'worker', 'designer', 'sales', 'project_manager']
 
 function withDefaultTenant(user) {
   if (!user || user.tenantId) return user
