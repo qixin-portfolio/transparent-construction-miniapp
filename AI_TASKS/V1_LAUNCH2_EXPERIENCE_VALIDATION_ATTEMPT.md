@@ -185,3 +185,43 @@ Codex 随后再次尝试通过 CLI 部署以下 4 个云函数，但 CLI 仍返�
 - V2 成交闭环入口继续关闭。
 - 体验版版本：`7.2.0`。
 - 体验版备注：`V1上线后体验优化：首页角色分流；试运行期免费开放；V2成交闭环入口保持关闭。`
+
+---
+
+## 14. 体验版 7.2.1 注册闪退修复覆盖上传
+
+基于修复 commit：`d5fd44fd1bb2cddd7a1baa23c7ff5c152996947b`
+
+修复内容：
+
+- 修复新用户点击“我是装修公司 / 管理员”进入注册公司页面时，因为残留扫码入口上下文或临时 `owner` 身份导致注册页闪退 / 自动跳走的问题。
+- `pages/register/register?entry=boss_register` 会清理残留入口上下文，并保持在装修公司注册页。
+
+体验版上传命令：
+
+```bash
+/Applications/wechatwebdevtools.app/Contents/MacOS/cli upload \
+  --project "/Users/qixin/Documents/晟景AI助理/透明工地小程序/开发骨架" \
+  --version "7.2.1" \
+  --desc "V1上线后体验优化补丁：修复新用户进入装修公司注册页闪退；V2成交闭环入口保持关闭。" \
+  --info-output "/Users/qixin/Documents/晟景AI助理/透明工地小程序/开发骨架/AI_TASKS/v1_launch2_721_upload_info.json"
+```
+
+上传结果：成功。
+
+包体信息：
+
+| 分包 | 大小 |
+| --- | ---: |
+| TOTAL | 1.9 MB |
+| main | 1.3 MB |
+| /subpackages/deal-loop/ | 131.6 KB |
+| /subpackages/internal/ | 251.0 KB |
+| /subpackages/owner/ | 156.5 KB |
+
+当前确认：
+
+- 体验版 `7.2.1` 已上传。
+- 未发布正式版。
+- `ENABLE_V2_DEAL_LOOP_ENTRY = false`。
+- V2 成交闭环入口继续关闭。
