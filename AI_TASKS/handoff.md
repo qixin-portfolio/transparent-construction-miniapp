@@ -177,3 +177,20 @@
 - 修改文件：`miniprogram/app.js`、`miniprogram/pages/workbench/workbench.js`、`cloudfunctions/login/index.js`
 - 检查结果：`node --check` 通过；`git diff --check` 通过；`ENABLE_V2_DEAL_LOOP_ENTRY = false`
 - 后续生效要求：需要部署 `login` 云函数，并重新上传体验版
+
+---
+
+### 2026-07-08 — 体验版 7.2.2 新用户角色入口修复部署上传
+
+- 来源：用户反馈新用户扫码后角色选择入口消失，要求部署并上传
+- 修复 commit：`e5fe997c03bb7eafb0e4d2928dcc690cf90e57c5`
+- 部署云函数：`login`
+- 部署环境：`cloud1-d4g7zh8kpca0e26d5`
+- 部署结果：成功，`login` success=true，filesCount=3，packSize=2.1 KB
+- 体验版版本：`7.2.2`
+- 体验版备注：`V1上线后体验优化补丁：修复新用户角色选择入口消失；V2成交闭环入口保持关闭。`
+- 上传结果：成功
+- 包体大小：TOTAL 1.9 MB；main 1.3 MB；deal-loop 131.6 KB；internal 251.0 KB；owner 156.5 KB
+- 当前 V2 状态：`ENABLE_V2_DEAL_LOOP_ENTRY = false`
+- 未发布正式版
+- 下一步建议：用全新微信或清缓存后扫码体验版，确认首页出现“我是业主 / 我是员工工长 / 我是装修公司管理员”三入口
