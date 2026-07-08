@@ -67,6 +67,17 @@ page {
   color: rgba(255, 255, 255, 0.9);
 }
 
+.current-plan-trial-note {
+  margin: 20rpx 0 0;
+  padding: 18rpx 20rpx;
+  border-radius: 16rpx;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 24rpx;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
 .current-plan-metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

@@ -1,8 +1,8 @@
 <view class="register-page">
   <view class="register-head">
     <view class="register-eyebrow">透明工地 SaaS</view>
-    <view class="register-title">开通透明工地小程序</view>
-    <view class="register-desc">填写公司信息，免费试用 3 个项目 / 3 名员工。</view>
+    <view class="register-title">注册装修公司</view>
+    <view class="register-desc">用于老板或管理员开通透明工地管理后台。业主和员工请返回首页选择对应入口。</view>
   </view>
 
   <view class="register-card">
@@ -35,7 +35,15 @@
       class="button-primary register-submit"
       loading="{{submitting}}"
       disabled="{{submitting || !form.companyName || !form.bossName || form.phone.length < 11 || !form.city}}"
-      bindtap="submitRegister">免费开通</button>
+      bindtap="submitRegister">开通管理入口</button>
+  </view>
+
+  <view class="register-secondary" bindtap="goRoleEntry">
+    <view>
+      <view class="register-secondary-title">返回身份选择</view>
+      <view class="register-secondary-desc">业主看进度，员工进工作台，不需要注册公司</view>
+    </view>
+    <view class="register-secondary-arrow">›</view>
   </view>
 
   <view class="register-secondary" bindtap="goInviteFlow">

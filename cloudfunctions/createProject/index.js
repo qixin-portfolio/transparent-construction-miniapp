@@ -8,6 +8,7 @@ const PROJECT_CREATE_ROLES = ['admin', 'boss_qi', 'boss_hu', 'designer', 'sales'
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 const PLAN_MODULES = ['project', 'daily_report', 'owner_view']
+const ENABLE_FREE_TRIAL_USAGE = true
 const PROJECT_STATUS_CODES = ['pending_start', 'in_progress', 'completed', 'delivered', 'after_sales', 'paused', 'cancelled']
 const PROJECT_STATUS_BY_TEXT = {
   '待开工': 'pending_start',
@@ -103,6 +104,8 @@ function projectTenantWhere(tenantId) {
 
 async function assertProjectLimit(tenantId) {
   const plan = await getTenantPlan(tenantId)
+  if (ENABLE_FREE_TRIAL_USAGE) return plan
+
   const countRes = await db.collection('projects')
     .where({
       tenantId: projectTenantWhere(tenantId),

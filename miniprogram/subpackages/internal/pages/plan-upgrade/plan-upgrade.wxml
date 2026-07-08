@@ -10,23 +10,24 @@
     <view wx:if="{{currentPlan}}" class="current-plan-card">
       <view class="current-plan-header">
         <view>
-          <view class="current-plan-label">当前套餐</view>
+          <view class="current-plan-label">{{currentPlan.freeUsageMode ? '试运行期免费开放' : '当前套餐'}}</view>
           <view class="current-plan-name">{{currentPlan.planName || '免费版'}}</view>
         </view>
         <view class="current-plan-badge {{currentPlan.status}}">{{currentPlan.statusText || '使用中'}}</view>
       </view>
+      <view wx:if="{{currentPlan.freeUsageMode}}" class="current-plan-trial-note">当前为上线试运行期，暂不限制工地数量、员工数量、业主绑定数量和施工日报数量。</view>
       <view class="current-plan-metrics">
         <view class="current-plan-metric">
-          <view class="metric-value">{{currentPlan.usedProjects || 0}}<text class="metric-unit">/{{currentPlan.maxProjects || 3}}</text></view>
+          <view class="metric-value">{{currentPlan.usedProjects || 0}}<text wx:if="{{currentPlan.freeUsageMode}}" class="metric-unit">个</text><text wx:else class="metric-unit">/{{currentPlan.maxProjects || 3}}</text></view>
           <view class="metric-label">项目数</view>
         </view>
         <view class="current-plan-metric">
-          <view class="metric-value">{{currentPlan.usedStaff || 0}}<text class="metric-unit">/{{currentPlan.maxStaff || 3}}</text></view>
+          <view class="metric-value">{{currentPlan.usedStaff || 0}}<text wx:if="{{currentPlan.freeUsageMode}}" class="metric-unit">人</text><text wx:else class="metric-unit">/{{currentPlan.maxStaff || 3}}</text></view>
           <view class="metric-label">员工数</view>
         </view>
         <view class="current-plan-metric">
-          <view class="metric-value">{{currentPlan.projectPercent || 0}}<text class="metric-unit">%</text></view>
-          <view class="metric-label">项目使用率</view>
+          <view class="metric-value">{{currentPlan.freeUsageMode ? '开放' : currentPlan.projectPercent || 0}}<text wx:if="{{!currentPlan.freeUsageMode}}" class="metric-unit">%</text></view>
+          <view class="metric-label">{{currentPlan.freeUsageMode ? '当前模式' : '项目使用率'}}</view>
         </view>
       </view>
       <view wx:if="{{currentPlan.limitMessage}}" class="current-plan-tip">{{currentPlan.limitMessage}}</view>
@@ -34,7 +35,7 @@
 
     <!-- 可用套餐列表 -->
     <view class="plan-section">
-      <view class="plan-section-title">选择套餐</view>
+      <view class="plan-section-title">{{freeUsageMode ? '后续套餐预留' : '选择套餐'}}</view>
       <view class="plan-grid">
         <view wx:for="{{plans}}" wx:key="id" class="plan-card {{item.id === currentPlanId ? 'plan-card-current' : ''}}" bindtap="selectPlan" data-plan="{{item.id}}">
           <view class="plan-card-top">
@@ -51,7 +52,8 @@
               <text>{{item.text}}</text>
             </view>
           </view>
-          <view wx:if="{{item.id !== currentPlanId}}" class="plan-upgrade-btn">升级为{{item.name}}</view>
+          <view wx:if="{{freeUsageMode}}" class="plan-upgrade-btn plan-current-btn">试运行期可直接使用</view>
+          <view wx:elif="{{item.id !== currentPlanId}}" class="plan-upgrade-btn">升级为{{item.name}}</view>
           <view wx:else class="plan-upgrade-btn plan-current-btn">当前套餐</view>
         </view>
       </view>
@@ -59,8 +61,8 @@
 
     <!-- 升级说明 -->
     <view class="plan-footer-note">
-      <view class="plan-footer-title">💡 升级说明</view>
-      <view class="plan-footer-text">升级后套餐立即生效，旧套餐剩余时间不保留。如需了解更多套餐详情或企业定制，请联系您的服务顾问。</view>
+      <view class="plan-footer-title">{{freeUsageMode ? '试运行说明' : '升级说明'}}</view>
+      <view class="plan-footer-text">{{freeUsageMode ? '当前为上线试运行期，不强制购买套餐。后续如推出高级版本，会提前通知，不影响当前项目正常查看。' : '升级后套餐立即生效，旧套餐剩余时间不保留。如需了解更多套餐详情或企业定制，请联系您的服务顾问。'}}</view>
     </view>
 
     <!-- 升级中的 loading 遮罩 -->

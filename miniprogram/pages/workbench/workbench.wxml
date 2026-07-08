@@ -1,6 +1,46 @@
 <view class="workbench-page">
   <view wx:if="{{!authReady}}" class="workbench-loading"><view class="workbench-loading-hero"><view class="workbench-loading-title">晟景透明工地</view><view class="workbench-loading-pulse"></view></view><view class="workbench-loading-body"><view class="skeleton-card"></view><view class="skeleton-grid"><view class="skeleton-card"></view><view class="skeleton-card"></view></view></view></view>
 
+  <!-- ========== 首次进入：角色分流首页 ========== -->
+  <block wx:elif="{{authReady && showRoleEntry}}">
+    <view class="role-entry-hero">
+      <view class="role-entry-eyebrow">晟景透明工地</view>
+      <view class="role-entry-title">你想从哪里进入？</view>
+      <view class="role-entry-desc">业主看进度，员工做现场，装修公司管理工地。选错也没关系，可以返回重新选择。</view>
+    </view>
+
+    <view class="role-entry-list">
+      <view class="role-entry-card owner" bindtap="enterOwnerPortal">
+        <view class="role-entry-mark">业</view>
+        <view class="role-entry-copy">
+          <view class="role-entry-name">我是业主</view>
+          <view class="role-entry-text">查看装修进度、现场照片、设计资料和完工服务</view>
+        </view>
+        <view class="role-entry-arrow">›</view>
+      </view>
+
+      <view class="role-entry-card staff" bindtap="enterStaffPortal">
+        <view class="role-entry-mark">工</view>
+        <view class="role-entry-copy">
+          <view class="role-entry-name">我是员工 / 工长</view>
+          <view class="role-entry-text">上传施工日报、查看分配工地、提交现场照片</view>
+        </view>
+        <view class="role-entry-arrow">›</view>
+      </view>
+
+      <view class="role-entry-card company" bindtap="enterCompanyPortal">
+        <view class="role-entry-mark">企</view>
+        <view class="role-entry-copy">
+          <view class="role-entry-name">我是装修公司 / 管理员</view>
+          <view class="role-entry-text">注册企业、管理工地、审核日报、绑定业主</view>
+        </view>
+        <view class="role-entry-arrow">›</view>
+      </view>
+    </view>
+
+    <view class="role-entry-note">企业注册入口已保留；业主和员工不会再默认跳到公司注册页。</view>
+  </block>
+
   <!-- ========== 业主端：安心首页 ========== -->
   <block wx:elif="{{authReady && isOwner}}">
     <view class="owner-hero">
@@ -315,7 +355,7 @@
       <!-- 当前套餐卡片 -->
       <view wx:if="{{tenantPlan}}" class="boss-plan-card">
         <view class="boss-plan-head">
-          <view class="boss-plan-title">当前套餐</view>
+          <view class="boss-plan-title">{{tenantPlan.freeUsageMode ? '试运行免费开放' : '当前套餐'}}</view>
           <view class="boss-plan-badge {{tenantPlan.status}}">{{tenantPlan.planName}}</view>
         </view>
         <view class="boss-plan-status-row">
@@ -328,7 +368,8 @@
             <view class="boss-plan-metric-bar">
               <view class="boss-plan-metric-fill {{tenantPlan.isProjectAtLimit ? 'danger' : tenantPlan.isProjectNearLimit ? 'warn' : ''}}" style="width: {{tenantPlan.projectPercent}}%;"></view>
             </view>
-            <view class="boss-plan-metric-text">已用 {{tenantPlan.usedProjects}} / 共 {{tenantPlan.maxProjects}}</view>
+            <view wx:if="{{tenantPlan.freeUsageMode}}" class="boss-plan-metric-text">已建 {{tenantPlan.usedProjects}} 个，暂不限制</view>
+            <view wx:else class="boss-plan-metric-text">已用 {{tenantPlan.usedProjects}} / 共 {{tenantPlan.maxProjects}}</view>
           </view>
         </view>
         <view class="boss-plan-metric-row">
@@ -337,12 +378,13 @@
             <view class="boss-plan-metric-bar">
               <view class="boss-plan-metric-fill {{tenantPlan.isStaffAtLimit ? 'danger' : tenantPlan.isStaffNearLimit ? 'warn' : ''}}" style="width: {{tenantPlan.staffPercent}}%;"></view>
             </view>
-            <view class="boss-plan-metric-text">已用 {{tenantPlan.usedStaff}} / 共 {{tenantPlan.maxStaff}}</view>
+            <view wx:if="{{tenantPlan.freeUsageMode}}" class="boss-plan-metric-text">已激活 {{tenantPlan.usedStaff}} 人，暂不限制</view>
+            <view wx:else class="boss-plan-metric-text">已用 {{tenantPlan.usedStaff}} / 共 {{tenantPlan.maxStaff}}</view>
           </view>
         </view>
         <view wx:if="{{tenantPlan.limitMessage}}" class="boss-plan-tip">{{tenantPlan.limitMessage}}</view>
         <view class="boss-plan-upgrade" bindtap="goPlanUpgrade">
-          <text>查看套餐详情</text>
+          <text>{{tenantPlan.freeUsageMode ? '查看开放说明' : '查看套餐详情'}}</text>
           <text class="boss-plan-upgrade-arrow">›</text>
         </view>
       </view>

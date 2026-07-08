@@ -15,6 +15,7 @@ const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 const PLAN_MODULES = ['project', 'daily_report', 'owner_view']
 const STAFF_LIMIT_ROLES = ['manager', 'foreman', 'designer', 'worker', 'project_manager', 'sales']
+const ENABLE_FREE_TRIAL_USAGE = true
 
 const ROLE_LABELS = {
   worker: '工长',
@@ -116,6 +117,8 @@ function createPlanLimitError(code, message) {
 
 async function assertStaffLimit(tenantId) {
   const plan = await getTenantPlan(tenantId)
+  if (ENABLE_FREE_TRIAL_USAGE) return plan
+
   const countRes = await db.collection('users')
     .where({
       tenantId: staffTenantWhere(tenantId),

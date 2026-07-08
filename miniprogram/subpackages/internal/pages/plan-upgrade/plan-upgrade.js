@@ -1,18 +1,20 @@
 const { call, showError } = require('../../../../services/cloud')
 
+const ENABLE_FREE_TRIAL_USAGE = true
+
 const PLANS = [
   {
     id: 'free',
-    name: '免费版',
-    subtitle: '小团队入门',
-    price: '免费',
+    name: '试运行免费版',
+    subtitle: '上线初期开放使用',
+    price: '免费开放',
     color: '#6B7280',
     badge: 'free',
-    maxProjects: 3,
-    maxStaff: 3,
+    maxProjects: 9999,
+    maxStaff: 9999,
     features: [
-      { icon: '✓', text: '最多 3 个项目', ok: true },
-      { icon: '✓', text: '最多 3 名员工', ok: true },
+      { icon: '✓', text: '试运行期暂不限制项目数', ok: true },
+      { icon: '✓', text: '试运行期暂不限制员工数', ok: true },
       { icon: '✓', text: '工地日报 & 照片', ok: true },
       { icon: '✓', text: '业主扫码查看进度', ok: true },
       { icon: '✗', text: 'AI 业主摘要', ok: false },
@@ -81,6 +83,7 @@ Page({
     plans: PLANS,
     currentPlan: null,
     currentPlanId: 'free',
+    freeUsageMode: ENABLE_FREE_TRIAL_USAGE,
     upgrading: false,
     selectedPlanId: ''
   },
@@ -113,6 +116,16 @@ Page({
     this.setData({ selectedPlanId: planId })
     const plan = PLANS.find(p => p.id === planId)
     if (!plan) return
+    if (this.data.freeUsageMode) {
+      wx.showModal({
+        title: '试运行期免费开放',
+        content: '当前阶段暂不强制升级套餐，工地、员工、业主绑定和施工日报主链路可继续使用。后续如推出高级版本，会提前通知。',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#1B7A56'
+      })
+      return
+    }
     if (planId === this.data.currentPlanId) {
       wx.showToast({ title: '当前已是该套餐', icon: 'none' })
       return

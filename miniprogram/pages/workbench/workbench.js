@@ -31,6 +31,7 @@ Page({
     canManageStaff: false,
     canAfterSales: false,
     canViewDealLoopV2: false,
+    showRoleEntry: false,
     isBoss: false,
     isOwner: false,
     isWorker: false,
@@ -104,11 +105,14 @@ Page({
 
     const user = app.globalData.user || null
     this.setAccess(user)
-    this.setData({ authReady: false, pendingCount: 0 })
-    app.ensureLogin(isStaffEntry || isWorkerEntry ? { allowGuestFlow: true } : {})
+    this.setData({ authReady: false, pendingCount: 0, showRoleEntry: false })
+    const loginOptions = isStaffEntry || isWorkerEntry
+      ? { allowGuestFlow: true }
+      : { skipRegisterRedirect: true }
+    app.ensureLogin(loginOptions)
       .then((loginUser) => {
         this.setAccess(loginUser)
-        this.setData({ authReady: true })
+        this.setData({ authReady: true, showRoleEntry: false })
         if ((isStaffEntry || isWorkerEntry) && loginUser && loginUser.role === 'owner') {
           this.setData({ isOwner: false, loading: false })
           return
@@ -120,7 +124,31 @@ Page({
         this.loadStaffDashboard()
       })
       .catch((error) => {
-        if (error && error.needRegister) return
+        if (error && error.needRegister) {
+          this.setAccess(null)
+          this.setData({
+            authReady: true,
+            showRoleEntry: true,
+            loading: false,
+            pendingCount: 0,
+            projectCount: 0,
+            activeProjectCount: 0,
+            afterSalesPendingCount: 0,
+            tenantPlan: null,
+            bossDashboard: null,
+            bossAlerts: [],
+            staffRank: [],
+            recentActivities: [],
+            ownerProject: null,
+            ownerPortal: null,
+            completedProject: null,
+            historicalCustomer: null,
+            workerProject: null,
+            workerRecentLogs: [],
+            workerCheckins: []
+          })
+          return
+        }
         this.setData({ authReady: true })
         this.loadStaffDashboard()
       })
@@ -449,6 +477,54 @@ Page({
     wx.navigateTo({ url: `/subpackages/internal/pages/project-detail/project-detail?id=${project._id}` })
   },
 
+  enterOwnerPortal() {
+    this.goOwnerProject()
+  },
+
+  enterStaffPortal() {
+    const app = getApp()
+    this.setData({ loading: true })
+    app.ensureLogin({ allowGuestFlow: true, skipRegisterRedirect: true })
+      .then((loginUser) => {
+        this.setAccess(loginUser)
+
+        if (loginUser && loginUser.role && loginUser.role !== 'owner') {
+          this.setData({
+            authReady: true,
+            showRoleEntry: false,
+            loading: false
+          })
+          this.loadStaffDashboard()
+          return
+        }
+
+        this.setData({
+          authReady: true,
+          showRoleEntry: true,
+          loading: false
+        })
+        this.showStaffActivate()
+      })
+      .catch((error) => {
+        this.setData({ loading: false, showRoleEntry: true })
+        showError('进入员工入口失败', error)
+      })
+  },
+
+  enterCompanyPortal() {
+    const user = this.data.user || (getApp().globalData && getApp().globalData.user) || null
+    const role = user && user.role
+    const isBoss = ['admin', 'boss_qi', 'boss_hu'].indexOf(role) !== -1
+
+    if (user && user.tenantId && isBoss) {
+      this.setData({ showRoleEntry: false, authReady: true })
+      this.loadStaffDashboard()
+      return
+    }
+
+    wx.navigateTo({ url: '/pages/register/register?entry=boss_register' })
+  },
+
   showWorkerProjectBind() {
     this.setData({ workerProjectCodeVisible: true, workerProjectCode: '' })
   },
@@ -596,7 +672,7 @@ Page({
         app.ensureLogin({ force: true })
           .then((loginUser) => {
             this.setAccess(loginUser)
-            this.setData({ authReady: true })
+            this.setData({ authReady: true, showRoleEntry: false })
             if (loginUser && loginUser.role === 'owner') {
               this.loadOwnerHome()
             } else {

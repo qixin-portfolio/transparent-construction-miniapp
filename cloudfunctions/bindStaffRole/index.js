@@ -8,6 +8,7 @@ const _ = db.command
 const INVITABLE_ROLES = ['worker', 'project_manager', 'designer', 'sales', 'boss_qi', 'boss_hu']
 const STAFF_LIMIT_ROLES = ['manager', 'foreman', 'designer', 'worker', 'project_manager', 'sales']
 const PLAN_MODULES = ['project', 'daily_report', 'owner_view']
+const ENABLE_FREE_TRIAL_USAGE = true
 
 const ROLE_LABELS = {
   worker: '工长',
@@ -95,6 +96,8 @@ function createPlanLimitError(code, message) {
 
 async function assertStaffLimit(tenantId) {
   const plan = await getTenantPlan(tenantId)
+  if (ENABLE_FREE_TRIAL_USAGE) return plan
+
   const countRes = await db.collection('users')
     .where({
       tenantId: staffTenantWhere(tenantId),

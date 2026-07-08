@@ -179,6 +179,12 @@ Page({
     })
   },
 
+  goRoleEntry() {
+    wx.switchTab({
+      url: '/pages/workbench/workbench'
+    })
+  },
+
   goWorkbench() {
     wx.switchTab({
       url: '/pages/workbench/workbench'

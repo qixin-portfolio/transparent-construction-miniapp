@@ -6,6 +6,8 @@ const db = cloud.database()
 const _ = db.command
 
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
+const ENABLE_FREE_TRIAL_USAGE = true
+const FREE_USAGE_LIMIT_MESSAGE = '当前为上线试运行期，暂不限制工地数量。后续如推出高级版本，会提前通知，不影响当前项目正常查看。'
 
 const PLAN_NAMES = {
   free: '免费试用版',
@@ -121,17 +123,20 @@ exports.main = async () => {
       .count()
     const usedStaff = usedStaffRes.total || 0
 
-    // 计算百分比
-    const projectPercent = maxProjects > 0 ? Math.min(Math.round((usedProjects / maxProjects) * 100), 100) : 0
-    const staffPercent = maxStaff > 0 ? Math.min(Math.round((usedStaff / maxStaff) * 100), 100) : 0
+    const displayMaxProjects = ENABLE_FREE_TRIAL_USAGE ? Math.max(maxProjects, usedProjects, 9999) : maxProjects
+    const displayMaxStaff = ENABLE_FREE_TRIAL_USAGE ? Math.max(maxStaff, usedStaff, 9999) : maxStaff
 
-    const isProjectNearLimit = maxProjects > 0 && usedProjects >= maxProjects - 1
-    const isStaffNearLimit = maxStaff > 0 && usedStaff >= maxStaff - 1
-    const isProjectAtLimit = maxProjects > 0 && usedProjects >= maxProjects
-    const isStaffAtLimit = maxStaff > 0 && usedStaff >= maxStaff
+    // 计算百分比
+    const projectPercent = displayMaxProjects > 0 ? Math.min(Math.round((usedProjects / displayMaxProjects) * 100), 100) : 0
+    const staffPercent = displayMaxStaff > 0 ? Math.min(Math.round((usedStaff / displayMaxStaff) * 100), 100) : 0
+
+    const isProjectNearLimit = !ENABLE_FREE_TRIAL_USAGE && displayMaxProjects > 0 && usedProjects >= displayMaxProjects - 1
+    const isStaffNearLimit = !ENABLE_FREE_TRIAL_USAGE && displayMaxStaff > 0 && usedStaff >= displayMaxStaff - 1
+    const isProjectAtLimit = !ENABLE_FREE_TRIAL_USAGE && displayMaxProjects > 0 && usedProjects >= displayMaxProjects
+    const isStaffAtLimit = !ENABLE_FREE_TRIAL_USAGE && displayMaxStaff > 0 && usedStaff >= displayMaxStaff
 
     // 生成提示文案
-    let limitMessage = ''
+    let limitMessage = ENABLE_FREE_TRIAL_USAGE ? FREE_USAGE_LIMIT_MESSAGE : ''
     const isNearLimit = isProjectNearLimit || isStaffNearLimit
     const isAtLimit = isProjectAtLimit || isStaffAtLimit
     if (isAtLimit) {
@@ -147,8 +152,10 @@ exports.main = async () => {
       planName: PLAN_NAMES[plan] || plan,
       status,
       statusText: STATUS_TEXTS[status] || status,
-      maxProjects,
-      maxStaff,
+      maxProjects: displayMaxProjects,
+      maxStaff: displayMaxStaff,
+      rawMaxProjects: maxProjects,
+      rawMaxStaff: maxStaff,
       usedProjects,
       usedStaff,
       enabledModules,
@@ -160,6 +167,7 @@ exports.main = async () => {
       isStaffNearLimit,
       isProjectAtLimit,
       isStaffAtLimit,
+      freeUsageMode: ENABLE_FREE_TRIAL_USAGE,
       limitMessage
     }
   } catch (error) {
