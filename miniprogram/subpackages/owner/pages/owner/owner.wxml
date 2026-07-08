@@ -9,8 +9,8 @@
     <view class="bind-hero">
       <view class="bind-hero-icon">🏠</view>
       <view class="bind-eyebrow">晟景透明工地</view>
-      <view class="bind-title">绑定后查看专属进度</view>
-      <view class="bind-desc">输入晟景提供的 6 位绑定码，只展示属于您的工地内容。</view>
+      <view class="bind-title">小监工还没找到你的工地</view>
+      <view class="bind-desc">请联系晟景工作人员获取 6 位绑定码，绑定后查看装修进度、现场照片和完工服务。</view>
     </view>
 
     <view class="bind-panel">
@@ -111,6 +111,21 @@
       </view>
     </view>
 
+    <view class="owner-header-card xiaojiangong-reminder-card">
+      <view class="project-identity xiaojiangong-reminder-head">
+        <view class="owner-notice-copy">
+          <view class="xiaojiangong-reminder-kicker">晟景小监工</view>
+          <view class="owner-header-name">小监工提醒</view>
+          <view class="owner-notice-desc">{{xiaojiangongReminder}}</view>
+        </view>
+        <view class="brand-badge-pill">进度清楚</view>
+      </view>
+      <view class="crew-box xiaojiangong-reminder-box">
+        <view class="crew-txt">施工日报有记录，现场照片看得见。</view>
+        <view class="phone-ring-btn" bindtap="goTimelineSection">去看看</view>
+      </view>
+    </view>
+
     <view wx:if="{{visibleLogs.length}}" class="section-lux-white today-bulletin">
       <view class="section-title-row">
         <view>
@@ -146,6 +161,17 @@
       <view class="gate-card" bindtap="goTimelineSection">
         <view class="gate-icon">📑</view>
         <view class="gate-title">全量历史施工日报</view>
+      </view>
+    </view>
+
+    <view wx:if="{{!renderDrawings.length || !photoWall.length}}" class="xiaojiangong-empty-stack">
+      <view wx:if="{{!photoWall.length}}" class="xiaojiangong-empty-card">
+        <view class="xiaojiangong-empty-title">现场照片还没上传</view>
+        <view class="xiaojiangong-empty-desc">上传后你可以在这里查看工地进度。</view>
+      </view>
+      <view wx:if="{{!renderDrawings.length}}" class="xiaojiangong-empty-card">
+        <view class="xiaojiangong-empty-title">设计方案上传后</view>
+        <view class="xiaojiangong-empty-desc">小监工会提醒你在线查看确认。</view>
       </view>
     </view>
 
@@ -264,8 +290,8 @@
     </view>
 
     <view wx:else class="card empty">
-      <view class="empty-title">已绑定工地</view>
-      <view class="muted">暂无已审核进度，请耐心等待</view>
+      <view class="empty-title">今天还没有施工日报</view>
+      <view class="muted">小监工会提醒工长及时更新，审核后你就能看到。</view>
     </view>
   </block>
 </view>

@@ -46,6 +46,24 @@ function getBindCodeFromOptions(options = {}) {
   return String(sceneParts.bindCode || sceneParts.ownerBindCode || '').replace(/\s/g, '')
 }
 
+function makeXiaojiangongReminder(project, stats) {
+  const stageText = String(
+    (project && project.currentStage) ||
+    (stats && stats.latestStage) ||
+    (project && project.status) ||
+    ''
+  )
+  const statusCode = String((project && project.statusCode) || '')
+  const progress = Number((project && project.progress) || 0)
+  const delivered = statusCode === 'delivered' || /已交付|竣工|完工/.test(stageText) || progress >= 100
+
+  if (/水电/.test(stageText)) return '水电阶段完成后，建议重点查看管线照片和验收记录。'
+  if (/防水/.test(stageText)) return '防水阶段建议重点查看闭水记录和现场照片。'
+  if (/瓦工|泥瓦|贴砖|瓷砖/.test(stageText)) return '瓦工阶段建议查看瓷砖铺贴、缝隙和阳角处理。'
+  if (delivered) return '完工后可以查看家装档案、电子质保和售后服务。'
+  return '小监工帮你整理了今日工地进度。'
+}
+
 Page({
   data: {
     loading: false,
@@ -73,7 +91,8 @@ Page({
     timelineCollapsedCount: 3,
     autoFilled: false,
     subscribed: false,
-    renderDrawings: []
+    renderDrawings: [],
+    xiaojiangongReminder: '小监工帮你整理了今日工地进度。'
   },
 
   onLoad(options) {
@@ -108,7 +127,8 @@ Page({
           animatedProgress: 0,
           animatedProgressDeg: 0,
           heroPhotos: [],
-          filteredPhotoWall: [], photoStages: [], renderDrawings: []
+          filteredPhotoWall: [], photoStages: [], renderDrawings: [],
+          xiaojiangongReminder: '小监工帮你整理了今日工地进度。'
         })
         showError('登录失败', error)
       })
@@ -125,6 +145,7 @@ Page({
         const photoWall = this.makePhotoWall(logs)
         const stages = this.buildStageList(photoWall)
         const project = res.project || null
+        const stats = this.makeStats(logs)
         this.setData({
           project,
           projectProgressDeg: this.makeProgressDeg((project || {}).progress),
@@ -132,14 +153,15 @@ Page({
           animatedProgressDeg: 0,
           logs,
           visibleLogs: logs.slice(0, this.data.timelineCollapsedCount),
-          stats: this.makeStats(logs),
+          stats,
           photoWall,
           heroPhotos: photoWall.slice(0, 3),
           filteredPhotoWall: photoWall,
           photoStages: stages,
           filterStage: '',
           timelineExpanded: false,
-          renderDrawings: []
+          renderDrawings: [],
+          xiaojiangongReminder: makeXiaojiangongReminder(project, stats)
         }, () => {
           this.playProgressMotion((project || {}).progress)
         })
@@ -153,6 +175,7 @@ Page({
           const logs = this.prepareLogs(demoLogs)
           const photoWall = this.makePhotoWall(logs)
           const project = demoProjects[0]
+          const stats = this.makeStats(logs)
           this.setData({
             project,
             projectProgressDeg: this.makeProgressDeg((project || {}).progress),
@@ -160,14 +183,15 @@ Page({
             animatedProgressDeg: 0,
             logs,
             visibleLogs: logs.slice(0, this.data.timelineCollapsedCount),
-            stats: this.makeStats(logs),
+            stats,
             photoWall,
             heroPhotos: photoWall.slice(0, 3),
             filteredPhotoWall: photoWall,
             photoStages: this.buildStageList(photoWall),
             filterStage: '',
             timelineExpanded: false,
-            renderDrawings: []
+            renderDrawings: [],
+            xiaojiangongReminder: makeXiaojiangongReminder(project, stats)
           }, () => {
             this.playProgressMotion((project || {}).progress)
           })
@@ -179,7 +203,8 @@ Page({
           animatedProgress: 0,
           animatedProgressDeg: 0,
           heroPhotos: [],
-          filteredPhotoWall: [], photoStages: [], renderDrawings: []
+          filteredPhotoWall: [], photoStages: [], renderDrawings: [],
+          xiaojiangongReminder: '小监工帮你整理了今日工地进度。'
         })
         showError('业主进度加载失败', error)
       })

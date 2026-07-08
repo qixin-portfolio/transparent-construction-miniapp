@@ -9,6 +9,7 @@
   <view class="review-flow-card">
     <view class="review-flow-title">审核是业主可见前的最后一道门</view>
     <view class="review-flow-desc">通过：同步当前阶段和进度，照片对业主可见；退回：保留内部记录，不展示给业主。</view>
+    <view wx:if="{{items.length}}" class="review-flow-helper">小监工提醒：有新的施工日报待审核。</view>
   </view>
 
   <!-- 待审核列表 -->
@@ -88,13 +89,13 @@
     <view class="review-empty-icon">✓</view>
     <view class="empty-title">{{loading ? '正在加载' : '暂无待审核'}}</view>
     <view class="muted">{{loading ? '待审核日报加载中...' : '所有日报已审核完毕'}}</view>
-    <view wx:if="{{!loading}}" class="review-empty-note">工长提交新日报后，会自动出现在这里。</view>
+    <view wx:if="{{!loading}}" class="review-empty-note">小监工会把新的施工日报放到这里，审核后业主才能查看。</view>
   </view>
 
   <view wx:if="{{rejectDialogVisible}}" class="reject-mask" bindtap="hideRejectDialog">
     <view class="reject-panel" catchtap="noop">
       <view class="reject-title">退回原因</view>
-      <view class="reject-desc">填写清楚需要修改的地方，工长重新提交时能直接对照处理。</view>
+      <view class="reject-desc">请补充现场照片或施工说明后重新提交。也可以写清楚具体要改的地方。</view>
       <textarea class="textarea reject-textarea" maxlength="120" placeholder="例如：照片缺少水电定位全景，请补拍后重新提交。" value="{{rejectReason}}" bindinput="onRejectReasonInput"></textarea>
       <view class="reject-actions">
         <button class="button-secondary" bindtap="hideRejectDialog" disabled="{{reviewingId}}">取消</button>

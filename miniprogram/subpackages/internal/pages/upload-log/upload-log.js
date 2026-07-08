@@ -828,10 +828,21 @@ Page({
         sourceType: this.data.sourceType
       }))
       .then((res) => {
+        const successTips = ['小监工已收到今日施工记录。']
+        if (res.noticeSent) {
+          successTips.push('已提醒管理员审核。')
+        }
+        successTips.push('管理员审核通过后，业主才能看到这条日报和现场照片。')
+        if (!this.data.images.length) {
+          successTips.push('建议补充现场照片，让业主看得更清楚。')
+        }
+        if (String(this.data.form.workContent || '').trim().length < 12) {
+          successTips.push('施工说明还不够完整，补充后更方便老板审核。')
+        }
         this.clearDraft({ silent: true })
         wx.showModal({
-          title: res.noticeSent ? '已提交并提醒审核' : '已提交待审核',
-          content: '管理员审核通过后，业主才能看到这条日报和现场照片。',
+          title: '已上传',
+          content: successTips.join(''),
           showCancel: false,
           confirmText: '知道了',
           success: () => wx.navigateBack()

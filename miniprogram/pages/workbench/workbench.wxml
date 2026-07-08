@@ -7,6 +7,12 @@
       <view class="role-entry-eyebrow">晟景透明工地</view>
       <view class="role-entry-title">你想从哪里进入？</view>
       <view class="role-entry-desc">业主看进度，员工做现场，装修公司管理工地。选错也没关系，可以返回重新选择。</view>
+      <view class="xiaojiangong-welcome-card">
+        <view class="xiaojiangong-kicker">晟景小监工</view>
+        <view class="xiaojiangong-title">晟景小监工为你记录装修进度</view>
+        <view class="xiaojiangong-desc">施工日报、现场照片、设计方案，手机上就能看。</view>
+        <view class="xiaojiangong-slogan">装修进度，看得见才放心</view>
+      </view>
     </view>
 
     <view class="role-entry-list">
@@ -119,8 +125,8 @@
 
     <view wx:else class="owner-bind-card">
       <view class="owner-bind-icon">🏠</view>
-      <view class="owner-bind-title">还未绑定工地</view>
-      <view class="owner-bind-desc">输入晟景提供的 6 位绑定码后，即可查看专属施工进度。</view>
+      <view class="owner-bind-title">小监工还没找到你的工地</view>
+      <view class="owner-bind-desc">请联系晟景工作人员获取 6 位绑定码，绑定后查看装修进度、现场照片和完工服务。</view>
       <button class="button-primary owner-bind-action" bindtap="goOwnerProject">绑定我的工地</button>
     </view>
 
@@ -246,7 +252,7 @@
               </view>
             </view>
           </view>
-          <view wx:else class="worker-empty">还没有日报，先上传今天现场情况</view>
+          <view wx:else class="worker-empty">今天还没有施工日报，小监工会提醒及时更新</view>
         </view>
       </view>
 
