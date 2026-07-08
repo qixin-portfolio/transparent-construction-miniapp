@@ -139,3 +139,49 @@ errmsg: system error.
 建议先解决云函数部署失败，再上传体验版。
 
 当前不建议直接上传体验版。
+
+---
+
+## 13. 体验版上传补充确认
+
+用户反馈云函数已在微信开发者工具中部署成功。
+
+Codex 随后再次尝试通过 CLI 部署以下 4 个云函数，但 CLI 仍返回 `getCloudAPISignedHeader failed / ret=41002 / system error`：
+
+- `createProject`
+- `getCurrentTenantPlan`
+- `createStaffInviteCode`
+- `bindStaffRole`
+
+因此云函数部署状态以用户在微信开发者工具中的人工部署成功反馈为准。
+
+随后已通过微信开发者工具 CLI 上传体验版：
+
+```bash
+/Applications/wechatwebdevtools.app/Contents/MacOS/cli upload \
+  --project "/Users/qixin/Documents/晟景AI助理/透明工地小程序/开发骨架" \
+  --version "7.2.0" \
+  --desc "V1上线后体验优化：首页角色分流；试运行期免费开放；V2成交闭环入口保持关闭。" \
+  --info-output "/Users/qixin/Documents/晟景AI助理/透明工地小程序/开发骨架/AI_TASKS/v1_launch2_upload_info.json"
+```
+
+上传结果：成功。
+
+包体信息：
+
+| 分包 | 大小 |
+| --- | ---: |
+| TOTAL | 1.9 MB |
+| main | 1.3 MB |
+| /subpackages/deal-loop/ | 131.6 KB |
+| /subpackages/internal/ | 251.0 KB |
+| /subpackages/owner/ | 156.5 KB |
+
+当前确认：
+
+- 体验版已上传。
+- 未发布正式版。
+- `ENABLE_V2_DEAL_LOOP_ENTRY = false`。
+- V2 成交闭环入口继续关闭。
+- 体验版版本：`7.2.0`。
+- 体验版备注：`V1上线后体验优化：首页角色分流；试运行期免费开放；V2成交闭环入口保持关闭。`
