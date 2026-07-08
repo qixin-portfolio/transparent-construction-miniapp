@@ -8,10 +8,13 @@
       <view class="role-entry-title">你想从哪里进入？</view>
       <view class="role-entry-desc">业主看进度，员工做现场，装修公司管理工地。选错也没关系，可以返回重新选择。</view>
       <view class="xiaojiangong-welcome-card">
-        <view class="xiaojiangong-kicker">晟景小监工</view>
-        <view class="xiaojiangong-title">晟景小监工为你记录装修进度</view>
-        <view class="xiaojiangong-desc">施工日报、现场照片、设计方案，手机上就能看。</view>
-        <view class="xiaojiangong-slogan">装修进度，看得见才放心</view>
+        <view class="xiaojiangong-welcome-copy">
+          <view class="xiaojiangong-kicker">晟景小监工</view>
+          <view class="xiaojiangong-title">晟景小监工为你记录装修进度</view>
+          <view class="xiaojiangong-desc">施工日报、现场照片、设计方案，手机上就能看。</view>
+          <view class="xiaojiangong-slogan">装修进度，看得见才放心</view>
+        </view>
+        <image class="xiaojiangong-welcome-image" src="/images/xiaojiangong/xiaojiangong-standard.png" mode="aspectFit"></image>
       </view>
     </view>
 

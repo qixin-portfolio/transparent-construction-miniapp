@@ -200,11 +200,25 @@
 
 /* Stage 1 · 审核发布说明 */
 .review-flow-card {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
   margin-bottom: 24rpx;
   padding: 32rpx;
   border-radius: 32rpx;
   background: #1B7A56;
   color: #FFFFFF;
+}
+
+.review-flow-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.review-flow-mascot {
+  flex-shrink: 0;
+  width: 96rpx;
+  height: 150rpx;
 }
 
 .review-flow-title {

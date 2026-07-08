@@ -7,9 +7,12 @@
   </view>
 
   <view class="review-flow-card">
-    <view class="review-flow-title">审核是业主可见前的最后一道门</view>
-    <view class="review-flow-desc">通过：同步当前阶段和进度，照片对业主可见；退回：保留内部记录，不展示给业主。</view>
-    <view wx:if="{{items.length}}" class="review-flow-helper">小监工提醒：有新的施工日报待审核。</view>
+    <view class="review-flow-copy">
+      <view class="review-flow-title">审核是业主可见前的最后一道门</view>
+      <view class="review-flow-desc">通过：同步当前阶段和进度，照片对业主可见；退回：保留内部记录，不展示给业主。</view>
+      <view wx:if="{{items.length}}" class="review-flow-helper">小监工提醒：有新的施工日报待审核。</view>
+    </view>
+    <image class="review-flow-mascot" src="/images/xiaojiangong/xiaojiangong-reviewed.png" mode="aspectFit"></image>
   </view>
 
   <!-- 待审核列表 -->

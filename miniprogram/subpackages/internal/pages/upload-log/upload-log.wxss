@@ -224,11 +224,25 @@
 }
 
 .report-tip-card {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
   padding: 24rpx 28rpx;
   border-radius: 24rpx;
   background: #E8F5EE;
   color: #1B7A56;
   box-shadow: none;
+}
+
+.report-tip-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.report-tip-mascot {
+  flex-shrink: 0;
+  width: 92rpx;
+  height: 146rpx;
 }
 
 .report-tip-title {

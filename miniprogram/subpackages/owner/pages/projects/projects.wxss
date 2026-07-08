@@ -80,6 +80,12 @@
   padding: 88rpx 40rpx;
 }
 
+.project-empty-mascot {
+  width: 148rpx;
+  height: 200rpx;
+  margin: 0 auto 16rpx;
+}
+
 .empty-title {
   color: #1A1A1A;
   font-size: 32rpx;

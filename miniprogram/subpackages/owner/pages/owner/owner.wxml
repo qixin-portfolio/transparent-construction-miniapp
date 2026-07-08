@@ -7,7 +7,7 @@
   <!-- ========== 绑定流程 ========== -->
   <view wx:elif="{{!project}}" class="bind-state">
     <view class="bind-hero">
-      <view class="bind-hero-icon">🏠</view>
+      <image class="bind-hero-mascot" src="/images/xiaojiangong/xiaojiangong-standard.png" mode="aspectFit"></image>
       <view class="bind-eyebrow">晟景透明工地</view>
       <view class="bind-title">小监工还没找到你的工地</view>
       <view class="bind-desc">请联系晟景工作人员获取 6 位绑定码，绑定后查看装修进度、现场照片和完工服务。</view>
@@ -118,6 +118,7 @@
           <view class="owner-header-name">小监工提醒</view>
           <view class="owner-notice-desc">{{xiaojiangongReminder}}</view>
         </view>
+        <image class="xiaojiangong-reminder-image" src="/images/xiaojiangong/xiaojiangong-reminder.png" mode="aspectFit"></image>
         <view class="brand-badge-pill">进度清楚</view>
       </view>
       <view class="crew-box xiaojiangong-reminder-box">

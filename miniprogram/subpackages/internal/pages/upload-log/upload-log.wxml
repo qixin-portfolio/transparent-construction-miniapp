@@ -7,8 +7,11 @@
   </view>
 
   <view class="report-tip-card">
-    <view class="report-tip-title">先选工序节点，再录入日报</view>
-    <view class="report-tip-desc">提交后进入审核，审核通过后业主端可见。</view>
+    <view class="report-tip-copy">
+      <view class="report-tip-title">先选工序节点，再录入日报</view>
+      <view class="report-tip-desc">提交后进入审核，审核通过后业主端可见。</view>
+    </view>
+    <image class="report-tip-mascot" src="/images/xiaojiangong/xiaojiangong-uploaded.png" mode="aspectFit"></image>
   </view>
 
   <!-- 工地信息卡 + 阶段选择 -->

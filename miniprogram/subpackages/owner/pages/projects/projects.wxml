@@ -10,6 +10,7 @@
   </view>
 
   <view wx:elif="{{!items.length}}" class="project-empty">
+    <image class="project-empty-mascot" src="/images/xiaojiangong/xiaojiangong-standard.png" mode="aspectFit"></image>
     <view class="empty-title">小监工还没找到你的工地</view>
     <view class="empty-desc">请联系晟景工作人员获取 6 位绑定码，绑定后可以查看装修进度、现场照片和完工服务。</view>
     <view wx:if="{{loadError}}" class="empty-error">{{loadError}}</view>

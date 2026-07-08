@@ -94,22 +94,37 @@
 
 ## 10. 素材使用情况
 
-本阶段未发现本地晟景小监工 PNG 素材。
+初版提交时未发现本地晟景小监工 PNG 素材，因此先采用纯文案卡片和预留 class。
+
+后续补充接入了用户提供的本地素材，来源目录：
+
+- `/Users/qixin/Documents/晟景AI助理/AI助手资料/官网素材待审核/01_小监工IP标准图.png`
+- `/Users/qixin/Documents/晟景AI助理/AI助手资料/官网素材待审核/02_小监工状态贴纸.png`
+
+已处理为小程序可用图片：
+
+- `miniprogram/images/xiaojiangong/xiaojiangong-standard.png`
+- `miniprogram/images/xiaojiangong/xiaojiangong-uploaded.png`
+- `miniprogram/images/xiaojiangong/xiaojiangong-reviewed.png`
+- `miniprogram/images/xiaojiangong/xiaojiangong-reminder.png`
 
 处理方式：
 
+- 只使用用户本地素材。
 - 未生成假图片。
 - 未使用网图。
-- 未接入外部素材。
-- 页面采用纯文案卡片和预留 class。
+- 未使用真人照片。
+- 对素材做了裁切、压缩和轻量透明背景处理。
 
-后续待补充：晟景小监工透明背景 PNG。
+后续如需官网级精修，建议补充更干净的透明背景 PNG。
 
 ## 11. 修改文件列表
 
 - `miniprogram/pages/workbench/workbench.wxml`
 - `miniprogram/pages/workbench/workbench.wxss`
 - `miniprogram/subpackages/internal/pages/upload-log/upload-log.js`
+- `miniprogram/subpackages/internal/pages/upload-log/upload-log.wxml`
+- `miniprogram/subpackages/internal/pages/upload-log/upload-log.wxss`
 - `miniprogram/subpackages/internal/pages/review-log/review-log.js`
 - `miniprogram/subpackages/internal/pages/review-log/review-log.wxml`
 - `miniprogram/subpackages/internal/pages/review-log/review-log.wxss`
@@ -117,6 +132,11 @@
 - `miniprogram/subpackages/owner/pages/owner/owner.wxml`
 - `miniprogram/subpackages/owner/pages/owner/owner.wxss`
 - `miniprogram/subpackages/owner/pages/projects/projects.wxml`
+- `miniprogram/subpackages/owner/pages/projects/projects.wxss`
+- `miniprogram/images/xiaojiangong/xiaojiangong-standard.png`
+- `miniprogram/images/xiaojiangong/xiaojiangong-uploaded.png`
+- `miniprogram/images/xiaojiangong/xiaojiangong-reviewed.png`
+- `miniprogram/images/xiaojiangong/xiaojiangong-reminder.png`
 - `AI_TASKS/V1_LAUNCH3_XIAOJIANGONG_IP_LIGHT_INTEGRATION.md`
 
 ## 12. 权限安全确认

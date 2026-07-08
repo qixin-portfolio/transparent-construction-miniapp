@@ -584,6 +584,12 @@
   margin-bottom: 16rpx;
 }
 
+.bind-hero-mascot {
+  width: 156rpx;
+  height: 210rpx;
+  margin: 0 auto 16rpx;
+}
+
 .bind-title,
 .owner-project-title {
   font-size: 38rpx;
@@ -735,6 +741,7 @@
 }
 
 .xiaojiangong-reminder-head {
+  align-items: center;
   margin-bottom: 20rpx;
 }
 
@@ -748,6 +755,12 @@
 
 .xiaojiangong-reminder-box {
   background: #F3FAF6;
+}
+
+.xiaojiangong-reminder-image {
+  flex-shrink: 0;
+  width: 92rpx;
+  height: 138rpx;
 }
 
 .xiaojiangong-empty-stack {

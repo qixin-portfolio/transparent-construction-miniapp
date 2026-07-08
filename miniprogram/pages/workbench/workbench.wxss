@@ -58,11 +58,26 @@ page {
 }
 
 .xiaojiangong-welcome-card {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
   margin-top: 28rpx;
   padding: 24rpx;
   border: 1rpx solid rgba(255, 255, 255, 0.22);
   border-radius: 24rpx;
   background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.xiaojiangong-welcome-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.xiaojiangong-welcome-image {
+  flex-shrink: 0;
+  width: 132rpx;
+  height: 170rpx;
 }
 
 .xiaojiangong-kicker {
