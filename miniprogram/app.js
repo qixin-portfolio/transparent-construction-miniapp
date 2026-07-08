@@ -160,8 +160,13 @@ App({
   routeEntryContextIfNeeded(context) {
     if (!context) return
     setTimeout(() => {
-      const route = this.getCurrentRoute()
+      const pageInfo = this.getCurrentPageInfo()
+      const route = pageInfo.route
       if (route !== 'pages/register/register') return
+      if (String((pageInfo.options || {}).entry || '') === 'boss_register') {
+        this.clearEntryContext()
+        return
+      }
 
       if (context.type === 'owner_bind') {
         const query = context.bindCode ? `?bindCode=${context.bindCode}` : ''

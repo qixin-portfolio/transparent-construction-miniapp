@@ -16,13 +16,17 @@ Page({
   onLoad(options = {}) {
     const isBossEntry = options.entry === 'boss_register'
     this.setData({ isBossEntry })
-    if (this.routeEntryContext()) return
+    const app = getApp()
+    if (isBossEntry && app.clearEntryContext) {
+      app.clearEntryContext()
+    }
+
     if (!isBossEntry) {
+      if (this.routeEntryContext()) return
       this.handleInvalidEntry()
       return
     }
 
-    const app = getApp()
     const user = app.globalData.user || null
     if (user && user.tenantId) {
       this.goWorkbench()
@@ -30,6 +34,12 @@ Page({
   },
 
   onShow() {
+    if (this.data.isBossEntry) {
+      const app = getApp()
+      const user = app.globalData.user || null
+      if (user && user.tenantId) this.goWorkbench()
+      return
+    }
     if (this.routeEntryContext()) return
     this.routeExistingNonBossUser()
   },
