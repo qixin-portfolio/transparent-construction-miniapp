@@ -10,6 +10,10 @@ const ALL_PROJECT_ROLES = ['admin', 'boss_qi', 'boss_hu']
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
@@ -150,11 +154,11 @@ function isSameSubmitter(item, openid, userId) {
     (userId && (item.submittedBy === userId || item.createdBy === userId))
 }
 
-async function findExistingStageLog(projectId, tenantId, stageCode, stage, openid, userId) {
+async function findExistingStageLog(database, projectId, tenantId, stageCode, stage, openid, userId) {
   const range = getChinaDayRange()
   const baseWhere = {
     projectId,
-    tenantId: _.in([tenantId, '', null]),
+    tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
     createdAt: _.gte(range.start)
   }
   const queries = []
@@ -166,7 +170,7 @@ async function findExistingStageLog(projectId, tenantId, stageCode, stage, openi
   }
 
   for (const where of queries) {
-    const res = await db.collection('stage_logs').where(where).orderBy('createdAt', 'desc').limit(20).get()
+    const res = await database.collection('stage_logs').where(where).orderBy('createdAt', 'desc').limit(20).get()
     const existing = (res.data || []).find((item) => {
       if ((item.reviewStatus || 'pending') === 'rejected') return false
       if (!isSameSubmitter(item, openid, userId)) return false
@@ -197,12 +201,8 @@ exports.main = async (event) => {
     const projectRes = await db.collection('projects').doc(projectId).get()
     const project = projectRes.data
     if (!project) throw new Error('工地不存在')
-    if (project.tenantId && project.tenantId !== tenantId) throw new Error('当前账号无权提交该工地日报')
+    if (!tenantMatches(project.tenantId, tenantId)) throw new Error('当前账号无权提交该工地日报')
     const stageCode = String(event.stageCode || '').trim()
-    const existingLog = await findExistingStageLog(projectId, tenantId, stageCode, stage, openid, user._id || '')
-    if (existingLog) {
-      throw new Error(`${stage} 节点今天已提交过日报，请勿重复操作`)
-    }
     const photoFileIDs = Array.isArray(event.photoFileIDs) ? event.photoFileIDs.filter(Boolean) : []
     const sourceType = String(event.sourceType || 'manual').trim()
     const now = db.serverDate()
@@ -238,23 +238,35 @@ exports.main = async (event) => {
       updatedAt: now
     }
 
-    const logRes = await db.collection('stage_logs').add({ data: logData })
-    const addPhotoTasks = photoFileIDs.map((fileID) => db.collection('photos').add({
-      data: {
-        projectId,
-        tenantId,
-        tenantName,
-        stageLogId: logRes._id,
-        fileID,
-        stage,
-        ownerVisible: false,
-        createdByOpenid: openid,
-        createdBy: user._id || openid,
-        createdAt: now,
-        updatedAt: now
+    const stageLogId = await db.runTransaction(async (transaction) => {
+      const freshProjectRes = await transaction.collection('projects').doc(projectId).get()
+      const freshProject = freshProjectRes.data || null
+      if (!freshProject) throw new Error('工地不存在')
+      if (!tenantMatches(freshProject.tenantId, tenantId)) {
+        throw new Error('当前账号无权提交该工地日报')
       }
-    }))
-    await Promise.all(addPhotoTasks)
+      const existingLog = await findExistingStageLog(transaction, projectId, tenantId, stageCode, stage, openid, user._id || '')
+      if (existingLog) throw new Error(`${stage} 节点今天已提交过日报，请勿重复操作`)
+
+      const logRes = await transaction.collection('stage_logs').add({ data: logData })
+      const addPhotoTasks = photoFileIDs.map((fileID) => transaction.collection('photos').add({
+        data: {
+          projectId,
+          tenantId,
+          tenantName,
+          stageLogId: logRes._id,
+          fileID,
+          stage,
+          ownerVisible: false,
+          createdByOpenid: openid,
+          createdBy: user._id || openid,
+          createdAt: now,
+          updatedAt: now
+        }
+      }))
+      await Promise.all(addPhotoTasks)
+      return logRes._id
+    })
 
     let noticeSent = false
     let noticeError = ''
@@ -273,7 +285,7 @@ exports.main = async (event) => {
     }
 
     return {
-      id: logRes._id,
+      id: stageLogId,
       noticeSent,
       noticeError
     }

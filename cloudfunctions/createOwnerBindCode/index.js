@@ -12,6 +12,10 @@ const MAX_OWNERS = 2  // 一个工地最多 2 个业主（夫妻各一个）
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
@@ -83,7 +87,7 @@ exports.main = async (event) => {
     if (!project) throw new Error('工地不存在')
     const tenantId = user.tenantId || DEFAULT_TENANT_ID
     const tenantName = user.tenantName || DEFAULT_TENANT_NAME
-    if (project.tenantId && project.tenantId !== tenantId) {
+    if (!tenantMatches(project.tenantId, tenantId)) {
       throw new Error('当前账号无权生成该工地绑定码')
     }
 
@@ -97,7 +101,7 @@ exports.main = async (event) => {
 
     // 查询该工地所有 active 绑定码
     const activeCodesRes = await db.collection('owner_bind_codes')
-      .where({ projectId, status: 'active', tenantId: _.in([tenantId, '', null]) })
+      .where({ projectId, status: 'active', tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId })
       .orderBy('expiresAt', 'desc')
       .limit(20)
       .get()

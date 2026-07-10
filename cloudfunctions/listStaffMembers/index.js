@@ -43,7 +43,7 @@ exports.main = async (event) => {
     const scope = String(event.scope || 'internal').trim() // internal=内部员工 / all=全部用户
     const tenantId = user.tenantId || DEFAULT_TENANT_ID
 
-    let where = { tenantId: _.in([tenantId, '', null]) }
+    let where = { tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId }
     if (scope === 'internal') {
       where.role = _.in(INTERNAL_ROLES)
     }

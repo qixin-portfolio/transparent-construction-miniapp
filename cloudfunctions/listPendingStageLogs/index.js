@@ -50,7 +50,7 @@ exports.main = async () => {
     const tenantId = user.tenantId || DEFAULT_TENANT_ID
 
     const res = await db.collection('stage_logs')
-      .where({ reviewStatus: 'pending', tenantId: _.in([tenantId, '', null]) })
+      .where({ reviewStatus: 'pending', tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId })
       .orderBy('createdAt', 'desc')
       .limit(100)
       .get()

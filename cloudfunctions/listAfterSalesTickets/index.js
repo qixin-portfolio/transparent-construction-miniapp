@@ -57,7 +57,7 @@ function matchStatus(ticket, statusFilter) {
 
 async function listOwnerTickets(tenantId, openid, userId, projectId) {
   const queries = []
-  const base = { tenantId: _.in([tenantId, '', null]) }
+  const base = { tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId }
   if (projectId) base.projectId = projectId
   queries.push(db.collection('after_sales_tickets').where(Object.assign({}, base, { ownerOpenid: openid })).limit(100).get())
   if (userId) {
@@ -75,7 +75,7 @@ async function listOwnerTickets(tenantId, openid, userId, projectId) {
 }
 
 async function listStaffTickets(tenantId, projectId) {
-  const where = { tenantId: _.in([tenantId, '', null]) }
+  const where = { tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId }
   if (projectId) where.projectId = projectId
   const res = await db.collection('after_sales_tickets')
     .where(where)

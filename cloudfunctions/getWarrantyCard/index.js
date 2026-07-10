@@ -7,6 +7,10 @@ const _ = db.command
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
@@ -23,7 +27,7 @@ async function assertOwnerProject(openid, user, tenantId, projectId) {
   const res = await db.collection('projects').doc(projectId).get()
   const project = res.data || null
   if (!project) throw new Error('工地不存在')
-  if (project.tenantId && project.tenantId !== tenantId) throw new Error('当前账号无权查看该工地')
+  if (!tenantMatches(project.tenantId, tenantId)) throw new Error('当前账号无权查看该工地')
   const ownerOpenids = Array.isArray(project.ownerOpenids) ? project.ownerOpenids : []
   const ownerUserIds = Array.isArray(project.ownerUserIds) ? project.ownerUserIds : []
   const ownerUserId = (user && user._id) || ''
@@ -66,7 +70,7 @@ exports.main = async (event) => {
     const projectId = String(event.projectId || '').trim()
     const project = await assertOwnerProject(openid, user, tenantId, projectId)
     const res = await db.collection('warranty_cards')
-      .where({ tenantId: _.in([tenantId, '', null]), projectId })
+      .where({ tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId, projectId })
       .orderBy('updatedAt', 'desc')
       .limit(20)
       .get()

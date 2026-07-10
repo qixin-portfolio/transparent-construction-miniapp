@@ -6,6 +6,10 @@ const db = cloud.database()
 const _ = db.command
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
+
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
 const SCOPES = ['private', 'internal', 'public']
 
 async function getCurrentUser() {
@@ -23,7 +27,7 @@ async function assertOwnerProject(openid, tenantId, projectId) {
   const res = await db.collection('projects').doc(projectId).get()
   const project = res.data || null
   if (!project) throw new Error('工地不存在')
-  if (project.tenantId && project.tenantId !== tenantId) throw new Error('当前账号无权更新授权')
+  if (!tenantMatches(project.tenantId, tenantId)) throw new Error('当前账号无权更新授权')
   const ownerOpenids = Array.isArray(project.ownerOpenids) ? project.ownerOpenids : []
   if (project.ownerOpenid !== openid && ownerOpenids.indexOf(openid) === -1) {
     throw new Error('当前账号无权更新授权')
@@ -44,7 +48,7 @@ exports.main = async (event) => {
     const allowedMaterials = Array.isArray(event.allowedMaterials) ? event.allowedMaterials : []
     const ownerNameDisplay = String(event.ownerNameDisplay || 'anonymous').trim()
     const now = db.serverDate()
-    const where = { tenantId: _.in([tenantId, '', null]), projectId, ownerOpenid: openid }
+    const where = { tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId, projectId, ownerOpenid: openid }
     const existing = await db.collection('case_authorizations').where(where).limit(1).get()
     const data = {
       tenantId,

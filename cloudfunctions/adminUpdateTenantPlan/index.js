@@ -6,6 +6,7 @@ const db = cloud.database()
 const _ = db.command
 
 const ADMIN_ROLES = ['admin', 'boss_qi', 'boss_hu', 'platform_admin', 'super_admin']
+const PLATFORM_ADMIN_ROLES = ['platform_admin', 'super_admin']
 const VALID_PLANS = ['free', 'starter', 'pro', 'enterprise']
 const VALID_STATUSES = ['trial', 'active', 'expired', 'disabled', 'suspended', 'cancelled']
 const VALID_MODULES = ['project', 'daily_report', 'owner_view']
@@ -34,11 +35,16 @@ exports.main = async (event) => {
       return { success: false, message: '无权限执行此操作' }
     }
 
-    const { tenantId, plan, status, maxProjects, maxStaff, enabledModules, startAt, endAt, note } = event
+    const { plan, status, maxProjects, maxStaff, enabledModules, startAt, endAt, note } = event
+    const requestedTenantId = cleanText(event.tenantId)
+    const tenantId = requestedTenantId || cleanText(user.tenantId)
 
     // 参数校验
     if (!tenantId) {
       return { success: false, message: 'tenantId 不能为空' }
+    }
+    if (PLATFORM_ADMIN_ROLES.indexOf(user.role) === -1 && tenantId !== user.tenantId) {
+      return { success: false, code: 'CROSS_TENANT_FORBIDDEN', message: '无权修改其他企业套餐' }
     }
 
     if (plan && VALID_PLANS.indexOf(plan) === -1) {

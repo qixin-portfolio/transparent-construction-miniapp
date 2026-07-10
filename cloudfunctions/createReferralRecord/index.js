@@ -6,6 +6,10 @@ const db = cloud.database()
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
@@ -18,11 +22,11 @@ async function getCurrentUser() {
 }
 
 async function assertOwnerProject(openid, tenantId, projectId) {
-  if (!projectId) return null
+  if (!projectId) throw new Error('缺少已绑定工地，不能提交推荐')
   const res = await db.collection('projects').doc(projectId).get()
   const project = res.data || null
   if (!project) throw new Error('工地不存在')
-  if (project.tenantId && project.tenantId !== tenantId) throw new Error('当前账号无权推荐该工地')
+  if (!tenantMatches(project.tenantId, tenantId)) throw new Error('当前账号无权推荐该工地')
   const ownerOpenids = Array.isArray(project.ownerOpenids) ? project.ownerOpenids : []
   if (project.ownerOpenid !== openid && ownerOpenids.indexOf(openid) === -1) {
     throw new Error('当前账号无权推荐该工地')
@@ -64,28 +68,31 @@ exports.main = async (event) => {
       createdAt: now,
       updatedAt: now
     }
-    const customerRes = await db.collection('customers').add({ data: customer })
-    const record = {
-      tenantId,
-      tenantName,
-      projectId,
-      projectName: project ? project.name || '' : '',
-      ownerId: user._id || '',
-      ownerOpenid: openid,
-      referrerName,
-      friendName,
-      friendPhone,
-      friendCommunity,
-      need,
-      remark,
-      status: 'submitted',
-      rewardStatus: 'none',
-      customerId: customerRes._id,
-      createdAt: now,
-      updatedAt: now
-    }
-    const res = await db.collection('referral_records').add({ data: record })
-    return { id: res._id, customerId: customerRes._id }
+    const result = await db.runTransaction(async (transaction) => {
+      const customerRes = await transaction.collection('customers').add({ data: customer })
+      const record = {
+        tenantId,
+        tenantName,
+        projectId,
+        projectName: project.name || '',
+        ownerId: user._id || '',
+        ownerOpenid: openid,
+        referrerName,
+        friendName,
+        friendPhone,
+        friendCommunity,
+        need,
+        remark,
+        status: 'submitted',
+        rewardStatus: 'none',
+        customerId: customerRes._id,
+        createdAt: now,
+        updatedAt: now
+      }
+      const referralRes = await transaction.collection('referral_records').add({ data: record })
+      return { id: referralRes._id, customerId: customerRes._id }
+    })
+    return result
   } catch (error) {
     return { error: { message: error.message || '提交推荐失败' } }
   }

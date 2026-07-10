@@ -7,6 +7,33 @@ const _ = db.command
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 const DEFAULT_SERVICE_PHONE = '13935842860'
+const STAFF_ROLES = ['admin', 'boss_qi', 'boss_hu']
+
+function tenantScope(tenantId) {
+  return tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId
+}
+
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId
+    ? resourceTenantId === tenantId
+    : tenantId === DEFAULT_TENANT_ID
+}
+
+async function getCurrentUser() {
+  const { OPENID } = cloud.getWXContext()
+  if (!OPENID) return { openid: '', user: null }
+  const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
+  return { openid: OPENID, user: res.data[0] || null }
+}
+
+function canAccessPrivately(openid, user, project, tenantId) {
+  if (!user || !openid) return false
+  const ownerOpenids = Array.isArray(project.ownerOpenids) ? project.ownerOpenids : []
+  const isOwner = project.ownerOpenid === openid || ownerOpenids.indexOf(openid) !== -1
+  const isTenantStaff = STAFF_ROLES.indexOf(user.role) !== -1 &&
+    tenantMatches(project.tenantId, user.tenantId || DEFAULT_TENANT_ID)
+  return isOwner || isTenantStaff
+}
 
 function text(value) {
   return String(value || '').trim()
@@ -40,7 +67,8 @@ function isCompletedProject(project) {
   const statusCode = text(project.statusCode)
   const status = text(project.status)
   return ['delivered', 'completed'].indexOf(statusCode) !== -1 ||
-    ['已交付', '已完工', '完工', '竣工验收', '竣工交付'].indexOf(status) !== -1
+    ['已交付', '已完工', '完工', '竣工验收', '竣工交付'].indexOf(status) !== -1 ||
+    Number(project.progress || 0) >= 100
 }
 
 async function getOptionalDoc(collectionName, id) {
@@ -59,14 +87,11 @@ async function getTempUrlMap(fileIDs) {
   try {
     const res = await cloud.getTempFileURL({ fileList: unique })
     return (res.fileList || []).reduce((map, item) => {
-      map[item.fileID] = item.tempFileURL || item.fileID
+      map[item.fileID] = item.tempFileURL || ''
       return map
     }, {})
   } catch (error) {
-    return unique.reduce((map, fileID) => {
-      map[fileID] = fileID
-      return map
-    }, {})
+    return {}
   }
 }
 
@@ -81,7 +106,7 @@ async function getServicePhone(tenantId) {
 async function getWarrantyCard(projectId, tenantId) {
   try {
     const res = await db.collection('warranty_cards')
-      .where({ projectId, tenantId: _.in([tenantId, '', null]) })
+      .where({ projectId, tenantId: tenantScope(tenantId) })
       .limit(1)
       .get()
     return res.data[0] || null
@@ -90,12 +115,25 @@ async function getWarrantyCard(projectId, tenantId) {
   }
 }
 
-async function getAuthorization(projectId, tenantId) {
+async function getAuthorization(projectId, tenantId, shareToken = '') {
   try {
+    if (shareToken) {
+      const tokenRes = await db.collection('case_authorizations').doc(shareToken).get()
+      const tokenAuthorization = tokenRes.data || null
+      if (!tokenAuthorization ||
+        tokenAuthorization.projectId !== projectId ||
+        tokenAuthorization.authorizationScope !== 'public' ||
+        tokenAuthorization.status !== 'approved' ||
+        !tenantMatches(tokenAuthorization.tenantId, tenantId)) {
+        return null
+      }
+      return tokenAuthorization
+    }
     const res = await db.collection('case_authorizations')
       .where({
         projectId,
-        tenantId: _.in([tenantId, '', null]),
+        tenantId: tenantScope(tenantId),
+        authorizationScope: 'public',
         status: 'approved'
       })
       .orderBy('updatedAt', 'desc')
@@ -141,7 +179,7 @@ async function getMilestones(projectId, tenantId) {
   const logsRes = await db.collection('stage_logs')
     .where({
       projectId,
-      tenantId: _.in([tenantId, '', null]),
+      tenantId: tenantScope(tenantId),
       reviewStatus: 'approved',
       ownerVisible: true
     })
@@ -158,7 +196,7 @@ async function getMilestones(projectId, tenantId) {
     const photosRes = await db.collection('photos')
       .where({
         stageLogId: _.in(logIds),
-        tenantId: _.in([tenantId, '', null]),
+        tenantId: tenantScope(tenantId),
         ownerVisible: true
       })
       .limit(50)
@@ -179,14 +217,16 @@ async function getMilestones(projectId, tenantId) {
     const fileID = photo.fileID || photo.fileId || photo.cloudFileId
     const logId = photo.stageLogId
     if (!map[logId]) map[logId] = []
-    map[logId].push(tempUrlMap[fileID] || fileID)
+    const url = tempUrlMap[fileID]
+    if (url) map[logId].push(url)
     return map
   }, {})
 
   return picked.map((log) => {
     const inlinePhotos = (log.photoFileIDs || log.photos || [])
       .filter(Boolean)
-      .map((fileID) => tempUrlMap[fileID] || fileID)
+      .map((fileID) => tempUrlMap[fileID] || '')
+      .filter(Boolean)
     const recordPhotos = photosByLog[log._id] || []
     const photos = recordPhotos.length ? recordPhotos : inlinePhotos
     return {
@@ -205,13 +245,13 @@ async function getMilestones(projectId, tenantId) {
 async function getCompletionPhotos(projectId, tenantId, project) {
   if (Array.isArray(project.completionPhotoFileIDs) && project.completionPhotoFileIDs.length) {
     const tempUrlMap = await getTempUrlMap(project.completionPhotoFileIDs)
-    return project.completionPhotoFileIDs.map((fileID) => tempUrlMap[fileID] || fileID).slice(0, 6)
+    return project.completionPhotoFileIDs.map((fileID) => tempUrlMap[fileID] || '').filter(Boolean).slice(0, 6)
   }
 
   const logsRes = await db.collection('stage_logs')
     .where({
       projectId,
-      tenantId: _.in([tenantId, '', null]),
+      tenantId: tenantScope(tenantId),
       reviewStatus: 'approved',
       ownerVisible: true,
       stage: _.in(['竣工验收', '竣工交付', '完工'])
@@ -226,7 +266,7 @@ async function getCompletionPhotos(projectId, tenantId, project) {
   const photosRes = await db.collection('photos')
     .where({
       stageLogId: _.in(logIds),
-      tenantId: _.in([tenantId, '', null]),
+      tenantId: tenantScope(tenantId),
       ownerVisible: true
     })
     .limit(30)
@@ -239,22 +279,20 @@ async function getCompletionPhotos(projectId, tenantId, project) {
   const recordFileIDs = photoRecords.map((p) => p.fileID || p.fileId || p.cloudFileId).filter(Boolean)
   const allFileIDs = [...inlineFileIDs, ...recordFileIDs]
   const tempUrlMap = await getTempUrlMap(allFileIDs)
-  const urls = allFileIDs.map((fileID) => tempUrlMap[fileID] || fileID)
+  const urls = allFileIDs.map((fileID) => tempUrlMap[fileID] || '').filter(Boolean)
   return Array.from(new Set(urls)).slice(0, 6)
 }
 
-function buildPublicProject(project) {
+function buildPublicProject(project, canShowHouseInfo) {
   return {
     _id: project._id || '',
-    name: project.name || '',
+    name: canShowHouseInfo ? project.name || '' : '完工纪念册',
     status: project.status || '',
     statusCode: project.statusCode || ''
   }
 }
 
-function buildPublicHouseInfo(project, authorization) {
-  const allowedMaterials = Array.isArray(authorization && authorization.allowedMaterials) ? authorization.allowedMaterials : []
-  const canShowHouseInfo = !authorization || allowedMaterials.length === 0 || allowedMaterials.indexOf('house_info') !== -1
+function buildPublicHouseInfo(project, canShowHouseInfo) {
   return {
     community: canShowHouseInfo ? inferCommunity(project) : '',
     building: '',
@@ -264,15 +302,30 @@ function buildPublicHouseInfo(project, authorization) {
     layout: canShowHouseInfo ? text(project.layout) : '',
     style: canShowHouseInfo ? text(project.style) : '',
     decorateType: canShowHouseInfo ? text(project.decorateType) : '',
-    startDate: formatDate(project.startDate),
-    completedAt: formatDate(project.completedAt),
-    deliveredAt: formatDate(project.deliveredAt)
+    startDate: canShowHouseInfo ? formatDate(project.startDate) : '',
+    completedAt: canShowHouseInfo ? formatDate(project.completedAt) : '',
+    deliveredAt: canShowHouseInfo ? formatDate(project.deliveredAt) : ''
   }
 }
 
-exports.main = async (event) => {
+function sanitizeAuthorization(authorization) {
+  if (!authorization) return null
+  return {
+    authorizationScope: authorization.authorizationScope || '',
+    allowedMaterials: Array.isArray(authorization.allowedMaterials) ? authorization.allowedMaterials : [],
+    ownerNameDisplay: authorization.ownerNameDisplay || 'anonymous',
+    status: authorization.status || '',
+    updatedAt: authorization.updatedAt || null,
+    shareToken: authorization.authorizationScope === 'public' && authorization.status === 'approved'
+      ? authorization._id
+      : ''
+  }
+}
+
+exports.main = async (event = {}) => {
   try {
     const projectId = text(event.projectId)
+    const shareToken = text(event.shareToken)
     if (!projectId) throw new Error('缺少工地 ID')
 
     const projectRes = await db.collection('projects').doc(projectId).get()
@@ -281,25 +334,43 @@ exports.main = async (event) => {
     if (!isCompletedProject(project)) throw new Error('纪念册暂未开放')
 
     const tenantId = project.tenantId || DEFAULT_TENANT_ID
-    const [milestones, completionPhotos, warrantyCard, authorization] = await Promise.all([
-      getMilestones(projectId, tenantId),
-      getCompletionPhotos(projectId, tenantId, project),
+    const { openid, user } = await getCurrentUser()
+    const privateAccess = canAccessPrivately(openid, user, project, tenantId)
+    const authorization = await getAuthorization(projectId, tenantId, shareToken)
+    if (!privateAccess && (!shareToken || !authorization || authorization.authorizationScope !== 'public')) {
+      throw new Error('纪念册不存在或未公开')
+    }
+
+    const allowedMaterials = Array.isArray(authorization && authorization.allowedMaterials)
+      ? authorization.allowedMaterials
+      : []
+    const canShowHouseInfo = privateAccess || allowedMaterials.indexOf('house_info') !== -1
+    const canShowProcessPhotos = privateAccess || allowedMaterials.indexOf('process_photos') !== -1
+    const canShowCompletionPhotos = privateAccess || allowedMaterials.indexOf('completion_photos') !== -1
+
+    const [milestones, completionPhotos, warrantyCard] = await Promise.all([
+      canShowProcessPhotos ? getMilestones(projectId, tenantId) : Promise.resolve([]),
+      canShowCompletionPhotos ? getCompletionPhotos(projectId, tenantId, project) : Promise.resolve([]),
       getWarrantyCard(projectId, tenantId),
-      getAuthorization(projectId, tenantId)
     ])
     const servicePhone = (warrantyCard && (warrantyCard.servicePhone || warrantyCard.contactPhone)) || await getServicePhone(tenantId)
-    const houseInfo = buildPublicHouseInfo(project, authorization)
+    const houseInfo = buildPublicHouseInfo(project, canShowHouseInfo)
     const archive = {
       houseInfo,
       milestones,
       completionPhotos,
       warrantyCard: {
         servicePhone
+      },
+      permissions: {
+        houseInfo: canShowHouseInfo,
+        processPhotos: canShowProcessPhotos,
+        completionPhotos: canShowCompletionPhotos
       }
     }
 
     return {
-      project: buildPublicProject(project),
+      project: buildPublicProject(project, canShowHouseInfo),
       archive,
       album: {
         title: `${project.name || '我的新家'}完工纪念册`,
@@ -310,7 +381,8 @@ exports.main = async (event) => {
         completedAt: houseInfo.completedAt || houseInfo.deliveredAt,
         milestones
       },
-      authorization
+      authorization: sanitizeAuthorization(authorization),
+      accessMode: privateAccess ? 'private' : 'public_share'
     }
   } catch (error) {
     return { error: { message: error.message || '获取完工纪念册失败' } }

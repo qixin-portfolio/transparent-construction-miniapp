@@ -46,29 +46,22 @@ exports.main = async (event = {}) => {
       }
     }
 
-    const userCount = await users.count()
-    const isFirstUser = userCount.total === 0
-    const now = db.serverDate()
-
-    if (!isFirstUser && !allowGuestFlow) {
+    if (!allowGuestFlow) {
       return {
         needRegister: true,
         redirectUrl: '/pages/register/register'
       }
     }
 
+    const now = db.serverDate()
     const user = {
       openid: OPENID,
-      name: isFirstUser ? '初始管理员' : '',
+      name: '',
       phone: '',
-      role: isFirstUser ? 'admin' : 'owner',
+      role: 'owner',
       status: 'active',
       createdAt: now,
       updatedAt: now
-    }
-    if (isFirstUser) {
-      user.tenantId = DEFAULT_TENANT_ID
-      user.tenantName = DEFAULT_TENANT_NAME
     }
     const addRes = await users.add({ data: user })
 

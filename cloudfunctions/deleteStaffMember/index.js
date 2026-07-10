@@ -7,6 +7,10 @@ const _ = db.command
 
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
+
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
 const INTERNAL_ROLES = ['boss_qi', 'boss_hu', 'designer', 'sales', 'project_manager', 'worker']
 
 async function getCurrentUser() {
@@ -33,7 +37,7 @@ exports.main = async (event) => {
     const memberRes = await db.collection('users').doc(memberId).get()
     const member = memberRes.data
     if (!member) throw new Error('员工不存在')
-    if (member.tenantId && member.tenantId !== tenantId) throw new Error('不能删除其他门店员工')
+    if (!tenantMatches(member.tenantId, tenantId)) throw new Error('不能删除其他门店员工')
     if (member.openid === openid || member.role === 'admin') throw new Error('不能删除管理员账号')
     if (INTERNAL_ROLES.indexOf(member.role) === -1) throw new Error('该账号不是内部员工')
 
@@ -55,7 +59,7 @@ exports.main = async (event) => {
       const removeRes = await db.collection('project_members')
         .where({
           userOpenid: member.openid,
-          tenantId: _.in([tenantId, '', null])
+          tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId
         })
         .remove()
       removedProjectMembers = removeRes.stats ? removeRes.stats.removed : 0

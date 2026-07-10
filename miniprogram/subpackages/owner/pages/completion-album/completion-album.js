@@ -67,13 +67,17 @@ Page({
     processPhotos: [],
     hasData: false,
     albumStatus: 'pending', // pending / needs_photos / generated
-    shareMode: false // 是否为外部访客（简版）
+    shareMode: false, // 是否为外部访客（简版）
+    shareToken: '',
+    canSharePublic: false,
+    canShowHouseInfo: true
   },
 
   onLoad(options) {
     const projectId = String(options.projectId || '').trim()
     const shareMode = options.share === '1'
-    this.setData({ projectId, shareMode })
+    const shareToken = String(options.shareToken || '').trim()
+    this.setData({ projectId, shareMode, shareToken })
   },
 
   onShow() {
@@ -85,9 +89,10 @@ Page({
     const isShareMode = this.data.shareMode
     const ready = isShareMode ? Promise.resolve() : getApp().ensureLogin()
     ready
-      .then(() => call(isShareMode ? 'getCompletionAlbum' : 'getOwnerArchive', {
+      .then(() => call('getCompletionAlbum', {
         projectId: this.data.projectId,
-        share: isShareMode ? 1 : 0
+        share: isShareMode ? 1 : 0,
+        shareToken: this.data.shareToken
       }))
       .then((res) => {
         const project = res.project || null
@@ -95,6 +100,9 @@ Page({
         const completionPhotos = (archive && archive.completionPhotos) || []
         const milestones = (archive && archive.milestones) || []
         const houseInfo = (archive && archive.houseInfo) || {}
+        const permissions = (archive && archive.permissions) || {}
+        const authorization = res.authorization || null
+        const shareToken = (authorization && authorization.shareToken) || this.data.shareToken || ''
 
         // 封面轮播图：优先完工实景照片（全部轮播），否则用首个里程碑照片占位
         let coverPhotos = []
@@ -131,8 +139,16 @@ Page({
           decorateDays,
           processPhotos,
           hasData,
-          albumStatus
+          albumStatus,
+          shareToken,
+          canSharePublic: !!shareToken,
+          canShowHouseInfo: !isShareMode || permissions.houseInfo === true
         })
+        if (shareToken) {
+          wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] })
+        } else {
+          wx.hideShareMenu({ menus: ['shareTimeline'] })
+        }
       })
       .catch((error) => {
         this.setData({
@@ -168,6 +184,12 @@ Page({
     wx.navigateTo({ url: `/subpackages/owner/pages/referral-create/referral-create?projectId=${projectId}` })
   },
 
+  goAuthorization() {
+    const projectId = this.data.projectId
+    if (!projectId) return
+    wx.navigateTo({ url: `/subpackages/owner/pages/case-authorization/case-authorization?projectId=${projectId}` })
+  },
+
   callService() {
     const archive = this.data.archive || {}
     const phone = (archive.warrantyCard && archive.warrantyCard.servicePhone) || '4000000000'
@@ -180,9 +202,15 @@ Page({
     const houseInfo = archive.houseInfo || {}
     // 简版分享：不暴露房号
     const title = `我的新家完工啦${houseInfo.style ? '·' + houseInfo.style : ''}，感谢晟景装饰`
+    if (!this.data.shareToken) {
+      return {
+        title: '晟景装饰 · 透明工地',
+        path: '/pages/projects/projects'
+      }
+    }
     return {
       title,
-      path: `/subpackages/owner/pages/completion-album/completion-album?projectId=${this.data.projectId}&share=1`,
+      path: `/subpackages/owner/pages/completion-album/completion-album?projectId=${this.data.projectId}&share=1&shareToken=${this.data.shareToken}`,
       imageUrl: this.data.coverUrl || ''
     }
   },
@@ -191,7 +219,7 @@ Page({
     const project = this.data.project || {}
     return {
       title: `我的新家完工啦，感谢晟景装饰一路守护`,
-      query: `projectId=${this.data.projectId}&share=1`,
+      query: `projectId=${this.data.projectId}&share=1&shareToken=${this.data.shareToken}`,
       imageUrl: this.data.coverUrl || ''
     }
   },

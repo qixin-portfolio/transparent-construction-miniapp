@@ -9,6 +9,10 @@ const ALL_PROJECT_ROLES = ['admin', 'boss_qi', 'boss_hu', 'sales', 'designer']
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
@@ -23,7 +27,7 @@ async function getCurrentUser() {
 async function canAccessProject(openid, user, project) {
   if (!user || !project) return false
   const tenantId = user.tenantId || DEFAULT_TENANT_ID
-  if (project.tenantId && project.tenantId !== tenantId) return false
+  if (!tenantMatches(project.tenantId, tenantId)) return false
   if (ALL_PROJECT_ROLES.indexOf(user.role) !== -1) return true
   const ownerOpenids = Array.isArray(project.ownerOpenids) ? project.ownerOpenids : []
   if (user.role === 'owner' && (project.ownerOpenid === openid || ownerOpenids.indexOf(openid) !== -1)) return true
@@ -66,11 +70,11 @@ exports.main = async (event) => {
     if (!allowed) throw new Error('当前账号无权查看该工地图纸')
 
     // 业主只能看效果图且 ownerVisible=true
-    let query = db.collection('design_drawings').where({ projectId, tenantId: _.in([tenantId, '', null]) })
+    let query = db.collection('design_drawings').where({ projectId, tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId })
     if (user.role === 'owner') {
       query = db.collection('design_drawings').where({
         projectId,
-        tenantId: _.in([tenantId, '', null]),
+        tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
         type: 'render',
         ownerVisible: true
       })

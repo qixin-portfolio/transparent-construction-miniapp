@@ -34,12 +34,12 @@ exports.main = async () => {
 
     let query = db.collection('customers').where({
       deleted: _.neq(true),
-      tenantId: _.in([tenantId, '', null])
+      tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId
     })
     if (ALL_CUSTOMER_ROLES.indexOf(user.role) === -1) {
       query = db.collection('customers').where({
         deleted: _.neq(true),
-        tenantId: _.in([tenantId, '', null]),
+        tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
         ownerOpenid: openid
       })
     }

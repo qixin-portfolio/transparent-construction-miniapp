@@ -1,4 +1,21 @@
+const cloud = require('wx-server-sdk')
 const https = require('https')
+
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+
+const db = cloud.database()
+const ALLOWED_ROLES = ['admin', 'boss_qi', 'boss_hu']
+
+async function assertAllowedCaller() {
+  const { OPENID } = cloud.getWXContext()
+  if (!OPENID) throw new Error('无法识别当前调用者')
+  const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
+  const user = res.data[0] || null
+  if (!user || ALLOWED_ROLES.indexOf(user.role) === -1) {
+    throw new Error('当前账号无权发送企业微信通知')
+  }
+  return user
+}
 
 function sendMarkdown(webhook, content) {
   return new Promise((resolve, reject) => {
@@ -37,12 +54,13 @@ function sendMarkdown(webhook, content) {
   })
 }
 
-exports.main = async (event) => {
+exports.main = async (event = {}) => {
   try {
+    await assertAllowedCaller()
     const webhook = process.env.WECOM_WEBHOOK_URL
     if (!webhook) throw new Error('Missing WECOM_WEBHOOK_URL')
 
-    const content = String(event.markdown || event.content || '').trim()
+    const content = String(event.markdown || event.content || '').trim().slice(0, 2000)
     if (!content) throw new Error('企业微信通知内容不能为空')
 
     const result = await sendMarkdown(webhook, content)

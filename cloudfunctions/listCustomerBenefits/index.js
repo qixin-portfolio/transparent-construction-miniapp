@@ -67,7 +67,7 @@ exports.main = async (event) => {
     const ownerId = user._id || ''
 
     const res = await db.collection('customer_benefits')
-      .where({ tenantId: _.in([tenantId, '', null]), status: 'active' })
+      .where({ tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId, status: 'active' })
       .orderBy('updatedAt', 'desc')
       .limit(100)
       .get()

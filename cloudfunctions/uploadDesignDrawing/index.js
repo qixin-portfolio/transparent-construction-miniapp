@@ -14,6 +14,10 @@ const VALID_SPACES = [
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
@@ -52,8 +56,9 @@ exports.main = async (event) => {
     const tenantId = user.tenantId || DEFAULT_TENANT_ID
     const tenantName = user.tenantName || DEFAULT_TENANT_NAME
     const projectRes = await db.collection('projects').doc(projectId).get()
-    const project = projectRes.data || {}
-    if (project.tenantId && project.tenantId !== tenantId) throw new Error('无权上传该工地图纸')
+    const project = projectRes.data || null
+    if (!project) throw new Error('工地不存在')
+    if (!tenantMatches(project.tenantId, tenantId)) throw new Error('无权上传该工地图纸')
 
     // 效果图默认业主可见，施工图默认不可见
     const finalOwnerVisible = type === 'render' ? ownerVisible : false
@@ -82,14 +87,19 @@ exports.main = async (event) => {
       updatedAt: now
     }
 
-    const res = await db.collection('design_drawings').add({ data: drawing })
-
-    // 更新工地 updateTime
-    await db.collection('projects').doc(projectId).update({
-      data: { updatedAt: now }
+    const drawingId = await db.runTransaction(async (transaction) => {
+      const freshProjectRes = await transaction.collection('projects').doc(projectId).get()
+      const freshProject = freshProjectRes.data || null
+      if (!freshProject) throw new Error('工地不存在')
+      if (!tenantMatches(freshProject.tenantId, tenantId)) {
+        throw new Error('无权上传该工地图纸')
+      }
+      const res = await transaction.collection('design_drawings').add({ data: drawing })
+      await transaction.collection('projects').doc(projectId).update({ data: { updatedAt: now } })
+      return res._id
     })
 
-    return { id: res._id }
+    return { id: drawingId }
   } catch (error) {
     return { error: { message: error.message || '上传图纸失败' } }
   }
