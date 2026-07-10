@@ -7,7 +7,7 @@ V1 上线后安全加固：云函数鉴权、租户隔离与公开数据边界
 ## 任务来源
 
 - GitHub Issue：https://github.com/qixin-portfolio/transparent-construction-miniapp/issues/1
-- PR：待创建
+- PR：https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/2
 - 用户目标：依据代码审计建议修复已确认的 BUG 和安全雷点
 
 ## 背景
@@ -64,11 +64,11 @@ V1 已正式上线。只读审计发现通知、种子数据、完工纪念册�
 ## Codex 执行记录
 
 - 分支：`codex/v1-security-hardening`
-- Commit：待创建
-- PR：待创建
+- Commit：`69cfbd6899fce54f923335b8b7490cfbccb77b1d`
+- PR：https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/2
 - 检查命令：`node --test tests/security-regression.test.js`；全项目 JS `node --check`；JSON 解析；页面文件完整性；`git diff --check`
 - 结果：20 项安全回归通过；全部 JS 语法通过；64 个 JSON 解析通过；39 个页面文件完整；V2 开关保持关闭
 
 ## 下一步
 
-创建 PR，等待人工审查。部署云函数、上传体验版和发布正式版必须另行确认。
+等待 PR #2 人工审查。部署云函数、上传体验版和发布正式版必须另行确认。

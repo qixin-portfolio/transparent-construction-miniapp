@@ -201,6 +201,8 @@
 
 - 来源：GitHub Issue #1；用户要求依据代码审计建议修复 BUG 和安全雷点
 - 分支：`codex/v1-security-hardening`
+- 修复 commit：`69cfbd6899fce54f923335b8b7490cfbccb77b1d`
+- PR：https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/2
 - 本次修复：通知和种子函数补调用者鉴权；公开纪念册改为业主/同租户管理员私有访问或可撤销公开授权；公开案例按授权材料返回；套餐管理禁止普通企业管理员跨租户修改；日报只允许审核 pending 且项目进度不倒退；邀请码事务兑换并限制错误尝试；历史空 `tenantId` 仅归默认租户；关键多记录写入改为事务；删除工地补全分页和旧照片清理；真实 AI 外部请求默认关闭；云函数 SDK 固定为 `2.6.3`
 - 前端改动：完工纪念册分享携带授权记录 ID；未公开时引导设置授权；未授权房屋信息不对外展示
 - 测试：`tests/security-regression.test.js` 20/20 通过；全部 JS `node --check` 通过；64 个 JSON 解析通过；39 个页面文件完整；`git diff --check` 通过
