@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const { executeStageLogReview } = require('./reviewService')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -77,94 +78,51 @@ exports.main = async (event) => {
     const stageLogId = String(event.stageLogId || '').trim()
     const action = String(event.action || '').trim()
     if (!stageLogId) throw new Error('缺少日报 ID')
-    if (['approve', 'reject'].indexOf(action) === -1) throw new Error('审核动作不正确')
-
-    const approved = action === 'approve'
     const rejectReason = String(event.rejectReason || event.comment || '').trim()
-    const logRes = await db.collection('stage_logs').doc(stageLogId).get()
-    const log = logRes.data
-    if (!log) throw new Error('日报不存在')
-    if ((log.tenantId && log.tenantId !== tenantId) || (!log.tenantId && tenantId !== DEFAULT_TENANT_ID)) {
-      throw new Error('无权审核该日报')
-    }
-    if ((log.reviewStatus || 'pending') !== 'pending') {
-      const statusError = new Error('该日报已审核，请勿重复操作')
-      statusError.code = 'REVIEW_STATUS_NOT_PENDING'
-      throw statusError
-    }
-
-    let project = null
-    if (approved && log.projectId) {
-      const projectRes = await db.collection('projects').doc(log.projectId).get()
-      project = projectRes.data || null
-      if (!project) throw new Error('日报对应工地不存在')
-      if ((project.tenantId && project.tenantId !== tenantId) || (!project.tenantId && tenantId !== DEFAULT_TENANT_ID)) {
-        const projectError = new Error('日报对应工地不属于当前企业')
-        projectError.code = 'PROJECT_TENANT_MISMATCH'
-        throw projectError
-      }
-    }
     const now = db.serverDate()
-
-    const updateData = {
-      reviewStatus: approved ? 'approved' : 'rejected',
-      ownerVisible: approved,
-      rejectReason: approved ? '' : rejectReason,
-      auditComment: approved ? '' : rejectReason,
-      reviewRecords: _.push({
-        action,
-        rejectReason,
-        reviewedByOpenid: openid,
-        reviewedByName: user.name || '',
-        reviewedAt: now
-      }),
-      reviewedByOpenid: openid,
-      reviewedByName: user.name || '',
-      reviewedAt: now,
-      updatedAt: now
-    }
-    if (approved && event.ownerSummary) {
-      updateData.ownerSummary = String(event.ownerSummary).trim().slice(0, 200)
-    }
-    await db.collection('stage_logs').doc(stageLogId).update({ data: updateData })
-
-    await db.collection('photos').where({ stageLogId, tenantId: tenantScope(tenantId) }).update({
-      data: {
-        ownerVisible: approved,
-        updatedAt: now
-      }
+    return await executeStageLogReview({
+      stageLogId,
+      action,
+      tenantId,
+      rejectReason,
+      ownerSummary: String(event.ownerSummary || '').trim().slice(0, 200),
+      reviewer: {
+        userId: user._id || '',
+        openid,
+        name: user.name || '',
+        role: user.role || ''
+      },
+      now,
+      runTransaction: (work) => db.runTransaction(async (transaction) => work({
+        getStageLog: async () => {
+          const res = await transaction.collection('stage_logs').doc(stageLogId).get()
+          return res.data || null
+        },
+        getProject: async (projectId) => {
+          const res = await transaction.collection('projects').doc(projectId).get()
+          return res.data || null
+        },
+        updateStageLog: (patch, reviewRecord) => transaction.collection('stage_logs').doc(stageLogId).update({
+          data: Object.assign({}, patch, { reviewRecords: _.push(reviewRecord) })
+        }),
+        updatePhotos: (patch) => transaction.collection('photos')
+          .where({ stageLogId, tenantId: tenantScope(tenantId) })
+          .update({ data: patch }),
+        updateProject: (projectId, patch) => transaction.collection('projects').doc(projectId).update({ data: patch })
+      })),
+      sendNotice: sendApprovedNotice,
+      updateNoticeStatus: (noticeStatus, noticeError) => db.collection('stage_logs').doc(stageLogId).update({
+        data: {
+          noticeStatus,
+          noticeError,
+          noticeUpdatedAt: db.serverDate()
+        }
+      })
     })
-
-    if (approved && project) {
-      const currentProgress = Number(project.progress || 0)
-      const logProgress = Number(log.progress || 0)
-      const projectData = {
-        updatedAt: now
-      }
-      if (logProgress > 0) {
-        projectData.progress = Math.max(currentProgress, logProgress)
-      }
-      if (log.stage && logProgress >= currentProgress) {
-        projectData.currentStage = log.stage
-      }
-      await db.collection('projects').doc(log.projectId).update({ data: projectData })
-
-      // 审核函数已完成身份和租户校验，直接发送，避免跨云函数调用丢失调用者身份。
-      try {
-        const noticeResult = await sendApprovedNotice(project, log)
-        if (noticeResult.sentCount < noticeResult.totalCount) console.warn('[业主订阅消息部分发送失败]')
-      } catch (_) {
-        // 通知发送失败不影响审核结果
-      }
-    }
-
-    return {
-      ok: true,
-      ownerVisible: approved
-    }
   } catch (error) {
     return {
       error: {
+        code: error.code || '',
         message: error.message || '审核日报失败'
       }
     }

@@ -1,31 +1,30 @@
 const cloud = require('wx-server-sdk')
+const {
+  INVITABLE_ROLES,
+  assertAttemptsAllowed,
+  assertInvitableRole,
+  createInviteAttemptKeys,
+  recordFailedInviteAttempt,
+  redeemStaffInvite
+} = require('./inviteSecurity')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
 const _ = db.command
 
-const INVITABLE_ROLES = ['worker', 'project_manager', 'designer', 'sales', 'boss_qi', 'boss_hu']
 const STAFF_LIMIT_ROLES = ['manager', 'foreman', 'designer', 'worker', 'project_manager', 'sales']
 const PLAN_MODULES = ['project', 'daily_report', 'owner_view']
 const ENABLE_FREE_TRIAL_USAGE = true
-const MAX_CODE_ATTEMPTS = 5
-const CODE_LOCK_MS = 15 * 60 * 1000
 
 const ROLE_LABELS = {
   worker: '工长',
   project_manager: '项目经理',
   designer: '设计师',
-  sales: '销售',
-  boss_qi: '老板（老齐）',
-  boss_hu: '老板（老胡）'
+  sales: '销售'
 }
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
-
-function tenantMatches(resourceTenantId, tenantId) {
-  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
-}
 
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
@@ -36,23 +35,6 @@ async function getCurrentUser() {
     user.tenantName = DEFAULT_TENANT_NAME
   }
   return { openid: OPENID, user }
-}
-
-function assertCodeAttemptAllowed(user) {
-  if (Number(user.codeLockedUntil || 0) > Date.now()) {
-    throw new Error('邀请码尝试次数过多，请 15 分钟后再试')
-  }
-}
-
-async function recordCodeFailure(user) {
-  const attempts = Number(user.codeFailedAttempts || 0) + 1
-  await db.collection('users').doc(user._id).update({
-    data: {
-      codeFailedAttempts: attempts >= MAX_CODE_ATTEMPTS ? 0 : attempts,
-      codeLockedUntil: attempts >= MAX_CODE_ATTEMPTS ? Date.now() + CODE_LOCK_MS : 0,
-      updatedAt: db.serverDate()
-    }
-  })
 }
 
 function normalizeLimit(value, fallback) {
@@ -145,7 +127,11 @@ exports.main = async (event) => {
 
     const { openid, user } = await getCurrentUser()
     if (!user) throw new Error('请先登录')
-    assertCodeAttemptAllowed(user)
+    const attemptKeys = createInviteAttemptKeys(openid, code)
+    const attemptDocs = await Promise.all(attemptKeys.map((key) => (
+      db.collection('invite_code_attempts').doc(key).get().catch(() => ({ data: null }))
+    )))
+    assertAttemptsAllowed(attemptDocs.map((item) => item.data || null), Date.now())
 
     // 查邀请码
     const codeRes = await db.collection('staff_invite_codes')
@@ -154,26 +140,37 @@ exports.main = async (event) => {
       .get()
     const inviteCode = codeRes.data[0]
     if (!inviteCode) {
-      await recordCodeFailure(user)
+      await recordFailedInviteAttempt({
+        attemptKeys,
+        now: Date.now(),
+        runTransaction: (work) => db.runTransaction(async (transaction) => work({
+          getAttempt: async (key) => {
+            const res = await transaction.collection('invite_code_attempts').doc(key).get().catch(() => ({ data: null }))
+            return res.data || null
+          },
+          setAttempt: (key, patch) => transaction.collection('invite_code_attempts').doc(key).set({
+            data: Object.assign({}, patch, {
+              openid,
+              codeType: 'staff',
+              scope: key === attemptKeys[0] ? 'caller' : 'code',
+              createdAt: db.serverDate()
+            })
+          })
+        }))
+      })
       throw new Error('邀请码无效或已使用')
     }
-
-    if (inviteCode.expiresAt <= Date.now()) {
-      await db.collection('staff_invite_codes').doc(inviteCode._id).update({
-        data: { status: 'expired', updatedAt: db.serverDate() }
-      })
-      throw new Error('邀请码已过期，请联系管理员重新获取')
-    }
-
-    if (INVITABLE_ROLES.indexOf(inviteCode.role) === -1) {
-      throw new Error('邀请码角色异常，请联系管理员')
-    }
+    assertInvitableRole(inviteCode.role)
+    if (!inviteCode.tenantId) throw new Error('邀请码未绑定企业，请联系管理员重新获取')
 
     // 已经是内部员工，不允许重复激活成更低权限角色（避免误操作降权）
     if (user.role && user.role !== 'owner' && user.role !== inviteCode.role) {
       throw new Error('你当前已是「' + (ROLE_LABELS[user.role] || user.role) + '」，如需变更角色请联系管理员')
     }
-    if (user.role === inviteCode.role) {
+    if (user.role === inviteCode.role && user.tenantId !== inviteCode.tenantId) {
+      throw new Error('你已属于其他企业，如需变更请联系管理员')
+    }
+    if (user.role === inviteCode.role && user.tenantId === inviteCode.tenantId) {
       return {
         alreadyActivated: true,
         role: user.role,
@@ -182,57 +179,43 @@ exports.main = async (event) => {
       }
     }
 
-    const now = db.serverDate()
-    const tenantId = inviteCode.tenantId || user.tenantId || DEFAULT_TENANT_ID
-    const tenantName = inviteCode.tenantName || user.tenantName || DEFAULT_TENANT_NAME
-    if (!tenantMatches(inviteCode.tenantId, tenantId)) {
-      throw new Error('邀请码不属于当前企业')
-    }
+    const now = Date.now()
+    const tenantId = inviteCode.tenantId
 
     if (STAFF_LIMIT_ROLES.indexOf(inviteCode.role) !== -1) {
       await assertStaffLimit(tenantId)
     }
 
-    await db.runTransaction(async (transaction) => {
-      const freshCodeRes = await transaction.collection('staff_invite_codes').doc(inviteCode._id).get()
-      const freshCode = freshCodeRes.data || null
-      if (!freshCode || freshCode.code !== code || freshCode.status !== 'active') {
-        throw new Error('邀请码无效或已使用')
-      }
-      if (freshCode.expiresAt <= Date.now()) throw new Error('邀请码已过期，请联系管理员重新获取')
-      if (freshCode.role !== inviteCode.role || !tenantMatches(freshCode.tenantId, tenantId)) {
-        throw new Error('邀请码信息已变化，请重新获取')
-      }
-
-      await transaction.collection('users').doc(user._id).update({
-        data: {
-          role: inviteCode.role,
-          tenantId,
-          tenantName,
-          activatedAt: now,
-          activatedByCode: code,
-          codeFailedAttempts: 0,
-          codeLockedUntil: 0,
-          updatedAt: now
+    const redeemed = await redeemStaffInvite({
+      inviteId: inviteCode._id,
+      code,
+      openid,
+      userId: user._id,
+      now,
+      attemptKeys,
+      runTransaction: (work) => db.runTransaction(async (transaction) => work({
+        getInvite: async () => {
+          const res = await transaction.collection('staff_invite_codes').doc(inviteCode._id).get()
+          return res.data || null
+        },
+        updateUser: (userId, patch) => transaction.collection('users').doc(userId).update({ data: patch }),
+        updateInvite: (patch) => transaction.collection('staff_invite_codes').doc(inviteCode._id).update({
+          data: Object.assign({}, patch, { usedByName: user.name || '' })
+        }),
+        clearAttempts: async (keys) => {
+          for (const key of keys) {
+            await transaction.collection('invite_code_attempts').doc(key).set({
+              data: { failedAttempts: 0, lockedUntil: 0, updatedAt: now }
+            })
+          }
         }
-      })
-      await transaction.collection('staff_invite_codes').doc(inviteCode._id).update({
-        data: {
-          status: 'used',
-          usedByOpenid: openid,
-          usedByName: user.name || '',
-          tenantId,
-          tenantName,
-          usedAt: now,
-          updatedAt: now
-        }
-      })
+      }))
     })
 
     return {
       activated: true,
-      role: inviteCode.role,
-      roleLabel: ROLE_LABELS[inviteCode.role] || inviteCode.role,
+      role: redeemed.role,
+      roleLabel: ROLE_LABELS[redeemed.role] || redeemed.role,
       message: '角色激活成功，即将进入工作台'
     }
   } catch (error) {

@@ -1,4 +1,10 @@
 const cloud = require('wx-server-sdk')
+const {
+  buildSafeAlbumResponse,
+  createShareToken,
+  evaluateAlbumAccess,
+  getAuthorizationIdFromToken
+} = require('./shareAccess')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -118,12 +124,11 @@ async function getWarrantyCard(projectId, tenantId) {
 async function getAuthorization(projectId, tenantId, shareToken = '') {
   try {
     if (shareToken) {
-      const tokenRes = await db.collection('case_authorizations').doc(shareToken).get()
+      const authorizationId = getAuthorizationIdFromToken(shareToken)
+      const tokenRes = await db.collection('case_authorizations').doc(authorizationId).get()
       const tokenAuthorization = tokenRes.data || null
       if (!tokenAuthorization ||
         tokenAuthorization.projectId !== projectId ||
-        tokenAuthorization.authorizationScope !== 'public' ||
-        tokenAuthorization.status !== 'approved' ||
         !tenantMatches(tokenAuthorization.tenantId, tenantId)) {
         return null
       }
@@ -308,20 +313,6 @@ function buildPublicHouseInfo(project, canShowHouseInfo) {
   }
 }
 
-function sanitizeAuthorization(authorization) {
-  if (!authorization) return null
-  return {
-    authorizationScope: authorization.authorizationScope || '',
-    allowedMaterials: Array.isArray(authorization.allowedMaterials) ? authorization.allowedMaterials : [],
-    ownerNameDisplay: authorization.ownerNameDisplay || 'anonymous',
-    status: authorization.status || '',
-    updatedAt: authorization.updatedAt || null,
-    shareToken: authorization.authorizationScope === 'public' && authorization.status === 'approved'
-      ? authorization._id
-      : ''
-  }
-}
-
 exports.main = async (event = {}) => {
   try {
     const projectId = text(event.projectId)
@@ -337,9 +328,15 @@ exports.main = async (event = {}) => {
     const { openid, user } = await getCurrentUser()
     const privateAccess = canAccessPrivately(openid, user, project, tenantId)
     const authorization = await getAuthorization(projectId, tenantId, shareToken)
-    if (!privateAccess && (!shareToken || !authorization || authorization.authorizationScope !== 'public')) {
-      throw new Error('纪念册不存在或未公开')
-    }
+    const shareSecret = process.env.COMPLETION_SHARE_TOKEN_SECRET || ''
+    const access = evaluateAlbumAccess({
+      privateAccess,
+      shareToken,
+      authorization,
+      projectId,
+      secret: shareSecret,
+      now: Date.now()
+    })
 
     const allowedMaterials = Array.isArray(authorization && authorization.allowedMaterials)
       ? authorization.allowedMaterials
@@ -355,6 +352,21 @@ exports.main = async (event = {}) => {
     ])
     const servicePhone = (warrantyCard && (warrantyCard.servicePhone || warrantyCard.contactPhone)) || await getServicePhone(tenantId)
     const houseInfo = buildPublicHouseInfo(project, canShowHouseInfo)
+    let ownerShareToken = ''
+    if (privateAccess && authorization && authorization.authorizationScope === 'public' && authorization.status === 'approved') {
+      try {
+        ownerShareToken = createShareToken({ authorization, secret: shareSecret })
+      } catch (_) {
+        ownerShareToken = ''
+      }
+    }
+    const safeBase = buildSafeAlbumResponse({
+      project,
+      privateAccess,
+      allowedMaterials,
+      authorization,
+      shareToken: ownerShareToken
+    })
     const archive = {
       houseInfo,
       milestones,
@@ -370,10 +382,10 @@ exports.main = async (event = {}) => {
     }
 
     return {
-      project: buildPublicProject(project, canShowHouseInfo),
+      project: safeBase.project,
       archive,
       album: {
-        title: `${project.name || '我的新家'}完工纪念册`,
+        title: safeBase.album.title,
         summary: '',
         coverUrl: completionPhotos[0] || '',
         style: houseInfo.style,
@@ -381,8 +393,8 @@ exports.main = async (event = {}) => {
         completedAt: houseInfo.completedAt || houseInfo.deliveredAt,
         milestones
       },
-      authorization: sanitizeAuthorization(authorization),
-      accessMode: privateAccess ? 'private' : 'public_share'
+      authorization: safeBase.authorization,
+      accessMode: access.accessMode
     }
   } catch (error) {
     return { error: { message: error.message || '获取完工纪念册失败' } }

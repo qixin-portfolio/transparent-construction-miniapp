@@ -2,7 +2,7 @@
 
 ## 任务标题
 
-V1 上线后安全加固：云函数鉴权、租户隔离与公开数据边界
+Phase 7-SEC-5：PR #3 邀请码安全阻塞项修复
 
 ## 任务来源
 
@@ -64,11 +64,18 @@ V1 已正式上线。只读审计发现通知、种子数据、完工纪念册�
 ## Codex 执行记录
 
 - 分支：`codex/v1-security-hardening`
-- Commit：`69cfbd6899fce54f923335b8b7490cfbccb77b1d`
+- 修复前 HEAD：`bf046dbd747f028bebb8f2264474f549b3f26d4a`
 - PR：https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/2
-- 检查命令：`node --test tests/security-regression.test.js`；全项目 JS `node --check`；JSON 解析；页面文件完整性；`git diff --check`
-- 结果：20 项安全回归通过；全部 JS 语法通过；64 个 JSON 解析通过；39 个页面文件完整；V2 开关保持关闭
+- 阻塞项修复：可信定时任务身份、日报审核并发幂等、纪念册 HMAC 分享凭证、公开案例字段白名单、员工邀请码原子限流与角色白名单
+- 检查命令：`node --test tests/security-regression.test.js tests/security-behavior/*.test.js`；修改 JS `node --check`；全仓 JSON 解析；`git diff --check`
+- 结果：静态安全回归 20/20；行为测试 38/38；18 个修改 JS 语法通过；138 个 JSON 解析通过；V2 开关保持关闭
+- 记录：`AI_TASKS/V1_PR2_SECURITY_BLOCKERS_RESOLUTION.md`
+- 状态校准：PR #2 已于 SEC-3 修复提交前合并，merge commit 为 `5f4d94275cee2f9564613efe14470b7c40e0c128`；SEC-3 修复需新建独立 PR 承接
+- PR #3：`https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/3`，Draft、OPEN
+- SEC-5：增加调用者全局 + 具体 code 双重原子限流；邀请码生成改为事务内使用 code 文档 ID 原子占位
+- SEC-5 测试：静态 20/20，行为 43/43，合计 63/63
+- SEC-5 记录：`AI_TASKS/V1_PR3_INVITE_SECURITY_BLOCKERS_RESOLUTION.md`
 
 ## 下一步
 
-等待 PR #2 人工审查。部署云函数、上传体验版和发布正式版必须另行确认。
+push SEC-5 修复后重新审查 PR #3。部署云函数、上传体验版、生产数据盘点或迁移和正式发布必须另行确认。

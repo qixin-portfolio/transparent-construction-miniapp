@@ -13,7 +13,6 @@ test('sensitive notification and seed functions authenticate callers', () => {
   const files = [
     'cloudfunctions/sendWecomNotice/index.js',
     'cloudfunctions/sendOwnerNotice/index.js',
-    'cloudfunctions/dailySummary/index.js',
     'cloudfunctions/seedCustomerBenefits/index.js'
   ]
 
@@ -22,6 +21,15 @@ test('sensitive notification and seed functions authenticate callers', () => {
     assert.match(source, /cloud\.getWXContext\(\)/, `${file} must identify the caller`)
     assert.match(source, /ALLOWED_ROLES|ADMIN_ROLES/, `${file} must enforce an explicit role allowlist`)
   })
+
+  const dailySummaryIndex = read('cloudfunctions/dailySummary/index.js')
+  const dailySummarySecurity = read('cloudfunctions/dailySummary/security.js')
+  assert.match(dailySummaryIndex, /cloud\.getWXContext\(\)/)
+  assert.match(dailySummaryIndex, /authorizeDailySummaryInvocation\(/)
+  assert.match(dailySummaryIndex, /process\.env\.DAILY_SUMMARY_CRON_SECRET/)
+  assert.match(dailySummarySecurity, /const ALLOWED_ROLES\s*=/)
+  assert.match(dailySummarySecurity, /secretsMatch\(/)
+  assert.match(dailySummarySecurity, /tenantId === DEFAULT_TENANT_ID/)
 })
 
 test('owner notifications validate the stage log and target the formal mini program', () => {
@@ -31,26 +39,38 @@ test('owner notifications validate the stage log and target the formal mini prog
 })
 
 test('completion album requires owner access or a revocable public share token', () => {
-  const source = read('cloudfunctions/getCompletionAlbum/index.js')
-  assert.match(source, /cloud\.getWXContext\(\)/)
-  assert.match(source, /shareToken/)
-  assert.match(source, /authorizationScope\s*!==\s*'public'/)
-  assert.match(source, /sanitizeAuthorization/)
-  assert.match(source, /tenantMatches/)
-  assert.match(source, /user\.tenantId\s*\|\|\s*DEFAULT_TENANT_ID/)
-  assert.match(source, /name:\s*canShowHouseInfo\s*\?\s*project\.name/)
-  assert.match(source, /startDate:\s*canShowHouseInfo\s*\?\s*formatDate/)
-  assert.match(source, /Number\(project\.progress\s*\|\|\s*0\)\s*>=\s*100/)
-  assert.doesNotMatch(source, /tempUrlMap\[fileID\]\s*\|\|\s*fileID/)
+  const indexSource = read('cloudfunctions/getCompletionAlbum/index.js')
+  const accessSource = read('cloudfunctions/getCompletionAlbum/shareAccess.js')
+  assert.match(indexSource, /cloud\.getWXContext\(\)/)
+  assert.match(indexSource, /evaluateAlbumAccess\(/)
+  assert.match(indexSource, /createShareToken\(/)
+  assert.match(indexSource, /process\.env\.COMPLETION_SHARE_TOKEN_SECRET/)
+  assert.match(indexSource, /tenantMatches/)
+  assert.match(indexSource, /name:\s*canShowHouseInfo\s*\?\s*project\.name/)
+  assert.match(indexSource, /startDate:\s*canShowHouseInfo\s*\?\s*formatDate/)
+  assert.match(indexSource, /Number\(project\.progress\s*\|\|\s*0\)\s*>=\s*100/)
+  assert.doesNotMatch(indexSource, /tempUrlMap\[fileID\]\s*\|\|\s*fileID/)
+  assert.match(accessSource, /authorization\.authorizationScope\s*!==\s*'public'/)
+  assert.match(accessSource, /crypto\.createHmac\('sha256'/)
+  assert.match(accessSource, /shareTokenExpiresAt/)
+  assert.match(accessSource, /timingSafeEqual/)
+  assert.match(accessSource, /buildSafeAlbumResponse/)
+  assert.match(accessSource, /'装修完工纪念册'/)
+  assert.doesNotMatch(accessSource, /ownerOpenid|ownerOpenids/)
 })
 
 test('public cases omit house and budget fields unless explicitly authorized', () => {
-  const source = read('cloudfunctions/listPublicCases/index.js')
-  assert.match(source, /communityName:\s*allowShowCommunity\s*\?/)
-  assert.match(source, /exactPrice:\s*allowShowBudget\s*\?/)
-  assert.match(source, /budgetRange:\s*allowShowBudget\s*\?/)
-  assert.match(source, /allowCompletionPhotos/)
-  assert.match(source, /authorizationTenantMatchesProject/)
+  const indexSource = read('cloudfunctions/listPublicCases/index.js')
+  const dtoSource = read('cloudfunctions/listPublicCases/publicCaseDto.js')
+  assert.match(indexSource, /buildPublicCaseDto\(/)
+  assert.match(indexSource, /authorizationTenantMatchesProject/)
+  assert.match(indexSource, /allowCompletionPhotos/)
+  assert.match(dtoSource, /allowedMaterials\.indexOf\('house_info'\)/)
+  assert.match(dtoSource, /allowedMaterials\.indexOf\('budget'\)/)
+  assert.match(dtoSource, /allowedMaterials\.indexOf\('completion_photos'\)/)
+  assert.match(dtoSource, /if \(allowHouseInfo\)/)
+  assert.match(dtoSource, /if \(allowBudget\)/)
+  assert.doesNotMatch(dtoSource, /dto\.(planType|designHighlights|deliveredAt|tenantId|ownerOpenid)/)
 })
 
 test('tenant administrators cannot update another tenant plan', () => {
@@ -61,10 +81,14 @@ test('tenant administrators cannot update another tenant plan', () => {
 })
 
 test('stage log review is pending-only and project progress is monotonic', () => {
-  const source = read('cloudfunctions/reviewStageLog/index.js')
-  assert.match(source, /REVIEW_STATUS_NOT_PENDING/)
-  assert.match(source, /Math\.max\(/)
-  assert.match(source, /PROJECT_TENANT_MISMATCH/)
+  const indexSource = read('cloudfunctions/reviewStageLog/index.js')
+  const serviceSource = read('cloudfunctions/reviewStageLog/reviewService.js')
+  assert.match(indexSource, /executeStageLogReview\(/)
+  assert.match(indexSource, /db\.runTransaction\(/)
+  assert.match(serviceSource, /previousStatus\s*!==\s*'pending'/)
+  assert.match(serviceSource, /ALREADY_REVIEWED/)
+  assert.match(serviceSource, /Math\.max\(/)
+  assert.match(serviceSource, /PROJECT_TENANT_MISMATCH/)
 })
 
 test('non-default tenants never inherit blank legacy tenant records', () => {
@@ -99,7 +123,6 @@ test('direct resource checks reject blank legacy tenants outside the default ten
     'cloudfunctions/submitStageLog/index.js',
     'cloudfunctions/createWorkerProjectBindCode/index.js',
     'cloudfunctions/bindOwnerProject/index.js',
-    'cloudfunctions/bindStaffRole/index.js',
     'cloudfunctions/bindWorkerProject/index.js',
     'cloudfunctions/generateStageLogDraft/index.js',
     'cloudfunctions/createAfterSalesTicket/index.js',
@@ -130,7 +153,6 @@ test('direct resource checks reject blank legacy tenants outside the default ten
 
 test('invite code redemptions use database transactions', () => {
   const files = [
-    'cloudfunctions/bindStaffRole/index.js',
     'cloudfunctions/bindOwnerProject/index.js',
     'cloudfunctions/bindWorkerProject/index.js'
   ]
@@ -139,6 +161,27 @@ test('invite code redemptions use database transactions', () => {
     assert.match(source, /runTransaction\(/, `${file} must redeem codes atomically`)
     assert.match(source, /tenantMatches\(freshCode\.tenantId, tenantId\)/, `${file} must enforce the code tenant inside the transaction`)
   })
+
+  const staffIndex = read('cloudfunctions/bindStaffRole/index.js')
+  const staffSecurity = read('cloudfunctions/bindStaffRole/inviteSecurity.js')
+  assert.match(staffIndex, /redeemStaffInvite\(/)
+  assert.match(staffIndex, /recordFailedInviteAttempt\(/)
+  assert.match(staffIndex, /invite_code_attempts/)
+  assert.match(staffIndex, /db\.runTransaction\(/)
+  assert.match(staffIndex, /createInviteAttemptKeys\(/)
+  assert.match(staffSecurity, /const INVITABLE_ROLES\s*=\s*\['worker', 'project_manager', 'designer', 'sales'\]/)
+  assert.match(staffSecurity, /staff_caller_/)
+  assert.match(staffSecurity, /invite\.tenantId/)
+  assert.doesNotMatch(staffSecurity, /requestedTenantId/)
+
+  const createStaffInvite = read('cloudfunctions/createStaffInviteCode/index.js')
+  const createStaffInviteSecurity = read('cloudfunctions/createStaffInviteCode/inviteCodeSecurity.js')
+  assert.match(createStaffInvite, /\.where\(\{ role, tenantId, status: 'active'/)
+  assert.doesNotMatch(createStaffInvite, /staff_invite_codes'[\s\S]{0,200}tenantId:\s*tenantId === DEFAULT_TENANT_ID/)
+  assert.match(createStaffInvite, /reserveStaffInviteCode\(/)
+  assert.match(createStaffInvite, /db\.runTransaction\(/)
+  assert.match(createStaffInviteSecurity, /INVITE_CODE_COLLISION/)
+  assert.match(createStaffInviteSecurity, /setInviteById\(code/)
 })
 
 test('real AI network calls are opt-in and disabled by default', () => {
