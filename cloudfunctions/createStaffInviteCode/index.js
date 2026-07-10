@@ -1,5 +1,9 @@
 const cloud = require('wx-server-sdk')
 const crypto = require('crypto')
+const {
+  createUniqueStaffInvite,
+  reserveStaffInviteCode
+} = require('./inviteCodeSecurity')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -37,18 +41,6 @@ async function getCurrentUser() {
 
 function makeCode() {
   return String(crypto.randomInt(100000, 1000000))
-}
-
-async function makeUniqueCode() {
-  for (let i = 0; i < 12; i += 1) {
-    const code = makeCode()
-    const existing = await db.collection('staff_invite_codes')
-      .where({ code, status: 'active' })
-      .limit(1)
-      .get()
-    if (!existing.data.length) return code
-  }
-  throw new Error('邀请码生成失败，请稍后再试')
 }
 
 function normalizeLimit(value, fallback) {
@@ -174,32 +166,52 @@ exports.main = async (event) => {
       }
     }
 
-    const code = await makeUniqueCode()
     const expiresAt = now + CODE_EXPIRES_IN
-    const addRes = await db.collection('staff_invite_codes').add({
-      data: {
+    const invite = {
+      tenantId,
+      tenantName,
+      role,
+      roleLabel: ROLE_LABELS[role] || role,
+      remark,
+      status: 'active',
+      expiresAt,
+      createdByOpenid: openid,
+      createdByName: user.name || '',
+      createdAt: db.serverDate(),
+      updatedAt: db.serverDate()
+    }
+    const created = await createUniqueStaffInvite({
+      makeCode,
+      invite,
+      reserveCode: (code, inviteData) => reserveStaffInviteCode({
         code,
-        tenantId,
-        tenantName,
-        role,
-        roleLabel: ROLE_LABELS[role] || role,
-        remark,
-        status: 'active',
-        expiresAt,
-        createdByOpenid: openid,
-        createdByName: user.name || '',
-        createdAt: db.serverDate(),
-        updatedAt: db.serverDate()
-      }
+        invite: inviteData,
+        runTransaction: (work) => db.runTransaction(async (transaction) => work({
+          getInviteById: async (inviteId) => {
+            const res = await transaction.collection('staff_invite_codes').doc(inviteId).get().catch(() => ({ data: null }))
+            return res.data || null
+          },
+          findInviteByCode: async (candidateCode) => {
+            const res = await transaction.collection('staff_invite_codes')
+              .where({ code: candidateCode })
+              .limit(1)
+              .get()
+            return res.data[0] || null
+          },
+          setInviteById: (inviteId, data) => transaction.collection('staff_invite_codes').doc(inviteId).set({
+            data
+          })
+        }))
+      })
     })
 
     return {
-      code,
+      code: created.code,
       role,
       roleLabel: ROLE_LABELS[role] || role,
       remark,
       expiresAt,
-      _id: addRes._id
+      _id: created._id
     }
   } catch (error) {
     return {

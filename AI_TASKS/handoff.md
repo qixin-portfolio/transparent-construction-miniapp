@@ -17,6 +17,22 @@
 
 ---
 
+### 2026-07-10 — Phase 7-SEC-5 PR #3 邀请码安全阻塞项修复
+
+- 来源：PR #3 Phase 7-SEC-4 二次安全审查发现两个 P1
+- 分支：`codex/v1-security-hardening`
+- PR：https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/3
+- 修复前 HEAD：`812330b632d0145273b8934a7dc956f9248672e1`
+- 修复一：邀请码失败计数同时使用调用者全局 key 和 openid + code key；不同 code 也会累计到 5 次锁定，成功兑换同时清零两个 key
+- 修复二：新邀请码使用六位 code 作为文档 `_id`，事务内检查历史同码记录并原子占位；并发冲突后自动换码
+- 测试：静态 20/20，行为 43/43，合计 63/63
+- 部署前检查：只读盘点历史重复 active code、空 tenantId 邀请码和旧老板角色邀请码
+- 未执行：未合并、未部署、未上传体验版、未发布、未连接生产数据库、未执行迁移、未打开 V2
+- 记录：`AI_TASKS/V1_PR3_INVITE_SECURITY_BLOCKERS_RESOLUTION.md`
+- 下一步建议：push 后重新审查 PR #3，继续保持 Draft
+
+---
+
 ### 2026-07-10 — Phase 7-SEC-3 PR #2 合并阻塞项修复
 
 - 来源：Phase 7-SEC-2 审查结论 C；用户要求修复 PR #2 合并阻塞项并增加最小行为测试

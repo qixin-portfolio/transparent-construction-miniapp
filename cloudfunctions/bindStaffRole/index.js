@@ -1,9 +1,9 @@
 const cloud = require('wx-server-sdk')
 const {
   INVITABLE_ROLES,
-  assertAttemptAllowed,
+  assertAttemptsAllowed,
   assertInvitableRole,
-  createInviteAttemptKey,
+  createInviteAttemptKeys,
   recordFailedInviteAttempt,
   redeemStaffInvite
 } = require('./inviteSecurity')
@@ -127,9 +127,11 @@ exports.main = async (event) => {
 
     const { openid, user } = await getCurrentUser()
     if (!user) throw new Error('请先登录')
-    const attemptKey = createInviteAttemptKey(openid, code)
-    const attemptRes = await db.collection('invite_code_attempts').doc(attemptKey).get().catch(() => ({ data: null }))
-    assertAttemptAllowed(attemptRes.data || null, Date.now())
+    const attemptKeys = createInviteAttemptKeys(openid, code)
+    const attemptDocs = await Promise.all(attemptKeys.map((key) => (
+      db.collection('invite_code_attempts').doc(key).get().catch(() => ({ data: null }))
+    )))
+    assertAttemptsAllowed(attemptDocs.map((item) => item.data || null), Date.now())
 
     // 查邀请码
     const codeRes = await db.collection('staff_invite_codes')
@@ -139,15 +141,20 @@ exports.main = async (event) => {
     const inviteCode = codeRes.data[0]
     if (!inviteCode) {
       await recordFailedInviteAttempt({
-        attemptKey,
+        attemptKeys,
         now: Date.now(),
         runTransaction: (work) => db.runTransaction(async (transaction) => work({
-          getAttempt: async () => {
-            const res = await transaction.collection('invite_code_attempts').doc(attemptKey).get().catch(() => ({ data: null }))
+          getAttempt: async (key) => {
+            const res = await transaction.collection('invite_code_attempts').doc(key).get().catch(() => ({ data: null }))
             return res.data || null
           },
-          setAttempt: (patch) => transaction.collection('invite_code_attempts').doc(attemptKey).set({
-            data: Object.assign({}, patch, { openid, codeType: 'staff', createdAt: db.serverDate() })
+          setAttempt: (key, patch) => transaction.collection('invite_code_attempts').doc(key).set({
+            data: Object.assign({}, patch, {
+              openid,
+              codeType: 'staff',
+              scope: key === attemptKeys[0] ? 'caller' : 'code',
+              createdAt: db.serverDate()
+            })
           })
         }))
       })
@@ -185,6 +192,7 @@ exports.main = async (event) => {
       openid,
       userId: user._id,
       now,
+      attemptKeys,
       runTransaction: (work) => db.runTransaction(async (transaction) => work({
         getInvite: async () => {
           const res = await transaction.collection('staff_invite_codes').doc(inviteCode._id).get()
@@ -194,14 +202,13 @@ exports.main = async (event) => {
         updateInvite: (patch) => transaction.collection('staff_invite_codes').doc(inviteCode._id).update({
           data: Object.assign({}, patch, { usedByName: user.name || '' })
         }),
-        getAttempt: async () => {
-          const res = await transaction.collection('invite_code_attempts').doc(attemptKey).get().catch(() => ({ data: null }))
-          return res.data || null
-        },
-        setAttempt: (patch) => transaction.collection('invite_code_attempts').doc(attemptKey).set({ data: patch }),
-        clearAttempt: () => transaction.collection('invite_code_attempts').doc(attemptKey).set({
-          data: { failedAttempts: 0, lockedUntil: 0, updatedAt: now }
-        })
+        clearAttempts: async (keys) => {
+          for (const key of keys) {
+            await transaction.collection('invite_code_attempts').doc(key).set({
+              data: { failedAttempts: 0, lockedUntil: 0, updatedAt: now }
+            })
+          }
+        }
       }))
     })
 

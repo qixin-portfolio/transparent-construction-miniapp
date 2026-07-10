@@ -2,7 +2,7 @@
 
 ## 任务标题
 
-Phase 7-SEC-3：PR #2 合并阻塞项修复
+Phase 7-SEC-5：PR #3 邀请码安全阻塞项修复
 
 ## 任务来源
 
@@ -71,7 +71,11 @@ V1 已正式上线。只读审计发现通知、种子数据、完工纪念册�
 - 结果：静态安全回归 20/20；行为测试 38/38；18 个修改 JS 语法通过；138 个 JSON 解析通过；V2 开关保持关闭
 - 记录：`AI_TASKS/V1_PR2_SECURITY_BLOCKERS_RESOLUTION.md`
 - 状态校准：PR #2 已于 SEC-3 修复提交前合并，merge commit 为 `5f4d94275cee2f9564613efe14470b7c40e0c128`；SEC-3 修复需新建独立 PR 承接
+- PR #3：`https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/3`，Draft、OPEN
+- SEC-5：增加调用者全局 + 具体 code 双重原子限流；邀请码生成改为事务内使用 code 文档 ID 原子占位
+- SEC-5 测试：静态 20/20，行为 43/43，合计 63/63
+- SEC-5 记录：`AI_TASKS/V1_PR3_INVITE_SECURITY_BLOCKERS_RESOLUTION.md`
 
 ## 下一步
 
-push 当前安全分支后新建独立安全修复 PR，进入 Phase 7-SEC-4 二次安全审查。部署云函数、上传体验版、生产数据盘点或迁移和正式发布必须另行确认。
+push SEC-5 修复后重新审查 PR #3。部署云函数、上传体验版、生产数据盘点或迁移和正式发布必须另行确认。

@@ -168,13 +168,20 @@ test('invite code redemptions use database transactions', () => {
   assert.match(staffIndex, /recordFailedInviteAttempt\(/)
   assert.match(staffIndex, /invite_code_attempts/)
   assert.match(staffIndex, /db\.runTransaction\(/)
+  assert.match(staffIndex, /createInviteAttemptKeys\(/)
   assert.match(staffSecurity, /const INVITABLE_ROLES\s*=\s*\['worker', 'project_manager', 'designer', 'sales'\]/)
+  assert.match(staffSecurity, /staff_caller_/)
   assert.match(staffSecurity, /invite\.tenantId/)
   assert.doesNotMatch(staffSecurity, /requestedTenantId/)
 
   const createStaffInvite = read('cloudfunctions/createStaffInviteCode/index.js')
+  const createStaffInviteSecurity = read('cloudfunctions/createStaffInviteCode/inviteCodeSecurity.js')
   assert.match(createStaffInvite, /\.where\(\{ role, tenantId, status: 'active'/)
   assert.doesNotMatch(createStaffInvite, /staff_invite_codes'[\s\S]{0,200}tenantId:\s*tenantId === DEFAULT_TENANT_ID/)
+  assert.match(createStaffInvite, /reserveStaffInviteCode\(/)
+  assert.match(createStaffInvite, /db\.runTransaction\(/)
+  assert.match(createStaffInviteSecurity, /INVITE_CODE_COLLISION/)
+  assert.match(createStaffInviteSecurity, /setInviteById\(code/)
 })
 
 test('real AI network calls are opt-in and disabled by default', () => {

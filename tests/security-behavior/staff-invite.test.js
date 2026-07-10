@@ -3,7 +3,8 @@ const assert = require('node:assert/strict')
 
 const {
   assertInvitableRole,
-  createInviteAttemptKey,
+  createInviteAttemptKeys,
+  createInviteCallerAttemptKey,
   recordFailedInviteAttempt,
   redeemStaffInvite,
   toTimestamp
@@ -11,7 +12,7 @@ const {
 
 function createInviteStore(invite) {
   let queue = Promise.resolve()
-  const state = { invite: Object.assign({}, invite), attempt: null, users: {}, redemptions: 0 }
+  const state = { invite: Object.assign({}, invite), attempts: {}, users: {}, redemptions: 0 }
   return {
     state,
     runTransaction(work) {
@@ -19,9 +20,11 @@ function createInviteStore(invite) {
         getInvite: async () => Object.assign({}, state.invite),
         updateInvite: async (patch) => { state.invite = Object.assign({}, state.invite, patch) },
         updateUser: async (userId, patch) => { state.users[userId] = Object.assign({}, state.users[userId], patch) },
-        getAttempt: async () => state.attempt && Object.assign({}, state.attempt),
-        setAttempt: async (patch) => { state.attempt = Object.assign({}, patch) },
-        clearAttempt: async () => { state.attempt = null }
+        getAttempt: async (key) => state.attempts[key] && Object.assign({}, state.attempts[key]),
+        setAttempt: async (key, patch) => { state.attempts[key] = Object.assign({}, patch) },
+        clearAttempts: async (keys) => {
+          keys.forEach((key) => { state.attempts[key] = { failedAttempts: 0, lockedUntil: 0 } })
+        }
       }))
       queue = result.catch(() => {})
       return result
@@ -45,21 +48,40 @@ test('staff invite allows only one concurrent redemption', async () => {
 
 test('staff invite failed attempts accumulate atomically', async () => {
   const store = createInviteStore({})
-  const key = createInviteAttemptKey('openid-a', '000000')
+  const keys = createInviteAttemptKeys('openid-a', '000000')
   await Promise.all([
-    recordFailedInviteAttempt({ runTransaction: store.runTransaction, attemptKey: key, now: 1000 }),
-    recordFailedInviteAttempt({ runTransaction: store.runTransaction, attemptKey: key, now: 1000 })
+    recordFailedInviteAttempt({ runTransaction: store.runTransaction, attemptKeys: keys, now: 1000 }),
+    recordFailedInviteAttempt({ runTransaction: store.runTransaction, attemptKeys: keys, now: 1000 })
   ])
-  assert.equal(store.state.attempt.failedAttempts, 2)
+  keys.forEach((key) => assert.equal(store.state.attempts[key].failedAttempts, 2))
 })
 
 test('staff invite blocks attempts after the threshold', async () => {
   const store = createInviteStore({})
-  const key = createInviteAttemptKey('openid-a', '000000')
+  const keys = createInviteAttemptKeys('openid-a', '000000')
   for (let i = 0; i < 5; i += 1) {
-    await recordFailedInviteAttempt({ runTransaction: store.runTransaction, attemptKey: key, now: 1000 })
+    await recordFailedInviteAttempt({ runTransaction: store.runTransaction, attemptKeys: keys, now: 1000 })
   }
-  await assert.rejects(recordFailedInviteAttempt({ runTransaction: store.runTransaction, attemptKey: key, now: 1001 }), (error) => error.code === 'RATE_LIMITED')
+  await assert.rejects(recordFailedInviteAttempt({ runTransaction: store.runTransaction, attemptKeys: keys, now: 1001 }), (error) => error.code === 'RATE_LIMITED')
+})
+
+test('staff invite blocks a caller who rotates through different codes', async () => {
+  const store = createInviteStore({})
+  for (let index = 0; index < 5; index += 1) {
+    const code = String(100000 + index)
+    await recordFailedInviteAttempt({
+      runTransaction: store.runTransaction,
+      attemptKeys: createInviteAttemptKeys('openid-a', code),
+      now: 1000
+    })
+  }
+  const callerKey = createInviteCallerAttemptKey('openid-a')
+  assert.equal(store.state.attempts[callerKey].failedAttempts, 5)
+  await assert.rejects(recordFailedInviteAttempt({
+    runTransaction: store.runTransaction,
+    attemptKeys: createInviteAttemptKeys('openid-a', '200000'),
+    now: 1001
+  }), (error) => error.code === 'RATE_LIMITED')
 })
 
 test('staff invite rejects an expired code', async () => {
@@ -88,4 +110,12 @@ test('staff invite tenant comes from the server invite record', async () => {
   const result = await redeemStaffInvite({ runTransaction: store.runTransaction, inviteId: 'invite-1', code: '123456', openid: 'openid-a', userId: 'user-a', requestedTenantId: 'tenant-b', now: 1000 })
   assert.equal(result.tenantId, 'tenant-a')
   assert.equal(store.state.users['user-a'].tenantId, 'tenant-a')
+})
+
+test('staff invite redemption clears caller and code attempt counters', async () => {
+  const store = createInviteStore({ _id: 'invite-1', code: '123456', role: 'worker', tenantId: 'tenant-a', status: 'active', expiresAt: 2000 })
+  const attemptKeys = createInviteAttemptKeys('openid-a', '123456')
+  attemptKeys.forEach((key) => { store.state.attempts[key] = { failedAttempts: 3, lockedUntil: 0 } })
+  await redeemStaffInvite({ runTransaction: store.runTransaction, inviteId: 'invite-1', code: '123456', openid: 'openid-a', userId: 'user-a', now: 1000, attemptKeys })
+  attemptKeys.forEach((key) => assert.equal(store.state.attempts[key].failedAttempts, 0))
 })

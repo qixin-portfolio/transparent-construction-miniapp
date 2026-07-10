@@ -21,10 +21,22 @@ function createInviteAttemptKey(openid, code) {
   return `staff_${crypto.createHash('sha256').update(`${openid}:${code}`).digest('hex').slice(0, 40)}`
 }
 
+function createInviteCallerAttemptKey(openid) {
+  return `staff_caller_${crypto.createHash('sha256').update(String(openid)).digest('hex').slice(0, 40)}`
+}
+
+function createInviteAttemptKeys(openid, code) {
+  return [createInviteCallerAttemptKey(openid), createInviteAttemptKey(openid, code)]
+}
+
 function assertAttemptAllowed(attempt, now) {
   if (attempt && Number(attempt.lockedUntil || 0) > now) {
     throw createError('RATE_LIMITED', '邀请码尝试次数过多，请稍后再试')
   }
+}
+
+function assertAttemptsAllowed(attempts, now) {
+  ;(attempts || []).forEach((attempt) => assertAttemptAllowed(attempt, now))
 }
 
 function toTimestamp(value) {
@@ -36,22 +48,32 @@ function toTimestamp(value) {
   return Number.isFinite(timestamp) ? timestamp : 0
 }
 
-async function recordFailedInviteAttempt({ runTransaction, attemptKey, now }) {
+async function recordFailedInviteAttempt({ runTransaction, attemptKeys, now }) {
+  const keys = Array.from(new Set((attemptKeys || []).filter(Boolean)))
+  if (!keys.length) throw createError('ATTEMPT_KEYS_MISSING', '邀请码限流键缺失')
   return runTransaction(async (transaction) => {
-    const current = await transaction.getAttempt(attemptKey)
-    assertAttemptAllowed(current, now)
-    const failedAttempts = Number(current && current.failedAttempts || 0) + 1
-    const next = {
-      failedAttempts,
-      lockedUntil: failedAttempts >= MAX_CODE_ATTEMPTS ? now + CODE_LOCK_MS : 0,
-      updatedAt: now
+    const currentAttempts = []
+    for (const key of keys) {
+      currentAttempts.push(await transaction.getAttempt(key))
     }
-    await transaction.setAttempt(next)
-    return next
+    assertAttemptsAllowed(currentAttempts, now)
+
+    const nextAttempts = {}
+    for (let index = 0; index < keys.length; index += 1) {
+      const failedAttempts = Number(currentAttempts[index] && currentAttempts[index].failedAttempts || 0) + 1
+      const next = {
+        failedAttempts,
+        lockedUntil: failedAttempts >= MAX_CODE_ATTEMPTS ? now + CODE_LOCK_MS : 0,
+        updatedAt: now
+      }
+      await transaction.setAttempt(keys[index], next)
+      nextAttempts[keys[index]] = next
+    }
+    return nextAttempts
   })
 }
 
-async function redeemStaffInvite({ runTransaction, inviteId, code, openid, userId, now }) {
+async function redeemStaffInvite({ runTransaction, inviteId, code, openid, userId, now, attemptKeys = [] }) {
   return runTransaction(async (transaction) => {
     const invite = await transaction.getInvite(inviteId)
     if (!invite || invite.code !== code || invite.status !== 'active') {
@@ -77,7 +99,7 @@ async function redeemStaffInvite({ runTransaction, inviteId, code, openid, userI
       usedAt: now,
       updatedAt: now
     })
-    await transaction.clearAttempt()
+    await transaction.clearAttempts(attemptKeys)
     return {
       role: invite.role,
       tenantId: invite.tenantId,
@@ -91,8 +113,11 @@ module.exports = {
   INVITABLE_ROLES,
   MAX_CODE_ATTEMPTS,
   assertAttemptAllowed,
+  assertAttemptsAllowed,
   assertInvitableRole,
+  createInviteAttemptKeys,
   createInviteAttemptKey,
+  createInviteCallerAttemptKey,
   recordFailedInviteAttempt,
   redeemStaffInvite,
   toTimestamp
