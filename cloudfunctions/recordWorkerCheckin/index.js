@@ -7,9 +7,16 @@ const _ = db.command
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 function tenantWhere(tenantId, extra = {}) {
+  const effectiveTenantId = tenantId || DEFAULT_TENANT_ID
   return Object.assign({}, extra, {
-    tenantId: _.in([tenantId || DEFAULT_TENANT_ID, '', null])
+    tenantId: effectiveTenantId === DEFAULT_TENANT_ID
+      ? _.in([effectiveTenantId, '', null])
+      : effectiveTenantId
   })
 }
 
@@ -39,7 +46,7 @@ async function getBoundProject(openid, tenantId, projectId) {
   const projectRes = await db.collection('projects').doc(targetProjectId).get()
   const project = projectRes.data || null
   if (!project) throw new Error('绑定工地不存在')
-  if (project.tenantId && project.tenantId !== tenantId) {
+  if (!tenantMatches(project.tenantId, tenantId)) {
     throw new Error('当前账号无权在该工地打卡')
   }
   return project
@@ -64,7 +71,7 @@ async function findTodayCheckin(openid, tenantId, projectId) {
   const range = getChinaDayRange()
   const res = await db.collection('activity_logs')
     .where({
-      tenantId: _.in([tenantId, '', null]),
+      tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
       type: 'worker_checkin',
       projectId,
       userOpenid: openid,

@@ -32,7 +32,7 @@ exports.main = async (event) => {
     const status = String(event.status || '').trim() // active/used/expired/空=全部
     const role = String(event.role || '').trim()
 
-    const where = { tenantId: _.in([tenantId, '', null]) }
+    const where = { tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId }
     if (status) where.status = status
     if (role) where.role = role
 

@@ -4,6 +4,6 @@
   "description": "V2 真实工地证据摘要只读接口",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "~2.6.3"
+    "wx-server-sdk": "2.6.3"
   }
 }

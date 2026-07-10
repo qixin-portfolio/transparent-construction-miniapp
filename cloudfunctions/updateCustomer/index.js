@@ -7,6 +7,10 @@ const _ = db.command
 const CUSTOMER_ROLES = ['admin', 'boss_qi', 'boss_hu', 'designer', 'sales']
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
+
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
 const CUSTOMER_LIFECYCLE_CODES = ['lead', 'consulting', 'measured', 'quoted', 'signed', 'in_construction', 'delivered', 'lost']
 
 async function getCurrentUser() {
@@ -56,7 +60,7 @@ exports.main = async (event) => {
     const customer = existing.data
     const tenantId = user.tenantId || DEFAULT_TENANT_ID
     const tenantName = user.tenantName || DEFAULT_TENANT_NAME
-    if (customer.tenantId && customer.tenantId !== tenantId) {
+    if (!tenantMatches(customer.tenantId, tenantId)) {
       throw new Error('无权修改该客户')
     }
 
@@ -72,7 +76,7 @@ exports.main = async (event) => {
     // 手机号查重（排除自己）
     if (phone) {
       const duplicated = await db.collection('customers')
-        .where({ phone, tenantId: _.in([tenantId, '', null]), _id: _.neq(customerId), deleted: _.neq(true) })
+        .where({ phone, tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId, _id: _.neq(customerId), deleted: _.neq(true) })
         .limit(1)
         .get()
       if (duplicated.data.length) {

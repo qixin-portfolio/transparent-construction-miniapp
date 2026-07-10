@@ -11,6 +11,10 @@ const CODE_EXPIRES_IN = 7 * 24 * 60 * 60 * 1000
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
@@ -73,13 +77,13 @@ exports.main = async (event) => {
 
     const tenantId = user.tenantId || DEFAULT_TENANT_ID
     const tenantName = user.tenantName || DEFAULT_TENANT_NAME
-    if (project.tenantId && project.tenantId !== tenantId) {
+    if (!tenantMatches(project.tenantId, tenantId)) {
       throw new Error('当前账号无权生成该工地绑定码')
     }
 
     const now = Date.now()
     const activeCodesRes = await db.collection('worker_project_bind_codes')
-      .where({ projectId, status: 'active', tenantId: _.in([tenantId, '', null]) })
+      .where({ projectId, status: 'active', tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId })
       .orderBy('expiresAt', 'desc')
       .limit(10)
       .get()

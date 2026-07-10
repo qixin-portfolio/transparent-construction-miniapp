@@ -7,6 +7,10 @@ const _ = db.command
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 // 允许业主补充的资料类型
 const VALID_CATEGORIES = {
   hydro: '水电隐蔽工程',
@@ -30,7 +34,7 @@ async function assertOwnerProject(openid, tenantId, projectId) {
   const res = await db.collection('projects').doc(projectId).get()
   const project = res.data || null
   if (!project) throw new Error('工地不存在')
-  if (project.tenantId && project.tenantId !== tenantId) throw new Error('当前账号无权操作该工地')
+  if (!tenantMatches(project.tenantId, tenantId)) throw new Error('当前账号无权操作该工地')
   const ownerOpenids = Array.isArray(project.ownerOpenids) ? project.ownerOpenids : []
   if (project.ownerOpenid !== openid && ownerOpenids.indexOf(openid) === -1) {
     throw new Error('当前账号无权操作该工地')
@@ -59,7 +63,7 @@ async function getTempUrlMap(fileIDs) {
 async function listSupplements(projectId, tenantId, category) {
   const where = {
     projectId,
-    tenantId: _.in([tenantId, '', null]),
+    tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
     status: _.neq('deleted')
   }
   if (category) where.category = category
@@ -134,7 +138,7 @@ async function deleteSupplement(openid, tenantId, supplementId) {
   const res = await db.collection('owner_supplements').doc(supplementId).get()
   const record = res.data || null
   if (!record) throw new Error('资料不存在')
-  if (record.tenantId && record.tenantId !== tenantId) throw new Error('无权操作')
+  if (!tenantMatches(record.tenantId, tenantId)) throw new Error('无权操作')
   if (record.uploadedBy && record.uploadedBy.openid !== openid) {
     throw new Error('只能删除自己上传的资料')
   }
@@ -151,7 +155,7 @@ async function countSupplements(projectId, tenantId) {
   const res = await db.collection('owner_supplements')
     .where({
       projectId,
-      tenantId: _.in([tenantId, '', null]),
+      tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
       status: 'active'
     })
     .get()

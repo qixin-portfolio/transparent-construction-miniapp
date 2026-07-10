@@ -8,6 +8,17 @@ const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 const DEFAULT_REGION = '交城本地'
 
+function tenantScope(tenantId) {
+  return tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId
+}
+
+function authorizationTenantMatchesProject(authorization, project) {
+  const projectTenantId = project.tenantId || DEFAULT_TENANT_ID
+  return authorization.tenantId
+    ? authorization.tenantId === projectTenantId
+    : projectTenantId === DEFAULT_TENANT_ID
+}
+
 // 品牌参考案例（与 store-config.js 同步，业主未授权时兜底展示）
 // 图片为本地路径，压缩后放在 miniprogram/images/cases/
 const REFERENCE_CASES = [
@@ -127,9 +138,9 @@ async function getTempUrlMap(fileIDs) {
 async function getPublicAuthorizations(tenantId) {
   const res = await db.collection('case_authorizations')
     .where({
-      tenantId: _.in([tenantId, '', null]),
+      tenantId: tenantScope(tenantId),
       authorizationScope: 'public',
-      status: _.neq('deleted')
+      status: 'approved'
     })
     .orderBy('updatedAt', 'desc')
     .limit(50)
@@ -143,7 +154,7 @@ async function getDeliveredProjects(projectIds, tenantId) {
   const res = await db.collection('projects')
     .where({
       _id: _.in(projectIds),
-      tenantId: _.in([tenantId, '', null]),
+      tenantId: tenantScope(tenantId),
       statusCode: _.in(['delivered', 'completed'])
     })
     .limit(50)
@@ -157,7 +168,7 @@ async function getCompletionPhotosFromStageLogs(projectId, tenantId) {
     const logsRes = await db.collection('stage_logs')
       .where({
         projectId,
-        tenantId: _.in([tenantId, '', null]),
+        tenantId: tenantScope(tenantId),
         reviewStatus: 'approved',
         ownerVisible: true,
         stage: _.in(['竣工验收', '竣工交付', '完工'])
@@ -172,7 +183,7 @@ async function getCompletionPhotosFromStageLogs(projectId, tenantId) {
     const photosRes = await db.collection('photos')
       .where({
         stageLogId: _.in(logIds),
-        tenantId: _.in([tenantId, '', null]),
+        tenantId: tenantScope(tenantId),
         ownerVisible: true
       })
       .limit(20)
@@ -215,24 +226,26 @@ async function buildPublicCases(authorizations, projects, tenantId) {
   const cases = []
   authorizations.forEach((auth) => {
     const project = projectMap[auth.projectId]
-    if (!project) return
+    if (!project || !authorizationTenantMatchesProject(auth, project)) return
 
     const allowedMaterials = Array.isArray(auth.allowedMaterials) ? auth.allowedMaterials : []
     const allowShowCommunity = allowedMaterials.indexOf('house_info') !== -1
     const allowShowBudget = allowedMaterials.indexOf('budget') !== -1
+    const allowCompletionPhotos = allowedMaterials.indexOf('completion_photos') !== -1
+    const allowProcessPhotos = allowedMaterials.indexOf('process_photos') !== -1
 
     // 完工照片 URL 列表
     const completionPhotos = []
-    if (Array.isArray(project.completionPhotoFileIDs) && project.completionPhotoFileIDs.length) {
+    if (allowCompletionPhotos && Array.isArray(project.completionPhotoFileIDs) && project.completionPhotoFileIDs.length) {
       project.completionPhotoFileIDs.forEach((id) => {
-        const url = tempUrlMap[id] || id
+        const url = tempUrlMap[id] || ''
         if (url) completionPhotos.push(url)
       })
     }
     // stage_logs 补充
-    const stagePhotos = stagePhotoResults[projects.indexOf(project)] || []
+    const stagePhotos = allowProcessPhotos ? (stagePhotoResults[projects.indexOf(project)] || []) : []
     stagePhotos.forEach((id) => {
-      const url = tempUrlMap[id] || id
+      const url = tempUrlMap[id] || ''
       if (url && completionPhotos.indexOf(url) === -1) completionPhotos.push(url)
     })
 
@@ -243,15 +256,15 @@ async function buildPublicCases(authorizations, projects, tenantId) {
       isAuthorized: true,
       allowShowCommunity,
       allowShowBudgetRange: allowShowBudget,
-      communityName: project.community || project.communityName || '',
+      communityName: allowShowCommunity ? (project.community || project.communityName || '') : '',
       regionName: DEFAULT_REGION,
-      area: project.area || '',
-      layout: project.layout || '',
-      houseType: project.layout || '',
-      style: project.style || '',
+      area: allowShowCommunity ? (project.area || '') : '',
+      layout: allowShowCommunity ? (project.layout || '') : '',
+      houseType: allowShowCommunity ? (project.layout || '') : '',
+      style: allowShowCommunity ? (project.style || '') : '',
       planType: project.planType || '',
-      exactPrice: project.exactPrice || project.contractAmount || '',
-      budgetRange: project.budgetRange || '',
+      exactPrice: allowShowBudget ? (project.exactPrice || project.contractAmount || '') : '',
+      budgetRange: allowShowBudget ? (project.budgetRange || '') : '',
       designHighlights: project.designHighlights || [],
       coverImage: completionPhotos[0] || '',
       completionPhotos: completionPhotos.slice(0, 9),
@@ -284,14 +297,18 @@ exports.main = async (event) => {
       // 真实案例：通过 caseId 取 authorization + project
       const authRes = await db.collection('case_authorizations').doc(caseId).get().catch(() => ({ data: null }))
       const auth = authRes.data
-      if (!auth || auth.authorizationScope !== 'public') {
+      if (!auth || auth.authorizationScope !== 'public' || auth.status !== 'approved') {
         return { error: { message: '案例不存在或未公开' } }
       }
       const projectRes = await db.collection('projects').doc(auth.projectId).get().catch(() => ({ data: null }))
       const project = projectRes.data
       if (!project) return { error: { message: '案例数据不存在' } }
 
-      const cases = await buildPublicCases([auth], [project], tenantId)
+      if (!authorizationTenantMatchesProject(auth, project)) {
+        return { error: { message: '案例数据不存在' } }
+      }
+      const publicTenantId = project.tenantId || DEFAULT_TENANT_ID
+      const cases = await buildPublicCases([auth], [project], publicTenantId)
       if (!cases.length) return { error: { message: '案例数据不存在' } }
       return { case: cases[0] }
     }

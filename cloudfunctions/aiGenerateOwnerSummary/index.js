@@ -7,6 +7,7 @@ const db = cloud.database()
 const ALLOWED_ROLES = ['admin', 'boss_qi', 'boss_hu']
 const DEFAULT_MODEL = 'deepseek-chat'
 const DEFAULT_TIMEOUT = 15000
+const ENABLE_REAL_AI_API = process.env.ENABLE_REAL_AI_API === 'true'
 
 const ERROR_MESSAGES = {
   INVALID_STAGE_LOG_ID: '缺少有效的日报 ID',
@@ -181,6 +182,7 @@ function requestJson(urlText, payload, headers, timeout) {
 }
 
 async function callOpenAICompatible(messages) {
+  if (!ENABLE_REAL_AI_API) throw createError('AI_CONFIG_MISSING')
   const apiKey = normalizeText(process.env.AI_API_KEY, 500)
   const baseURL = normalizeText(process.env.AI_BASE_URL, 300)
   const model = normalizeText(process.env.AI_MODEL, 80) || DEFAULT_MODEL

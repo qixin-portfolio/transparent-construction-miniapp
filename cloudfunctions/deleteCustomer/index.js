@@ -6,6 +6,10 @@ const db = cloud.database()
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
@@ -31,7 +35,7 @@ exports.main = async (event) => {
     const customerRes = await db.collection('customers').doc(customerId).get()
     if (!customerRes.data) throw new Error('客户不存在')
     const tenantId = user.tenantId || DEFAULT_TENANT_ID
-    if (customerRes.data.tenantId && customerRes.data.tenantId !== tenantId) {
+    if (!tenantMatches(customerRes.data.tenantId, tenantId)) {
       throw new Error('无权删除该客户')
     }
 

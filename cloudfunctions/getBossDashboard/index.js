@@ -10,8 +10,11 @@ const DEFAULT_TENANT_NAME = '晟景装饰'
 const BOSS_ROLES = ['admin', 'boss_qi', 'boss_hu']
 
 function tenantWhere(tenantId, extra = {}) {
+  const effectiveTenantId = tenantId || DEFAULT_TENANT_ID
   return Object.assign({}, extra, {
-    tenantId: _.in([tenantId || DEFAULT_TENANT_ID, '', null])
+    tenantId: effectiveTenantId === DEFAULT_TENANT_ID
+      ? _.in([effectiveTenantId, '', null])
+      : effectiveTenantId
   })
 }
 

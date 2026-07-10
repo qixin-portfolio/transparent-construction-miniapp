@@ -9,6 +9,8 @@ const INVITABLE_ROLES = ['worker', 'project_manager', 'designer', 'sales', 'boss
 const STAFF_LIMIT_ROLES = ['manager', 'foreman', 'designer', 'worker', 'project_manager', 'sales']
 const PLAN_MODULES = ['project', 'daily_report', 'owner_view']
 const ENABLE_FREE_TRIAL_USAGE = true
+const MAX_CODE_ATTEMPTS = 5
+const CODE_LOCK_MS = 15 * 60 * 1000
 
 const ROLE_LABELS = {
   worker: '工长',
@@ -21,6 +23,10 @@ const ROLE_LABELS = {
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
@@ -30,6 +36,23 @@ async function getCurrentUser() {
     user.tenantName = DEFAULT_TENANT_NAME
   }
   return { openid: OPENID, user }
+}
+
+function assertCodeAttemptAllowed(user) {
+  if (Number(user.codeLockedUntil || 0) > Date.now()) {
+    throw new Error('邀请码尝试次数过多，请 15 分钟后再试')
+  }
+}
+
+async function recordCodeFailure(user) {
+  const attempts = Number(user.codeFailedAttempts || 0) + 1
+  await db.collection('users').doc(user._id).update({
+    data: {
+      codeFailedAttempts: attempts >= MAX_CODE_ATTEMPTS ? 0 : attempts,
+      codeLockedUntil: attempts >= MAX_CODE_ATTEMPTS ? Date.now() + CODE_LOCK_MS : 0,
+      updatedAt: db.serverDate()
+    }
+  })
 }
 
 function normalizeLimit(value, fallback) {
@@ -122,6 +145,7 @@ exports.main = async (event) => {
 
     const { openid, user } = await getCurrentUser()
     if (!user) throw new Error('请先登录')
+    assertCodeAttemptAllowed(user)
 
     // 查邀请码
     const codeRes = await db.collection('staff_invite_codes')
@@ -129,7 +153,10 @@ exports.main = async (event) => {
       .limit(1)
       .get()
     const inviteCode = codeRes.data[0]
-    if (!inviteCode) throw new Error('邀请码无效或已使用')
+    if (!inviteCode) {
+      await recordCodeFailure(user)
+      throw new Error('邀请码无效或已使用')
+    }
 
     if (inviteCode.expiresAt <= Date.now()) {
       await db.collection('staff_invite_codes').doc(inviteCode._id).update({
@@ -158,34 +185,48 @@ exports.main = async (event) => {
     const now = db.serverDate()
     const tenantId = inviteCode.tenantId || user.tenantId || DEFAULT_TENANT_ID
     const tenantName = inviteCode.tenantName || user.tenantName || DEFAULT_TENANT_NAME
+    if (!tenantMatches(inviteCode.tenantId, tenantId)) {
+      throw new Error('邀请码不属于当前企业')
+    }
 
     if (STAFF_LIMIT_ROLES.indexOf(inviteCode.role) !== -1) {
       await assertStaffLimit(tenantId)
     }
 
-    // 更新用户角色
-    await db.collection('users').doc(user._id).update({
-      data: {
-        role: inviteCode.role,
-        tenantId,
-        tenantName,
-        activatedAt: now,
-        activatedByCode: code,
-        updatedAt: now
+    await db.runTransaction(async (transaction) => {
+      const freshCodeRes = await transaction.collection('staff_invite_codes').doc(inviteCode._id).get()
+      const freshCode = freshCodeRes.data || null
+      if (!freshCode || freshCode.code !== code || freshCode.status !== 'active') {
+        throw new Error('邀请码无效或已使用')
       }
-    })
+      if (freshCode.expiresAt <= Date.now()) throw new Error('邀请码已过期，请联系管理员重新获取')
+      if (freshCode.role !== inviteCode.role || !tenantMatches(freshCode.tenantId, tenantId)) {
+        throw new Error('邀请码信息已变化，请重新获取')
+      }
 
-    // 标记邀请码已使用
-    await db.collection('staff_invite_codes').doc(inviteCode._id).update({
-      data: {
-        status: 'used',
-        usedByOpenid: openid,
-        usedByName: user.name || '',
-        tenantId,
-        tenantName,
-        usedAt: now,
-        updatedAt: now
-      }
+      await transaction.collection('users').doc(user._id).update({
+        data: {
+          role: inviteCode.role,
+          tenantId,
+          tenantName,
+          activatedAt: now,
+          activatedByCode: code,
+          codeFailedAttempts: 0,
+          codeLockedUntil: 0,
+          updatedAt: now
+        }
+      })
+      await transaction.collection('staff_invite_codes').doc(inviteCode._id).update({
+        data: {
+          status: 'used',
+          usedByOpenid: openid,
+          usedByName: user.name || '',
+          tenantId,
+          tenantName,
+          usedAt: now,
+          updatedAt: now
+        }
+      })
     })
 
     return {

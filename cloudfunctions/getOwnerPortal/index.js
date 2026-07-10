@@ -29,7 +29,7 @@ function isCompleted(project) {
 }
 
 async function listOwnerProjects(openid, tenantId) {
-  const tenantQuery = _.in([tenantId, '', null])
+  const tenantQuery = tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId
   const arrayRes = await db.collection('projects')
     .where({ ownerOpenids: openid, tenantId: tenantQuery })
     .orderBy('updatedAt', 'desc')
@@ -49,7 +49,7 @@ async function listOwnerProjects(openid, tenantId) {
 }
 
 async function findHistoricalCustomer(openid, user, tenantId) {
-  const tenantQuery = _.in([tenantId, '', null])
+  const tenantQuery = tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId
   const byOpenid = await db.collection('customers')
     .where({ ownerOpenid: openid, tenantId: tenantQuery })
     .orderBy('updatedAt', 'desc')

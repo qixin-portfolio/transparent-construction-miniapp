@@ -3,9 +3,38 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
+const ALLOWED_ROLES = ['admin', 'boss_qi', 'boss_hu']
+const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
+
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
 
 // ⚠️ 替换为你在 mp 后台创建的订阅消息模板 ID
 const SUBSCRIBE_TEMPLATE_ID = 'CSnZXzPW_Qe9Nor3NR7__Z0dHlQaItFPpb6X1-Sd4bY'
+
+async function getAllowedCaller() {
+  const { OPENID } = cloud.getWXContext()
+  if (!OPENID) throw new Error('无法识别当前调用者')
+  const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
+  const user = res.data[0] || null
+  if (!user || ALLOWED_ROLES.indexOf(user.role) === -1) {
+    throw new Error('当前账号无权发送业主通知')
+  }
+  return user
+}
+
+function assertStageLogProject(log, projectId, tenantId) {
+  if (!log || log.projectId !== projectId) {
+    const error = new Error('日报与工地不匹配')
+    error.code = 'STAGE_LOG_PROJECT_MISMATCH'
+    throw error
+  }
+  if (!tenantMatches(log.tenantId, tenantId)) throw new Error('无权发送该日报通知')
+  if (log.reviewStatus !== 'approved' || log.ownerVisible !== true) {
+    throw new Error('日报尚未审核通过，不能通知业主')
+  }
+}
 
 /**
  * 格式化日期为 YYYY-MM-DD
@@ -24,12 +53,15 @@ function fmtDate(ts) {
  * @param {string} event.projectId   - 工地 ID
  * @param {string} event.stageLogId  - 日报 ID
  */
-exports.main = async (event) => {
+exports.main = async (event = {}) => {
   try {
+    const user = await getAllowedCaller()
+    const tenantId = user.tenantId || DEFAULT_TENANT_ID
     const projectId = String(event.projectId || '').trim()
     const stageLogId = String(event.stageLogId || '').trim()
 
     if (!projectId) throw new Error('缺少工地 ID')
+    if (!stageLogId) throw new Error('缺少日报 ID')
 
     // 1. 查询工地信息，获取业主 openid
     let project
@@ -43,6 +75,9 @@ exports.main = async (event) => {
     if (!project) {
       return { skipped: true, reason: 'no_owner' }
     }
+    if (!tenantMatches(project.tenantId, tenantId)) {
+      throw new Error('无权发送该工地通知')
+    }
 
     // 兼容新旧字段：优先用 ownerOpenids 数组，回退到 ownerOpenid 单值
     const ownerOpenids = project.ownerOpenids || (project.ownerOpenid ? [project.ownerOpenid] : [])
@@ -55,17 +90,12 @@ exports.main = async (event) => {
     let progress = 0
     let workContent = ''
 
-    if (stageLogId) {
-      try {
-        const logRes = await db.collection('stage_logs').doc(stageLogId).get()
-        const log = logRes.data || {}
-        stage = (log.stage || stage).slice(0, 5)   // phrase2 上限 5 字
-        progress = Number(log.progress) || 0
-        workContent = (log.workContent || '').slice(0, 50)
-      } catch (_) {
-        // 日报查不到不影响发送，使用默认值
-      }
-    }
+    const logRes = await db.collection('stage_logs').doc(stageLogId).get()
+    const log = logRes.data || null
+    assertStageLogProject(log, projectId, tenantId)
+    stage = (log.stage || stage).slice(0, 5)
+    progress = Number(log.progress) || 0
+    workContent = (log.workContent || '').slice(0, 50)
 
     // 3. 向所有业主发送订阅消息（夫妻都收到）
     const projectName = (project.name || '工地').slice(0, 20)
@@ -77,7 +107,7 @@ exports.main = async (event) => {
           touser: ownerOpenid,
           templateId: SUBSCRIBE_TEMPLATE_ID,
           page: 'subpackages/owner/pages/owner/owner',
-          miniprogramState: 'trial',
+          miniprogramState: 'formal',
           data: {
             thing1: { value: projectName },
             phrase2: { value: stage },

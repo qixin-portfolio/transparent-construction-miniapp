@@ -5,6 +5,23 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
 const _ = db.command
+const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
+const ALLOWED_ROLES = ['admin', 'boss_qi', 'boss_hu']
+
+function tenantScope(tenantId) {
+  return tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId
+}
+
+async function getAllowedCaller() {
+  const { OPENID } = cloud.getWXContext()
+  if (!OPENID) throw new Error('无法识别当前调用者')
+  const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
+  const user = res.data[0] || null
+  if (!user || ALLOWED_ROLES.indexOf(user.role) === -1) {
+    throw new Error('当前账号无权查看每日汇总')
+  }
+  return user
+}
 
 function todayText() {
   const date = new Date()
@@ -53,14 +70,16 @@ function sendWecomMarkdown(content) {
   })
 }
 
-exports.main = async (event) => {
+exports.main = async (event = {}) => {
   try {
+    const user = await getAllowedCaller()
+    const tenantId = user.tenantId || DEFAULT_TENANT_ID
     const pendingLogs = await db.collection('stage_logs')
-      .where({ reviewStatus: 'pending' })
+      .where({ tenantId: tenantScope(tenantId), reviewStatus: 'pending' })
       .count()
 
     const openTasks = await db.collection('tasks')
-      .where({ status: _.neq('done') })
+      .where({ tenantId: tenantScope(tenantId), status: _.neq('done') })
       .count()
 
     const content = [

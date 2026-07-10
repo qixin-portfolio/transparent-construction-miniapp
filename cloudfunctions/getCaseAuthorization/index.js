@@ -26,7 +26,7 @@ exports.main = async (event) => {
     const projectId = String(event.projectId || '').trim()
     if (!projectId) throw new Error('缺少工地 ID')
     const res = await db.collection('case_authorizations')
-      .where({ tenantId: _.in([tenantId, '', null]), projectId, ownerOpenid: openid })
+      .where({ tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId, projectId, ownerOpenid: openid })
       .orderBy('updatedAt', 'desc')
       .limit(1)
       .get()

@@ -160,7 +160,7 @@ exports.main = async (event) => {
     const now = Date.now()
     // 同一角色若有未过期的有效邀请码，直接复用返回
     const activeRes = await db.collection('staff_invite_codes')
-      .where({ role, tenantId: _.in([tenantId, '', null]), status: 'active', expiresAt: _.gt(now) })
+      .where({ role, tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId, status: 'active', expiresAt: _.gt(now) })
       .orderBy('expiresAt', 'desc')
       .limit(1)
       .get()

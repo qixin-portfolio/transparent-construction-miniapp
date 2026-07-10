@@ -8,7 +8,12 @@ const SUBMIT_ROLES = ['admin', 'boss_qi', 'boss_hu', 'designer', 'worker', 'proj
 const ALL_PROJECT_ROLES = ['admin', 'boss_qi', 'boss_hu']
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
+
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
 const MAX_TEXT_LENGTH = 1200
+const ENABLE_REAL_AI_API = process.env.ENABLE_REAL_AI_API === 'true'
 
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
@@ -173,6 +178,7 @@ function parseDraftJson(text) {
 }
 
 async function polishDraftWithZhipu(input) {
+  if (!ENABLE_REAL_AI_API) return null
   const apiKey = process.env.ZHIPUAI_API_KEY || process.env.BIGMODEL_API_KEY
   const rawText = normalizeText(input.rawText || input.quickNote || '')
   if (!apiKey || !rawText) return null
@@ -246,7 +252,7 @@ exports.main = async (event) => {
 
     const projectRes = await db.collection('projects').doc(projectId).get()
     const project = projectRes.data || {}
-    if (project.tenantId && project.tenantId !== tenantId) throw new Error('当前账号无权操作该工地')
+    if (!tenantMatches(project.tenantId, tenantId)) throw new Error('当前账号无权操作该工地')
 
     const voiceFileID = normalizeText(event.voiceFileID || '', 260)
     const voiceTranscript = normalizeText(event.voiceTranscript || event.transcript || '')
@@ -281,7 +287,7 @@ exports.main = async (event) => {
     const fallbackDraft = makeFallbackDraft(draftInput)
 
     let polishedDraft = null
-    if (process.env.ZHIPUAI_API_KEY || process.env.BIGMODEL_API_KEY) {
+    if (ENABLE_REAL_AI_API && (process.env.ZHIPUAI_API_KEY || process.env.BIGMODEL_API_KEY)) {
       try {
         polishedDraft = await polishDraftWithZhipu(draftInput)
         provider = transcript ? 'wechat_si_zhipu' : 'zhipu'

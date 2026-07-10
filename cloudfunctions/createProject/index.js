@@ -163,21 +163,24 @@ exports.main = async (event) => {
       updatedAt: now
     }
 
-    const res = await db.collection('projects').add({ data: project })
-    await db.collection('project_members').add({
-      data: {
-        projectId: res._id,
-        tenantId,
-        tenantName,
-        userOpenid: openid,
-        userId: user._id || '',
-        role: user.role,
-        createdAt: now,
-        updatedAt: now
-      }
+    const projectId = await db.runTransaction(async (transaction) => {
+      const res = await transaction.collection('projects').add({ data: project })
+      await transaction.collection('project_members').add({
+        data: {
+          projectId: res._id,
+          tenantId,
+          tenantName,
+          userOpenid: openid,
+          userId: user._id || '',
+          role: user.role,
+          createdAt: now,
+          updatedAt: now
+        }
+      })
+      return res._id
     })
 
-    return { id: res._id }
+    return { id: projectId }
   } catch (error) {
     return {
       error: {

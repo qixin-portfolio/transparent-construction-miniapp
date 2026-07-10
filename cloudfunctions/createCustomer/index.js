@@ -53,7 +53,7 @@ exports.main = async (event) => {
 
     if (phone) {
       const duplicated = await db.collection('customers')
-        .where({ phone, tenantId: _.in([tenantId, '', null]), deleted: _.neq(true) })
+        .where({ phone, tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId, deleted: _.neq(true) })
         .limit(1)
         .get()
       if (duplicated.data.length) {

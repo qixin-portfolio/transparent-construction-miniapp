@@ -49,7 +49,7 @@
     </view>
 
     <!-- 模块2：新家信息卡 -->
-    <view class="section-card">
+    <view wx:if="{{canShowHouseInfo}}" class="section-card">
       <view class="section-title">新家信息</view>
       <view class="info-grid">
         <view class="info-cell">
@@ -150,11 +150,15 @@
 
     <!-- 模块8：分享操作区 -->
     <view class="action-section">
-      <button class="btn-share" open-type="share">
+      <button wx:if="{{canSharePublic || shareMode}}" class="btn-share" open-type="share">
         <view class="btn-icon">📤</view>
         <view>分享我的新家</view>
       </button>
-      <view class="action-tips">分享给朋友，让更多人看到家的变化</view>
+      <button wx:else class="btn-share" bindtap="goAuthorization">
+        <view class="btn-icon">📋</view>
+        <view>设置公开分享范围</view>
+      </button>
+      <view class="action-tips">{{canSharePublic || shareMode ? '分享给朋友，让更多人看到家的变化' : '先选择允许公开的内容，再生成安全分享链接'}}</view>
     </view>
 
     <!-- 模块9：相关推荐 -->

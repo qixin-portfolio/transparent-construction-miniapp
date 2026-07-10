@@ -7,6 +7,10 @@ const _ = db.command
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
@@ -43,7 +47,7 @@ async function findOwnerProject(openid, user, tenantId, projectId) {
     const detailRes = await db.collection('projects').doc(projectId).get()
     const project = detailRes.data || null
     if (!project) throw new Error('工地不存在')
-    if (project.tenantId && project.tenantId !== tenantId) throw new Error('当前账号无权查看该工地')
+    if (!tenantMatches(project.tenantId, tenantId)) throw new Error('当前账号无权查看该工地')
     const ownerOpenids = Array.isArray(project.ownerOpenids) ? project.ownerOpenids : []
     const ownerUserIds = Array.isArray(project.ownerUserIds) ? project.ownerUserIds : []
     const userId = (user && user._id) || ''
@@ -59,7 +63,7 @@ async function findOwnerProject(openid, user, tenantId, projectId) {
   }
 
   const projectRes = await db.collection('projects')
-    .where({ ownerOpenids: openid, tenantId: _.in([tenantId, '', null]) })
+    .where({ ownerOpenids: openid, tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId })
     .orderBy('updatedAt', 'desc')
     .limit(1)
     .get()
@@ -67,7 +71,7 @@ async function findOwnerProject(openid, user, tenantId, projectId) {
   // 兼容旧数据：ownerOpenid 单值字段
   if (!projectRes.data.length) {
     const legacyRes = await db.collection('projects')
-      .where({ ownerOpenid: openid, tenantId: _.in([tenantId, '', null]) })
+      .where({ ownerOpenid: openid, tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId })
       .orderBy('updatedAt', 'desc')
       .limit(1)
       .get()
@@ -91,7 +95,7 @@ exports.main = async (event = {}) => {
     const logsRes = await db.collection('stage_logs')
       .where({
         projectId: project._id,
-        tenantId: _.in([tenantId, '', null]),
+        tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
         reviewStatus: 'approved',
         ownerVisible: true
       })
@@ -106,7 +110,7 @@ exports.main = async (event = {}) => {
       const photosRes = await db.collection('photos')
         .where({
           stageLogId: _.in(logIds),
-          tenantId: _.in([tenantId, '', null]),
+          tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
           ownerVisible: true
         })
         .limit(100)

@@ -7,6 +7,10 @@ const _ = db.command
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
@@ -23,7 +27,7 @@ async function assertOwnerProject(openid, tenantId, projectId) {
   const res = await db.collection('projects').doc(projectId).get()
   const project = res.data || null
   if (!project) throw new Error('工地不存在')
-  if (project.tenantId && project.tenantId !== tenantId) throw new Error('当前账号无权查看该工地')
+  if (!tenantMatches(project.tenantId, tenantId)) throw new Error('当前账号无权查看该工地')
   const ownerOpenids = Array.isArray(project.ownerOpenids) ? project.ownerOpenids : []
   if (project.ownerOpenid !== openid && ownerOpenids.indexOf(openid) === -1) {
     throw new Error('当前账号无权查看该工地')
@@ -111,7 +115,7 @@ async function getMilestones(projectId, tenantId) {
   const logsRes = await db.collection('stage_logs')
     .where({
       projectId,
-      tenantId: _.in([tenantId, '', null]),
+      tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
       reviewStatus: 'approved',
       ownerVisible: true
     })
@@ -130,7 +134,7 @@ async function getMilestones(projectId, tenantId) {
     const photosRes = await db.collection('photos')
       .where({
         stageLogId: _.in(logIds),
-        tenantId: _.in([tenantId, '', null]),
+        tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
         ownerVisible: true
       })
       .limit(50)
@@ -187,7 +191,7 @@ async function getCompletionPhotos(projectId, tenantId, project) {
   const logsRes = await db.collection('stage_logs')
     .where({
       projectId,
-      tenantId: _.in([tenantId, '', null]),
+      tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
       reviewStatus: 'approved',
       ownerVisible: true,
       stage: _.in(['竣工验收', '竣工交付', '完工'])
@@ -202,7 +206,7 @@ async function getCompletionPhotos(projectId, tenantId, project) {
   const photosRes = await db.collection('photos')
     .where({
       stageLogId: _.in(logIds),
-      tenantId: _.in([tenantId, '', null]),
+      tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
       ownerVisible: true
     })
     .limit(30)
@@ -233,7 +237,7 @@ async function getTeamInfo(project, projectId, tenantId) {
   // 从 project_members 补全
   try {
     const membersRes = await db.collection('project_members')
-      .where({ projectId, tenantId: _.in([tenantId, '', null]) })
+      .where({ projectId, tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId })
       .limit(20)
       .get()
     const members = membersRes.data || []
@@ -268,7 +272,7 @@ async function getDrawingCount(projectId, tenantId) {
     const res = await db.collection('design_drawings')
       .where({
         projectId,
-        tenantId: _.in([tenantId, '', null]),
+        tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
         type: 'render',
         ownerVisible: true
       })
@@ -283,7 +287,7 @@ async function getDrawingCount(projectId, tenantId) {
 async function getWarrantyCard(projectId, tenantId) {
   try {
     const res = await db.collection('warranty_cards')
-      .where({ projectId, tenantId: _.in([tenantId, '', null]) })
+      .where({ projectId, tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId })
       .limit(1)
       .get()
     return res.data[0] || null
@@ -298,7 +302,7 @@ async function getStageLogCount(projectId, tenantId) {
     const res = await db.collection('stage_logs')
       .where({
         projectId,
-        tenantId: _.in([tenantId, '', null]),
+        tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
         reviewStatus: 'approved',
         ownerVisible: true
       })
@@ -315,7 +319,7 @@ async function getPhotoCount(projectId, tenantId) {
     const res = await db.collection('photos')
       .where({
         projectId,
-        tenantId: _.in([tenantId, '', null]),
+        tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
         ownerVisible: true
       })
       .count()
@@ -331,7 +335,7 @@ async function getOwnerSupplementStats(projectId, tenantId) {
     const res = await db.collection('owner_supplements')
       .where({
         projectId,
-        tenantId: _.in([tenantId, '', null]),
+        tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId,
         status: 'active'
       })
       .get()

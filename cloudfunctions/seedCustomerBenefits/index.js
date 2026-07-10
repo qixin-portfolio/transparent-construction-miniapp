@@ -2,6 +2,24 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
+const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
+const DEFAULT_TENANT_NAME = '晟景装饰'
+const ADMIN_ROLES = ['admin', 'boss_qi', 'boss_hu']
+
+function tenantScope(tenantId) {
+  return tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId
+}
+
+async function getAllowedCaller() {
+  const { OPENID } = cloud.getWXContext()
+  if (!OPENID) throw new Error('无法识别当前调用者')
+  const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
+  const user = res.data[0] || null
+  if (!user || ADMIN_ROLES.indexOf(user.role) === -1) {
+    throw new Error('当前账号无权初始化客户权益')
+  }
+  return user
+}
 
 const BENEFITS = [
   {
@@ -70,23 +88,34 @@ const BENEFITS = [
   }
 ]
 
-exports.main = async (event) => {
+exports.main = async () => {
   try {
+    const user = await getAllowedCaller()
+    const tenantId = user.tenantId || DEFAULT_TENANT_ID
+    const tenantName = user.tenantName || DEFAULT_TENANT_NAME
+    const now = db.serverDate()
     const results = []
     for (const benefit of BENEFITS) {
+      const tenantBenefit = Object.assign({}, benefit, {
+        tenantId,
+        tenantName,
+        updatedAt: now
+      })
       // upsert by title to avoid duplicates on re-run
       const existing = await db.collection('customer_benefits')
-        .where({ title: benefit.title })
+        .where({ title: benefit.title, tenantId: tenantScope(tenantId) })
         .limit(1)
         .get()
 
       if (existing.data && existing.data.length > 0) {
         await db.collection('customer_benefits').doc(existing.data[0]._id).update({
-          data: { ...benefit, updatedAt: new Date() }
+          data: tenantBenefit
         })
         results.push({ action: 'updated', title: benefit.title, _id: existing.data[0]._id })
       } else {
-        const res = await db.collection('customer_benefits').add({ data: benefit })
+        const res = await db.collection('customer_benefits').add({
+          data: Object.assign({}, tenantBenefit, { createdAt: now })
+        })
         results.push({ action: 'created', title: benefit.title, _id: res._id })
       }
     }

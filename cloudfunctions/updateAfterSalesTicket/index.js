@@ -6,6 +6,10 @@ const db = cloud.database()
 const _ = db.command
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
+
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
 const STAFF_ROLES = ['admin', 'boss_qi', 'boss_hu', 'designer', 'worker']
 
 const STATUS_ALIASES = {
@@ -142,7 +146,7 @@ exports.main = async (event) => {
     const ticketRes = await db.collection('after_sales_tickets').doc(ticketId).get()
     const ticket = ticketRes.data || null
     if (!ticket) throw new Error('工单不存在')
-    if (ticket.tenantId && ticket.tenantId !== tenantId) throw new Error('当前账号无权处理该工单')
+    if (!tenantMatches(ticket.tenantId, tenantId)) throw new Error('当前账号无权处理该工单')
 
     const rule = ACTIONS[action]
     if (rule.roles === 'staff' && !isStaff(user)) throw new Error('当前账号没有处理售后工单的权限')

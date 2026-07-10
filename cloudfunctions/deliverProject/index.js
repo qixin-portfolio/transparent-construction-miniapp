@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const crypto = require('crypto')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -7,6 +8,10 @@ const _ = db.command
 const DELIVER_ROLES = ['admin', 'boss_qi', 'boss_hu']
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
+
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
 const DEFAULT_SERVICE_PHONE = '13935842860'
 
 const WARRANTY_ITEMS = [
@@ -77,6 +82,11 @@ function makeWarrantyNo(projectId) {
   return `SJZB${y}${m}${d}${suffix}`
 }
 
+function warrantyCardIdForProject(projectId) {
+  const hash = crypto.createHash('sha1').update(String(projectId || '')).digest('hex').slice(0, 24)
+  return `warranty_${hash}`
+}
+
 async function getOptionalDoc(collectionName, id) {
   if (!id) return null
   try {
@@ -97,19 +107,18 @@ async function getServicePhone(tenantId) {
 
 async function findWarrantyCard(tenantId, projectId) {
   const res = await db.collection('warranty_cards')
-    .where({ tenantId: _.in([tenantId, '', null]), projectId })
+    .where({ tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId, projectId })
     .orderBy('updatedAt', 'desc')
     .limit(1)
     .get()
   return res.data[0] || null
 }
 
-async function createWarrantyCard(project, user, tenantId, tenantName, deliveredDate, deliveredAt) {
+function buildWarrantyCardData(project, user, tenantId, tenantName, deliveredDate, deliveredAt, servicePhone) {
   const owner = getPrimaryOwner(project)
-  const servicePhone = await getServicePhone(tenantId)
   const terms = '具体质保期限与范围以合同约定为准。'
   const dateText = formatDate(deliveredDate)
-  const data = {
+  return {
     tenantId,
     tenantName,
     projectId: project._id,
@@ -138,30 +147,6 @@ async function createWarrantyCard(project, user, tenantId, tenantName, delivered
     createdAt: deliveredAt,
     updatedAt: deliveredAt
   }
-  const res = await db.collection('warranty_cards').add({ data })
-  return Object.assign({ _id: res._id }, data)
-}
-
-async function ensureWarrantyCard(project, user, tenantId, tenantName, deliveredDate, deliveredAt) {
-  const existing = await findWarrantyCard(tenantId, project._id)
-  if (existing) return { warrantyCard: existing, created: false }
-  const warrantyCard = await createWarrantyCard(project, user, tenantId, tenantName, deliveredDate, deliveredAt)
-  return { warrantyCard, created: true }
-}
-
-async function updateCustomerLifecycle(project, tenantId, now) {
-  const customerId = String(project.customerId || '').trim()
-  if (!customerId) return { skipped: true, reason: 'missing_customer_id' }
-  const customer = await getOptionalDoc('customers', customerId)
-  if (!customer || customer.deleted === true) return { skipped: true, reason: 'customer_not_found' }
-  if (customer.tenantId && customer.tenantId !== tenantId) return { skipped: true, reason: 'tenant_mismatch' }
-  await db.collection('customers').doc(customerId).update({
-    data: {
-      lifecycleStatus: 'delivered',
-      updatedAt: now
-    }
-  })
-  return { updated: true, customerId }
 }
 
 async function recordOperationLog(eventType, tenantId, tenantName, user, openid, project, extra = {}) {
@@ -200,7 +185,7 @@ exports.main = async (event) => {
 
     const tenantId = user.tenantId || DEFAULT_TENANT_ID
     const tenantName = user.tenantName || project.tenantName || DEFAULT_TENANT_NAME
-    if (project.tenantId && project.tenantId !== tenantId) {
+    if (!tenantMatches(project.tenantId, tenantId)) {
       throw new Error('无权交付该工地')
     }
 
@@ -214,8 +199,6 @@ exports.main = async (event) => {
     // 方案C：交付时补全房屋档案信息 + 完工照片
     const houseInfo = event.houseInfo || {}
     const completionPhotoFileIDs = Array.isArray(event.completionPhotoFileIDs) ? event.completionPhotoFileIDs.filter(Boolean) : []
-
-    const warrantyResult = await ensureWarrantyCard(project, Object.assign({}, user, { openid }), tenantId, tenantName, deliveredDate, deliveredAt)
 
     const updateData = {}
     if (needsProjectDeliveryUpdate) {
@@ -247,14 +230,79 @@ exports.main = async (event) => {
     if (text(houseInfo.completedAt)) updateData.completedAt = text(houseInfo.completedAt)
     // 完工照片单独存储
     if (completionPhotoFileIDs.length) updateData.completionPhotoFileIDs = completionPhotoFileIDs
-    if (Object.keys(updateData).length) {
-      updateData.updatedBy = user._id || openid
-      updateData.updatedByOpenid = openid
-      updateData.updatedAt = now
-      await db.collection('projects').doc(projectId).update({ data: updateData })
-    }
+    updateData.updatedBy = user._id || openid
+    updateData.updatedByOpenid = openid
+    updateData.updatedAt = now
 
-    const customerResult = await updateCustomerLifecycle(project, tenantId, now)
+    const existingWarranty = await findWarrantyCard(tenantId, projectId)
+    const servicePhone = await getServicePhone(tenantId)
+    const deterministicWarrantyId = warrantyCardIdForProject(projectId)
+    const warrantyData = buildWarrantyCardData(
+      project,
+      Object.assign({}, user, { openid }),
+      tenantId,
+      tenantName,
+      deliveredDate,
+      deliveredAt,
+      servicePhone
+    )
+
+    const transactionResult = await db.runTransaction(async (transaction) => {
+      const freshProjectRes = await transaction.collection('projects').doc(projectId).get()
+      const freshProject = freshProjectRes.data || null
+      if (!freshProject) throw new Error('工地不存在')
+      if (!tenantMatches(freshProject.tenantId, tenantId)) {
+        throw new Error('无权交付该工地')
+      }
+
+      let warrantyCard = existingWarranty
+      let warrantyCreated = false
+      if (!warrantyCard) {
+        try {
+          const deterministicRes = await transaction.collection('warranty_cards').doc(deterministicWarrantyId).get()
+          warrantyCard = deterministicRes.data || null
+        } catch (error) {
+          warrantyCard = null
+        }
+        if (!warrantyCard) {
+          await transaction.collection('warranty_cards').doc(deterministicWarrantyId).set({ data: warrantyData })
+          warrantyCard = Object.assign({ _id: deterministicWarrantyId }, warrantyData)
+          warrantyCreated = true
+        }
+      }
+
+      await transaction.collection('projects').doc(projectId).update({ data: updateData })
+
+      const customerId = String(freshProject.customerId || '').trim()
+      let customerResult = { skipped: true, reason: 'missing_customer_id' }
+      if (customerId) {
+        let customer = null
+        try {
+          const customerRes = await transaction.collection('customers').doc(customerId).get()
+          customer = customerRes.data || null
+        } catch (error) {
+          customer = null
+        }
+        if (!customer || customer.deleted === true) {
+          customerResult = { skipped: true, reason: 'customer_not_found' }
+        } else if (!tenantMatches(customer.tenantId, tenantId)) {
+          customerResult = { skipped: true, reason: 'tenant_mismatch' }
+        } else {
+          await transaction.collection('customers').doc(customerId).update({
+            data: { lifecycleStatus: 'delivered', updatedAt: now }
+          })
+          customerResult = { updated: true, customerId }
+        }
+      }
+
+      return { warrantyCard, warrantyCreated, customerResult }
+    })
+
+    const warrantyResult = {
+      warrantyCard: transactionResult.warrantyCard,
+      created: transactionResult.warrantyCreated
+    }
+    const customerResult = transactionResult.customerResult
 
     if (!alreadyDelivered) {
       await recordOperationLog('project_delivered', tenantId, tenantName, user, openid, project, {

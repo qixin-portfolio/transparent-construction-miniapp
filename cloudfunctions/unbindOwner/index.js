@@ -8,6 +8,10 @@ const MANAGER_ROLES = ['admin', 'boss_qi', 'boss_hu']
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 const DEFAULT_TENANT_NAME = '晟景装饰'
 
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
+}
+
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
@@ -46,7 +50,7 @@ exports.main = async (event) => {
 
     // 权限校验
     const tenantId = user.tenantId || DEFAULT_TENANT_ID
-    if (project.tenantId && project.tenantId !== tenantId) {
+    if (!tenantMatches(project.tenantId, tenantId)) {
       throw new Error('无权操作该工地')
     }
 
