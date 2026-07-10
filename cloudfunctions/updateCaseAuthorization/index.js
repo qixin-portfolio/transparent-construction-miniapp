@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const crypto = require('crypto')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -11,6 +12,9 @@ function tenantMatches(resourceTenantId, tenantId) {
   return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
 }
 const SCOPES = ['private', 'internal', 'public']
+const ALLOWED_MATERIALS = ['completion_photos', 'process_photos', 'house_info', 'owner_comment', 'budget', 'project_name']
+const OWNER_NAME_DISPLAYS = ['anonymous', 'surname', 'full']
+const SHARE_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000
 
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
@@ -45,8 +49,13 @@ exports.main = async (event) => {
     if (!projectId) throw new Error('缺少工地 ID')
     const project = await assertOwnerProject(openid, tenantId, projectId)
     const authorizationScope = SCOPES.indexOf(event.authorizationScope) !== -1 ? event.authorizationScope : 'private'
-    const allowedMaterials = Array.isArray(event.allowedMaterials) ? event.allowedMaterials : []
-    const ownerNameDisplay = String(event.ownerNameDisplay || 'anonymous').trim()
+    const allowedMaterials = Array.isArray(event.allowedMaterials)
+      ? event.allowedMaterials.filter((item) => ALLOWED_MATERIALS.indexOf(item) !== -1)
+      : []
+    const requestedNameDisplay = String(event.ownerNameDisplay || 'anonymous').trim()
+    const ownerNameDisplay = OWNER_NAME_DISPLAYS.indexOf(requestedNameDisplay) !== -1
+      ? requestedNameDisplay
+      : 'anonymous'
     const now = db.serverDate()
     const where = { tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId, projectId, ownerOpenid: openid }
     const existing = await db.collection('case_authorizations').where(where).limit(1).get()
@@ -63,6 +72,8 @@ exports.main = async (event) => {
       status: authorizationScope === 'private' ? 'revoked' : 'approved',
       authorizedAt: authorizationScope === 'private' ? null : now,
       revokedAt: authorizationScope === 'private' ? now : null,
+      shareTokenSalt: authorizationScope === 'public' ? crypto.randomBytes(32).toString('hex') : '',
+      shareTokenExpiresAt: authorizationScope === 'public' ? new Date(Date.now() + SHARE_TOKEN_TTL_MS) : null,
       updatedAt: now
     }
 

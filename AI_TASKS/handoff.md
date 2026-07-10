@@ -17,6 +17,22 @@
 
 ---
 
+### 2026-07-10 — Phase 7-SEC-3 PR #2 合并阻塞项修复
+
+- 来源：Phase 7-SEC-2 审查结论 C；用户要求修复 PR #2 合并阻塞项并增加最小行为测试
+- 分支：`codex/v1-security-hardening`
+- 修复前 HEAD：`bf046dbd747f028bebb8f2264474f549b3f26d4a`
+- PR：https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/2
+- 本次修复：dailySummary 增加可信定时密钥、tenant 分区及默认租户 webhook 边界；reviewStageLog 审核事务化并补并发幂等、进度单调和通知状态；完工纪念册改用 HMAC 有效期 token 并收紧标题与返回字段；公开案例改为服务端 DTO 白名单；员工邀请码增加角色白名单、事务兑换和原子限流
+- 测试：静态安全回归 20/20；行为测试 38/38；行为测试使用提取业务函数和受控 fake transaction，不等同于真实云环境测试
+- 历史兼容：旧 projectId-only 分享链接安全失效；旧 public 授权需重新保存；空 tenantId 数据和旧邀请码仍需生产库只读盘点
+- 部署边界：未部署、未上传体验版、未发布、未执行迁移；dailySummary 未完成真实密钥与定时触发验证前禁止部署；AI、initSaasDefaults、seedCustomerBenefits 排除
+- 状态变化：GitHub 显示 PR #2 已于本阶段修复提交前合并，merge commit `5f4d94275cee2f9564613efe14470b7c40e0c128`；SEC-3 新提交不会进入已合并 PR，后续必须新建独立安全修复 PR
+- 记录：`AI_TASKS/V1_PR2_SECURITY_BLOCKERS_RESOLUTION.md`
+- 下一步建议：push 安全分支后新建修复 PR，进入 Phase 7-SEC-4 二次安全审查；不得直接部署
+
+---
+
 ### 2026-07-03 — 上传日报 -30001 record manager 冲突修复
 
 - 来源：用户真机截图显示 `-30001: record manager record failed`

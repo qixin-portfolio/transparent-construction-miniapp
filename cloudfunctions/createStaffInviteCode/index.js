@@ -7,7 +7,7 @@ const db = cloud.database()
 const _ = db.command
 
 // 可以被邀请码激活的内部角色
-const INVITABLE_ROLES = ['worker', 'project_manager', 'designer', 'sales', 'boss_qi', 'boss_hu']
+const INVITABLE_ROLES = ['worker', 'project_manager', 'designer', 'sales']
 // 有权生成邀请码的管理角色
 const MANAGE_ROLES = ['admin', 'boss_qi', 'boss_hu']
 const CODE_EXPIRES_IN = 7 * 24 * 60 * 60 * 1000
@@ -21,9 +21,7 @@ const ROLE_LABELS = {
   worker: '工长',
   project_manager: '项目经理',
   designer: '设计师',
-  sales: '销售',
-  boss_qi: '老板（老齐）',
-  boss_hu: '老板（老胡）'
+  sales: '销售'
 }
 
 async function getCurrentUser() {
@@ -160,7 +158,7 @@ exports.main = async (event) => {
     const now = Date.now()
     // 同一角色若有未过期的有效邀请码，直接复用返回
     const activeRes = await db.collection('staff_invite_codes')
-      .where({ role, tenantId: tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId, status: 'active', expiresAt: _.gt(now) })
+      .where({ role, tenantId, status: 'active', expiresAt: _.gt(now) })
       .orderBy('expiresAt', 'desc')
       .limit(1)
       .get()

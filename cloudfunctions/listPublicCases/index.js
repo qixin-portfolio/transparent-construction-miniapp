@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const { buildPublicCaseDto } = require('./publicCaseDto')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -229,8 +230,6 @@ async function buildPublicCases(authorizations, projects, tenantId) {
     if (!project || !authorizationTenantMatchesProject(auth, project)) return
 
     const allowedMaterials = Array.isArray(auth.allowedMaterials) ? auth.allowedMaterials : []
-    const allowShowCommunity = allowedMaterials.indexOf('house_info') !== -1
-    const allowShowBudget = allowedMaterials.indexOf('budget') !== -1
     const allowCompletionPhotos = allowedMaterials.indexOf('completion_photos') !== -1
     const allowProcessPhotos = allowedMaterials.indexOf('process_photos') !== -1
 
@@ -249,28 +248,12 @@ async function buildPublicCases(authorizations, projects, tenantId) {
       if (url && completionPhotos.indexOf(url) === -1) completionPhotos.push(url)
     })
 
-    cases.push({
-      _id: auth._id,
-      projectId: project._id,
-      isReference: false,
-      isAuthorized: true,
-      allowShowCommunity,
-      allowShowBudgetRange: allowShowBudget,
-      communityName: allowShowCommunity ? (project.community || project.communityName || '') : '',
-      regionName: DEFAULT_REGION,
-      area: allowShowCommunity ? (project.area || '') : '',
-      layout: allowShowCommunity ? (project.layout || '') : '',
-      houseType: allowShowCommunity ? (project.layout || '') : '',
-      style: allowShowCommunity ? (project.style || '') : '',
-      planType: project.planType || '',
-      exactPrice: allowShowBudget ? (project.exactPrice || project.contractAmount || '') : '',
-      budgetRange: allowShowBudget ? (project.budgetRange || '') : '',
-      designHighlights: project.designHighlights || [],
-      coverImage: completionPhotos[0] || '',
-      completionPhotos: completionPhotos.slice(0, 9),
-      photos: completionPhotos,
-      deliveredAt: project.deliveredAt || ''
-    })
+    cases.push(buildPublicCaseDto({
+      authorization: auth,
+      project,
+      completionPhotos,
+      regionName: DEFAULT_REGION
+    }))
   })
 
   return cases
