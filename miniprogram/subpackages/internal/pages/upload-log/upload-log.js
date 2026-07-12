@@ -1,4 +1,5 @@
 const { STAGES } = require('../../../../utils/constants')
+const { resolveStage, getStageOrder } = require('../../../../utils/stage-flow')
 const { call, uploadImage, showError } = require('../../../../services/cloud')
 
 function normalizeIssueText(value) {
@@ -33,8 +34,14 @@ Page({
     projectName: '',
     allStages: STAGES,
     stages: STAGES,
-    stageIndex: 0,
-    selectedStageCode: STAGES[0].code,
+    stageIndex: -1,
+    selectedStageCode: '',
+    selectedStageName: '',
+    selectedStageProgress: 0,
+    stageSelectedByUser: false,
+    projectCurrentStageCode: '',
+    projectCurrentStageName: '',
+    projectCurrentProgress: 0,
     currentUserId: '',
     currentUserOpenid: '',
     submittedStageStats: [],
@@ -225,12 +232,18 @@ Page({
   loadDraft() {
     const draft = wx.getStorageSync(this.makeDraftKey())
     if (!draft) return
-    const draftStage = STAGES[Number(draft.stageIndex || 0)] || STAGES[0]
     const draftForm = Object.assign({}, this.data.form, draft.form || {})
     draftForm.issue = normalizeIssueText(draftForm.issue)
+    const stageSelectedByUser = !!draft.stageSelectedByUser
+    const draftStage = stageSelectedByUser
+      ? (STAGES.find((item) => item.code === (draft.stageCode || draft.selectedStageCode)) || null)
+      : null
     this.setData({
-      stageIndex: Number(draft.stageIndex || 0),
-      selectedStageCode: draft.stageCode || draft.selectedStageCode || draftStage.code,
+      stageIndex: draftStage ? Number(draft.stageIndex || STAGES.findIndex((item) => item.code === draftStage.code)) : -1,
+      selectedStageCode: draftStage ? draftStage.code : '',
+      selectedStageName: draftStage ? draftStage.name : '',
+      selectedStageProgress: draftStage ? draftStage.progress : 0,
+      stageSelectedByUser,
       quickNote: draft.quickNote || '',
       images: Array.isArray(draft.images) ? draft.images : [],
       voiceTempPath: draft.voiceTempPath || '',
@@ -258,8 +271,13 @@ Page({
     this.setData({ stageLoading: true })
     call('getProjectDetail', { projectId: this.data.projectId })
       .then((res) => {
+        const projectStage = resolveStage((res && res.project) || {})
+        const projectCurrentProgress = Number((res && res.project && res.project.progress) || 0)
         const summary = this.extractStageSummary(res.logs || [])
         this.setData({
+          projectCurrentStageCode: projectStage ? projectStage.code : '',
+          projectCurrentStageName: projectStage ? projectStage.name : '',
+          projectCurrentProgress,
           submittedStageStats: summary.stats,
           todaySubmittedStageCodes: summary.todayCodes
         }, () => this.refreshSelectableStages())
@@ -326,20 +344,29 @@ Page({
   refreshSelectableStages() {
     const todaySubmitted = this.data.todaySubmittedStageCodes || []
     const selectable = STAGES.filter((stage) => todaySubmitted.indexOf(stage.code) === -1)
-    const selectedCode = this.data.selectedStageCode || (selectable[0] && selectable[0].code) || ''
+    const selectedCode = this.data.stageSelectedByUser
+      ? this.data.selectedStageCode
+      : this.data.projectCurrentStageCode
     let nextIndex = selectable.findIndex((stage) => stage.code === selectedCode)
-    if (nextIndex < 0) nextIndex = 0
+    if (nextIndex < 0) nextIndex = -1
+    const nextStage = nextIndex >= 0 ? selectable[nextIndex] : null
     this.setData({
       stages: selectable,
       stageIndex: nextIndex,
-      selectedStageCode: selectable[nextIndex] ? selectable[nextIndex].code : ''
+      selectedStageCode: nextStage ? nextStage.code : '',
+      selectedStageName: nextStage ? nextStage.name : '',
+      selectedStageProgress: nextStage ? nextStage.progress : 0
     })
   },
 
   getCurrentStage() {
-    const stage = this.data.stages[this.data.stageIndex]
+    const stage = this.data.stageIndex >= 0 ? this.data.stages[this.data.stageIndex] : null
     if (!stage) {
-      showError('你今天的所有工序节点已提交，请明天再补充')
+      if (!this.data.stages.length) {
+        showError('你今天的所有工序节点已提交，请明天再补充')
+        return null
+      }
+      showError('请选择本次施工工序')
       return null
     }
     return stage
@@ -349,6 +376,7 @@ Page({
     return {
       stageIndex: this.data.stageIndex,
       stageCode: this.data.selectedStageCode,
+      stageSelectedByUser: this.data.stageSelectedByUser,
       quickNote: this.data.quickNote,
       images: this.data.images,
       voiceTempPath: this.data.voiceTempPath,
@@ -374,11 +402,33 @@ Page({
       showError('该节点不可选择')
       return
     }
-    this.setData({
-      stageIndex,
-      selectedStageCode: stage.code
+    const currentStageCode = this.data.projectCurrentStageCode
+    const isEarlierStage = currentStageCode &&
+      getStageOrder(stage) >= 0 &&
+      getStageOrder(stage) < getStageOrder({ stageCode: currentStageCode })
+    const applyStage = () => {
+      this.setData({
+        stageIndex,
+        selectedStageCode: stage.code,
+        selectedStageName: stage.name,
+        selectedStageProgress: stage.progress,
+        stageSelectedByUser: true
+      })
+      this.saveDraft({ silent: true })
+    }
+    if (!isEarlierStage) {
+      applyStage()
+      return
+    }
+    wx.showModal({
+      title: '当前选择的是较早工序',
+      content: '该记录将作为补充施工或返修记录保存，不会让项目总进度倒退。',
+      confirmText: '继续上传',
+      cancelText: '返回修改',
+      success: (res) => {
+        if (res.confirm) applyStage()
+      }
     })
-    this.saveDraft({ silent: true })
   },
 
   onInput(event) {
@@ -829,9 +879,10 @@ Page({
       }))
       .then((res) => {
         this.clearDraft({ silent: true })
+        const autoApproved = !!(res && res.autoApproved)
         wx.showModal({
-          title: res.noticeSent ? '已提交并提醒审核' : '已提交待审核',
-          content: '管理员审核通过后，业主才能看到这条日报和现场照片。',
+          title: autoApproved ? '已上传并自动审核' : (res.noticeSent ? '已提交并提醒审核' : '已提交待审核'),
+          content: autoApproved ? '业主现在可以查看今日工地记录。' : '管理员审核通过后，业主才能看到这条日报和现场照片。',
           showCancel: false,
           confirmText: '知道了',
           success: () => wx.navigateBack()

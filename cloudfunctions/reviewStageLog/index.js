@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const { reviewStageLog } = require('./reviewService')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -36,76 +37,28 @@ exports.main = async (event) => {
     if (!stageLogId) throw new Error('缺少日报 ID')
     if (['approve', 'reject'].indexOf(action) === -1) throw new Error('审核动作不正确')
 
-    const approved = action === 'approve'
-    const rejectReason = String(event.rejectReason || event.comment || '').trim()
-    const logRes = await db.collection('stage_logs').doc(stageLogId).get()
-    const log = logRes.data
-    if (log.tenantId && log.tenantId !== tenantId) throw new Error('无权审核该日报')
     const now = db.serverDate()
 
-    const updateData = {
-      reviewStatus: approved ? 'approved' : 'rejected',
-      ownerVisible: approved,
-      rejectReason: approved ? '' : rejectReason,
-      auditComment: approved ? '' : rejectReason,
-      reviewRecords: _.push({
-        action,
-        rejectReason,
-        reviewedByOpenid: openid,
-        reviewedByName: user.name || '',
-        reviewedAt: now
-      }),
-      reviewedByOpenid: openid,
-      reviewedByName: user.name || '',
-      reviewedAt: now,
-      updatedAt: now
-    }
-    if (approved && event.ownerSummary) {
-      updateData.ownerSummary = String(event.ownerSummary).trim().slice(0, 200)
-    }
-    await db.collection('stage_logs').doc(stageLogId).update({ data: updateData })
-
-    await db.collection('photos').where({ stageLogId, tenantId: _.in([tenantId, '', null]) }).update({
-      data: {
-        ownerVisible: approved,
-        updatedAt: now
-      }
-    })
-
-    if (approved && log.projectId) {
-      const projectData = {
-        currentStage: log.stage || '',
-        updatedAt: now
-      }
-      if (Number(log.progress) > 0) {
-        projectData.progress = Number(log.progress)
-      }
-      await db.collection('projects').doc(log.projectId).update({ data: projectData })
-
-      // 发送订阅消息通知业主（不阻断审核流程，结果仍会记录日志）
-      try {
-        const noticeRes = await cloud.callFunction({
-          name: 'sendOwnerNotice',
-          data: {
-            projectId: log.projectId,
-            stageLogId
-          }
-        })
-        if (noticeRes && noticeRes.result && !noticeRes.result.ok) {
-          console.warn('[sendOwnerNotice 未成功通知业主]', JSON.stringify(noticeRes.result))
+    return reviewStageLog({
+      db,
+      _,
+      event,
+      user,
+      openid,
+      tenantId,
+      now,
+      sendOwnerNotice: (projectId) => cloud.callFunction({
+        name: 'sendOwnerNotice',
+        data: {
+          projectId,
+          stageLogId
         }
-      } catch (_) {
-        // 通知发送失败不影响审核结果
-      }
-    }
-
-    return {
-      ok: true,
-      ownerVisible: approved
-    }
+      })
+    })
   } catch (error) {
     return {
       error: {
+        code: error.code || '',
         message: error.message || '审核日报失败'
       }
     }

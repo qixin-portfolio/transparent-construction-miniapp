@@ -1,5 +1,7 @@
 const cloud = require('wx-server-sdk')
 const https = require('https')
+const { resolveSubmissionStage } = require('./stage-flow')
+const { createStageLog } = require('./submitService')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -186,10 +188,8 @@ exports.main = async (event) => {
     const tenantName = user.tenantName || DEFAULT_TENANT_NAME
 
     const projectId = String(event.projectId || '').trim()
-    const stage = String(event.stage || '').trim()
     const workContent = String(event.workContent || '').trim()
     if (!projectId) throw new Error('缺少工地 ID')
-    if (!stage) throw new Error('缺少工序节点')
     if (!workContent) throw new Error('请填写今日完成')
 
     await assertProjectAccess(openid, user, projectId)
@@ -198,88 +198,34 @@ exports.main = async (event) => {
     const project = projectRes.data
     if (!project) throw new Error('工地不存在')
     if (project.tenantId && project.tenantId !== tenantId) throw new Error('当前账号无权提交该工地日报')
-    const stageCode = String(event.stageCode || '').trim()
-    const existingLog = await findExistingStageLog(projectId, tenantId, stageCode, stage, openid, user._id || '')
-    if (existingLog) {
-      throw new Error(`${stage} 节点今天已提交过日报，请勿重复操作`)
-    }
-    const photoFileIDs = Array.isArray(event.photoFileIDs) ? event.photoFileIDs.filter(Boolean) : []
-    const sourceType = String(event.sourceType || 'manual').trim()
+    const resolvedStage = resolveSubmissionStage(event, project)
+    const existingLog = await findExistingStageLog(projectId, tenantId, resolvedStage.code, resolvedStage.name, openid, user._id || '')
     const now = db.serverDate()
 
-    const logData = {
-      projectId,
+    return createStageLog({
+      db,
+      _,
+      event,
+      user,
+      openid,
       tenantId,
       tenantName,
-      projectName: String(event.projectName || project.name || '').trim(),
-      stage,
-      stageCode,
-      progress: Number(event.progress || 0),
-      workContent,
-      issue: normalizeIssueText(event.issue),
-      needConfirm: String(event.needConfirm || '').trim(),
-      tomorrowPlan: String(event.tomorrowPlan || '').trim(),
-      photoFileIDs,
-      voiceFileID: String(event.voiceFileID || '').trim(),
-      voiceDuration: Number(event.voiceDuration || 0),
-      voiceTranscript: clipText(event.voiceTranscript, 1200),
-      ownerSummary: clipText(event.ownerSummary, 500),
-      reviewFocus: clipText(event.reviewFocus, 500),
-      aiDraft: normalizeAiDraft(event.aiDraft),
-      aiGenerated: /^ai_/.test(sourceType),
-      sourceType,
-      reviewStatus: 'pending',
-      ownerVisible: false,
-      submittedByOpenid: openid,
-      submittedBy: user._id || openid,
-      submittedByName: user.name || '',
-      reviewRecords: [],
-      createdAt: now,
-      updatedAt: now
-    }
-
-    const logRes = await db.collection('stage_logs').add({ data: logData })
-    const addPhotoTasks = photoFileIDs.map((fileID) => db.collection('photos').add({
-      data: {
-        projectId,
-        tenantId,
-        tenantName,
-        stageLogId: logRes._id,
-        fileID,
-        stage,
-        ownerVisible: false,
-        createdByOpenid: openid,
-        createdBy: user._id || openid,
-        createdAt: now,
-        updatedAt: now
-      }
-    }))
-    await Promise.all(addPhotoTasks)
-
-    let noticeSent = false
-    let noticeError = ''
-    try {
-      noticeSent = await sendWecomMarkdown([
-        '### 新工地日报待审核',
-        `> 工地：${project.name || logData.projectName || '未命名工地'}`,
-        `> 工序：${stage}`,
-        `> 提交人：${user.name || user.role || '内部人员'}`,
-        `> 照片：${photoFileIDs.length} 张`,
-        '',
-        workContent.slice(0, 120)
-      ].join('\n'))
-    } catch (error) {
-      noticeError = error.message || '企业微信提醒发送失败'
-    }
-
-    return {
-      id: logRes._id,
-      noticeSent,
-      noticeError
-    }
+      project,
+      existingLog,
+      now,
+      sendWecomMarkdown,
+      sendOwnerNotice: (stageLogId) => cloud.callFunction({
+        name: 'sendOwnerNotice',
+        data: {
+          projectId,
+          stageLogId
+        }
+      })
+    })
   } catch (error) {
     return {
       error: {
+        code: error.code || '',
         message: error.message || '提交工地日报失败'
       }
     }

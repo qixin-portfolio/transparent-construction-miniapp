@@ -7,8 +7,8 @@
   </view>
 
   <view class="report-tip-card">
-    <view class="report-tip-title">先选工序节点，再录入日报</view>
-    <view class="report-tip-desc">提交后进入审核，审核通过后业主端可见。</view>
+    <view class="report-tip-title">默认按工地当前工序上传日报</view>
+    <view class="report-tip-desc">如需补充较早工序或返修记录，可以手动更换工序。</view>
   </view>
 
   <!-- 工地信息卡 + 阶段选择 -->
@@ -20,14 +20,19 @@
       </view>
       <view class="stage-change-hint">{{stageLoading ? '同步中' : '可选择'}}</view>
     </view>
+    <view class="project-current-stage-card">
+      <view class="project-current-label">项目当前工序</view>
+      <view class="project-current-name">{{projectCurrentStageName || '尚未设置'}}</view>
+      <view class="project-current-desc">{{projectCurrentStageName ? ('当前进度 ' + projectCurrentProgress + '%，默认按此工序提交。') : '请先选择本次施工工序，不会自动使用开工交底。'}}</view>
+    </view>
     <picker wx:if="{{stages.length}}" mode="selector" range="{{stages}}" range-key="name" value="{{stageIndex}}" bindchange="onStageChange">
       <view class="stage-picker-card">
         <view class="stage-picker-main">
-          <view class="stage-picker-kicker">当前节点</view>
-          <view class="stage-picker-name">{{stages[stageIndex].name}}</view>
+          <view class="stage-picker-kicker">本次日报工序</view>
+          <view class="stage-picker-name">{{selectedStageName || '请选择本次施工工序'}}</view>
         </view>
         <view class="stage-picker-side">
-          <view class="stage-progress-pill">进度 {{stages[stageIndex].progress}}%</view>
+          <view class="stage-progress-pill">{{selectedStageName ? ('进度 ' + selectedStageProgress + '%') : '未选择'}}</view>
           <view class="picker-arrow">更换 ›</view>
         </view>
       </view>

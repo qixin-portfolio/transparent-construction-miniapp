@@ -244,6 +244,35 @@
   line-height: 1.4;
 }
 
+.project-current-stage-card {
+  margin: 18rpx 0 20rpx;
+  padding: 20rpx 22rpx;
+  border: 1rpx solid #E8ECF0;
+  border-radius: 20rpx;
+  background: #FAFBFC;
+}
+
+.project-current-label {
+  color: #6B7280;
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
+.project-current-name {
+  margin-top: 6rpx;
+  color: #111827;
+  font-size: 32rpx;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.project-current-desc {
+  margin-top: 6rpx;
+  color: #6B7280;
+  font-size: 23rpx;
+  line-height: 1.45;
+}
+
 .report-flow-desc {
   margin-top: 10rpx;
   color: rgba(255, 255, 255, 0.78);
