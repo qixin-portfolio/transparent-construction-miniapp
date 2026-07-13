@@ -52,6 +52,7 @@ test('worker upload without event stage uses project current stage and stays pen
 test('upload without event stage and project current stage returns STAGE_REQUIRED', async () => {
   const options = baseOptions()
   options.project = { _id: 'p1', name: '测试工地', tenantId: 't1' }
+  options.db.data.projects.p1 = options.project
   await assert.rejects(
     () => createStageLog(options),
     (error) => error.code === 'STAGE_REQUIRED'

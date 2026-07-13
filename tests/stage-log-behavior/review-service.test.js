@@ -117,5 +117,5 @@ test('notice failure does not rollback approved status', async () => {
   assert.equal(options.db.data.stage_logs.log1.reviewStatus, 'approved')
   assert.equal(options.db.data.stage_logs.log1.ownerVisible, true)
   assert.equal(res.noticeStatus, 'failed')
-  assert.match(options.db.data.stage_logs.log1.noticeError, /通知失败/)
+  assert.match(options.db.data.stage_logs.log1.noticeErrorSummary, /通知失败/)
 })

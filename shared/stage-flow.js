@@ -23,11 +23,16 @@ const STAGES = [
 const REVIEW_ROLES = ['admin', 'boss_qi', 'boss_hu']
 const DELIVERED_STATUS_CODES = ['completed', 'delivered', 'after_sales']
 const DELIVERED_STATUS_TEXTS = ['已完工', '已交付', '竣工验收', '售后中']
+const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
 
 function createError(code, message) {
   const error = new Error(message || code)
   error.code = code
   return error
+}
+
+function tenantMatches(resourceTenantId, tenantId) {
+  return resourceTenantId ? resourceTenantId === tenantId : tenantId === DEFAULT_TENANT_ID
 }
 
 function normalizeText(value) {
@@ -133,44 +138,110 @@ function buildProjectProgressPatch(project = {}, log = {}, now) {
   }
 }
 
+function safeNoticeText(value) {
+  return String(value || '')
+    .replace(/(openid|token|secret|fileid|phone|mobile)[^\s,;，；]*/gi, '$1:[redacted]')
+    .trim()
+    .slice(0, 200)
+}
+
+function summarizeNoticeResults(noticeResponse) {
+  const result = noticeResponse && noticeResponse.result ? noticeResponse.result : noticeResponse
+  if (!result || result.skipped) {
+    return {
+      status: 'not_requested',
+      requestedCount: 0,
+      successCount: 0,
+      failureCount: 0,
+      errorSummary: result && result.reason ? safeNoticeText(result.reason) : ''
+    }
+  }
+
+  const hasCounts = Number.isFinite(Number(result.totalCount)) || Number.isFinite(Number(result.sentCount))
+  const requestedCount = hasCounts ? Math.max(0, Number(result.totalCount) || 0) : (result.ok ? 1 : 1)
+  const successCount = hasCounts ? Math.min(requestedCount, Math.max(0, Number(result.sentCount) || 0)) : (result.ok ? 1 : 0)
+  const failureCount = Math.max(0, requestedCount - successCount)
+  let status = 'failed'
+  if (requestedCount === 0) status = 'not_requested'
+  else if (failureCount === 0) status = 'sent'
+  else if (successCount > 0) status = 'partial'
+
+  return {
+    status,
+    requestedCount,
+    successCount,
+    failureCount,
+    errorSummary: status === 'sent' ? '' : safeNoticeText(result.message || result.reason || result.errMsg || '通知发送失败')
+  }
+}
+
+function buildNoticeStatusData(summary, now) {
+  return {
+    noticeStatus: summary.status,
+    noticeRequestedCount: summary.requestedCount,
+    noticeSuccessCount: summary.successCount,
+    noticeFailureCount: summary.failureCount,
+    noticeAttemptedAt: now,
+    noticeErrorSummary: summary.errorSummary,
+    noticeStatusUpdatedAt: now
+  }
+}
+
 async function runApprovalNotice(options = {}) {
   const { sendNotice, updateStatus } = options
   const now = options.now
-  if (!sendNotice) return { noticeStatus: 'not_configured', noticeError: '' }
+  if (!sendNotice) {
+    return {
+      noticeStatus: 'not_requested',
+      noticeExecutionStatus: 'not_requested',
+      noticeError: ''
+    }
+  }
+
+  let summary
+  try {
+    summary = summarizeNoticeResults(await sendNotice())
+  } catch (error) {
+    summary = {
+      status: 'failed',
+      requestedCount: 1,
+      successCount: 0,
+      failureCount: 1,
+      errorSummary: safeNoticeText(error && error.message) || '通知发送失败'
+    }
+  }
+
+  const statusData = buildNoticeStatusData(summary, now)
+  if (!updateStatus) {
+    return Object.assign({}, statusData, {
+      noticeExecutionStatus: summary.status,
+      noticeError: summary.errorSummary
+    })
+  }
 
   try {
-    const noticeRes = await sendNotice()
-    const result = noticeRes && noticeRes.result ? noticeRes.result : noticeRes
-    const ok = !!(result && result.ok)
-    const skipped = !!(result && result.skipped)
-    const status = ok ? 'sent' : (skipped ? 'not_required' : 'failed')
-    const message = ok || skipped ? '' : (result && (result.message || result.reason || result.errMsg)) || '通知发送失败'
-    if (updateStatus) {
-      await updateStatus({
-        noticeStatus: status,
-        noticeError: message,
-        noticeResult: result || null,
-        noticeUpdatedAt: now
-      })
-    }
-    return { noticeStatus: status, noticeError: message, noticeResult: result || null }
+    await updateStatus(statusData)
+    return Object.assign({}, statusData, {
+      noticeExecutionStatus: summary.status,
+      noticeError: summary.errorSummary
+    })
   } catch (error) {
-    const message = error && error.message ? error.message : '通知发送失败'
-    if (updateStatus) {
-      await updateStatus({
-        noticeStatus: 'failed',
-        noticeError: message,
-        noticeUpdatedAt: now
-      })
-    }
-    return { noticeStatus: 'failed', noticeError: message }
+    return Object.assign({}, statusData, {
+      noticeStatus: 'persist_failed',
+      noticeExecutionStatus: summary.status,
+      noticeError: summary.errorSummary,
+      warningCode: 'NOTICE_STATUS_PERSIST_FAILED',
+      warningMessage: '审核已完成，但通知状态未能记录'
+    })
   }
 }
 
 module.exports = {
   STAGES,
   REVIEW_ROLES,
+  DEFAULT_TENANT_ID,
   createError,
+  tenantMatches,
   normalizeProgress,
   findStageByCode,
   findStageByName,
@@ -181,5 +252,8 @@ module.exports = {
   isReviewRole,
   isDeliveredProject,
   buildProjectProgressPatch,
+  safeNoticeText,
+  summarizeNoticeResults,
+  buildNoticeStatusData,
   runApprovalNotice
 }

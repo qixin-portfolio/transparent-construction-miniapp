@@ -1,10 +1,13 @@
 const {
+  createError,
   resolveSubmissionStage,
   buildProjectProgressPatch,
   isReviewRole,
   normalizeProgress,
-  runApprovalNotice
+  runApprovalNotice,
+  tenantMatches
 } = require('./stage-flow')
+const { findExistingStageLog } = require('./guards')
 
 function clipText(value, limit = 1200) {
   return String(value || '').trim().slice(0, limit)
@@ -58,8 +61,6 @@ async function createStageLog(options) {
     openid,
     tenantId,
     tenantName,
-    project,
-    existingLog,
     sendOwnerNotice,
     sendWecomMarkdown,
     now
@@ -69,67 +70,86 @@ async function createStageLog(options) {
   const workContent = String(event.workContent || '').trim()
   if (!workContent) throw new Error('请填写今日完成')
 
-  const stage = resolveSubmissionStage(event, project)
-  if (existingLog) {
-    throw new Error(`${stage.name} 节点今天已提交过日报，请勿重复操作`)
-  }
-
   const photoFileIDs = Array.isArray(event.photoFileIDs) ? event.photoFileIDs.filter(Boolean) : []
   const sourceType = String(event.sourceType || 'manual').trim()
   const reviewerSelfUpload = isReviewRole(user.role)
-  const progress = normalizeProgress(event.progress || stage.progress)
-  const logData = {
-    projectId,
-    tenantId,
-    tenantName,
-    projectName: String(event.projectName || project.name || '').trim(),
-    stage: stage.name,
-    stageCode: stage.code,
-    progress,
-    workContent,
-    issue: normalizeIssueText(event.issue),
-    needConfirm: String(event.needConfirm || '').trim(),
-    tomorrowPlan: String(event.tomorrowPlan || '').trim(),
-    photoFileIDs,
-    voiceFileID: String(event.voiceFileID || '').trim(),
-    voiceDuration: Number(event.voiceDuration || 0),
-    voiceTranscript: clipText(event.voiceTranscript, 1200),
-    ownerSummary: clipText(event.ownerSummary, 500),
-    reviewFocus: clipText(event.reviewFocus, 500),
-    aiDraft: normalizeAiDraft(event.aiDraft),
-    aiGenerated: /^ai_/.test(sourceType),
-    sourceType,
-    reviewStatus: reviewerSelfUpload ? 'approved' : 'pending',
-    ownerVisible: reviewerSelfUpload,
-    submittedByOpenid: openid,
-    submittedBy: user._id || openid,
-    submittedByName: user.name || '',
-    reviewRecords: reviewerSelfUpload ? [{
-      action: 'approve',
-      approvalMode: 'reviewer_self_upload',
-      reviewedByOpenid: openid,
-      reviewedByName: user.name || '',
-      reviewedAt: now
-    }] : [],
-    createdAt: now,
-    updatedAt: now
-  }
-
-  if (reviewerSelfUpload) {
-    const projectPatchInfo = buildProjectProgressPatch(project, logData, now)
-    Object.assign(logData, {
-      reviewedByOpenid: openid,
-      reviewedBy: user._id || openid,
-      reviewedByName: user.name || '',
-      reviewedAt: now,
-      approvalMode: 'reviewer_self_upload',
-      isHistoricalOrRework: projectPatchInfo.isHistoricalOrRework,
-      projectStageAdvanced: projectPatchInfo.stageAdvanced,
-      projectProgressAdvanced: projectPatchInfo.progressAdvanced
-    })
-  }
 
   const transactionResult = await db.runTransaction(async (transaction) => {
+    const freshProjectRes = await transaction.collection('projects').doc(projectId).get()
+    const freshProject = freshProjectRes.data || null
+    if (!freshProject) throw createError('PROJECT_NOT_FOUND', '工地不存在')
+    if (!tenantMatches(freshProject.tenantId, tenantId)) {
+      throw createError('TENANT_MISMATCH', '当前账号无权提交该工地日报')
+    }
+
+    const stage = resolveSubmissionStage(event, freshProject)
+    const existingLog = await findExistingStageLog(
+      transaction,
+      _,
+      projectId,
+      tenantId,
+      stage.code,
+      stage.name,
+      openid,
+      user._id || ''
+    )
+    if (existingLog) {
+      throw createError('ALREADY_SUBMITTED', `${stage.name} 节点今天已提交过日报，请勿重复操作`)
+    }
+
+    const progress = normalizeProgress(event.progress || stage.progress)
+    const logData = {
+      projectId,
+      tenantId,
+      tenantName,
+      projectName: String(event.projectName || freshProject.name || '').trim(),
+      stage: stage.name,
+      stageCode: stage.code,
+      progress,
+      workContent,
+      issue: normalizeIssueText(event.issue),
+      needConfirm: String(event.needConfirm || '').trim(),
+      tomorrowPlan: String(event.tomorrowPlan || '').trim(),
+      photoFileIDs,
+      voiceFileID: String(event.voiceFileID || '').trim(),
+      voiceDuration: Number(event.voiceDuration || 0),
+      voiceTranscript: clipText(event.voiceTranscript, 1200),
+      ownerSummary: clipText(event.ownerSummary, 500),
+      reviewFocus: clipText(event.reviewFocus, 500),
+      aiDraft: normalizeAiDraft(event.aiDraft),
+      aiGenerated: /^ai_/.test(sourceType),
+      sourceType,
+      reviewStatus: reviewerSelfUpload ? 'approved' : 'pending',
+      ownerVisible: reviewerSelfUpload,
+      submittedByOpenid: openid,
+      submittedBy: user._id || openid,
+      submittedByName: user.name || '',
+      reviewRecords: reviewerSelfUpload ? [{
+        action: 'approve',
+        approvalMode: 'reviewer_self_upload',
+        reviewedByOpenid: openid,
+        reviewedByName: user.name || '',
+        reviewedAt: now
+      }] : [],
+      createdAt: now,
+      updatedAt: now
+    }
+
+    let projectPatchInfo = null
+    if (reviewerSelfUpload) {
+      projectPatchInfo = buildProjectProgressPatch(freshProject, logData, now)
+      Object.assign(logData, {
+        reviewedByOpenid: openid,
+        reviewedBy: user._id || openid,
+        reviewedByName: user.name || '',
+        reviewedAt: now,
+        approvalMode: 'reviewer_self_upload',
+        isHistoricalOrRework: projectPatchInfo.isHistoricalOrRework,
+        projectStageAdvanced: projectPatchInfo.stageAdvanced,
+        projectProgressAdvanced: projectPatchInfo.progressAdvanced
+      })
+    }
+
     const logRes = await transaction.collection('stage_logs').add({ data: logData })
     const logId = logRes._id
     for (const fileID of photoFileIDs) {
@@ -150,23 +170,28 @@ async function createStageLog(options) {
         }
       })
     }
-    let projectPatchInfo = null
     if (reviewerSelfUpload) {
-      projectPatchInfo = buildProjectProgressPatch(project, logData, now)
       await transaction.collection('projects').doc(projectId).update({ data: projectPatchInfo.patch })
     }
     return {
       id: logId,
       stage,
       autoApproved: reviewerSelfUpload,
-      projectPatchInfo
+      reviewStatus: reviewerSelfUpload ? 'approved' : 'pending',
+      projectPatchInfo,
+      projectName: freshProject.name || '',
+      photoCount: photoFileIDs.length
     }
   })
 
   if (reviewerSelfUpload) {
     const notice = await runApprovalNotice({
       now,
-      sendNotice: () => sendOwnerNotice(transactionResult.id),
+      sendNotice: () => sendOwnerNotice({
+        projectId,
+        stageLogId: transactionResult.id,
+        tenantId
+      }),
       updateStatus: (data) => db.collection('stage_logs').doc(transactionResult.id).update({ data })
     })
     return Object.assign({}, transactionResult, notice)
@@ -177,10 +202,10 @@ async function createStageLog(options) {
   try {
     noticeSent = await sendWecomMarkdown([
       '### 新工地日报待审核',
-      `> 工地：${project.name || logData.projectName || '未命名工地'}`,
-      `> 工序：${stage.name}`,
+      `> 工地：${transactionResult.projectName || '未命名工地'}`,
+      `> 工序：${transactionResult.stage.name}`,
       `> 提交人：${user.name || user.role || '内部人员'}`,
-      `> 照片：${photoFileIDs.length} 张`,
+      `> 照片：${transactionResult.photoCount} 张`,
       '',
       workContent.slice(0, 120)
     ].join('\n'))
@@ -190,7 +215,7 @@ async function createStageLog(options) {
 
   return {
     id: transactionResult.id,
-    stage,
+    stage: transactionResult.stage,
     autoApproved: false,
     reviewStatus: 'pending',
     noticeSent,

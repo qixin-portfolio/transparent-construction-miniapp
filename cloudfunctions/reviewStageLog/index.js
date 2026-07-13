@@ -1,5 +1,7 @@
 const cloud = require('wx-server-sdk')
+const { createError } = require('./stage-flow')
 const { reviewStageLog } = require('./reviewService')
+const { createOwnerNoticeSender } = require('./owner-notice')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -22,7 +24,7 @@ async function getCurrentUser() {
 
 function assertReviewRole(user) {
   if (!user || REVIEW_ROLES.indexOf(user.role) === -1) {
-    throw new Error('当前账号没有审核日报的权限')
+    throw createError(user ? 'ROLE_NOT_ALLOWED' : 'UNAUTHORIZED', '当前账号没有审核日报的权限')
   }
 }
 
@@ -47,13 +49,7 @@ exports.main = async (event) => {
       openid,
       tenantId,
       now,
-      sendOwnerNotice: (projectId) => cloud.callFunction({
-        name: 'sendOwnerNotice',
-        data: {
-          projectId,
-          stageLogId
-        }
-      })
+      sendOwnerNotice: createOwnerNoticeSender({ cloud, db })
     })
   } catch (error) {
     return {

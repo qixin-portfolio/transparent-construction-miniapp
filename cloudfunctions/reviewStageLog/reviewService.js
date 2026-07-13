@@ -1,6 +1,9 @@
 const {
+  createError,
   buildProjectProgressPatch,
-  runApprovalNotice
+  runApprovalNotice,
+  tenantMatches,
+  DEFAULT_TENANT_ID
 } = require('./stage-flow')
 
 async function reviewStageLog(options) {
@@ -25,13 +28,16 @@ async function reviewStageLog(options) {
   const transactionResult = await db.runTransaction(async (transaction) => {
     const logRes = await transaction.collection('stage_logs').doc(stageLogId).get()
     const log = logRes.data
-    if (!log) throw new Error('日报不存在')
-    if (log.tenantId && log.tenantId !== tenantId) throw new Error('无权审核该日报')
+    if (!log) throw createError('STAGE_LOG_NOT_FOUND', '日报不存在')
+    if (!tenantMatches(log.tenantId, tenantId)) {
+      throw createError('TENANT_MISMATCH', '无权审核该日报')
+    }
 
     const currentReviewStatus = log.reviewStatus || 'pending'
     if (currentReviewStatus !== 'pending') {
       return {
         ok: true,
+        code: 'ALREADY_REVIEWED',
         alreadyReviewed: true,
         ownerVisible: log.ownerVisible === true,
         reviewStatus: currentReviewStatus,
@@ -64,8 +70,11 @@ async function reviewStageLog(options) {
     let projectPatchInfo = null
     if (approved && log.projectId) {
       const projectRes = await transaction.collection('projects').doc(log.projectId).get()
-      const project = projectRes.data || {}
-      if (project.tenantId && project.tenantId !== tenantId) throw new Error('无权审核该工地日报')
+      const project = projectRes.data || null
+      if (!project) throw createError('PROJECT_NOT_FOUND', '日报对应工地不存在')
+      if (!tenantMatches(project.tenantId, tenantId)) {
+        throw createError('TENANT_MISMATCH', '无权审核该工地日报')
+      }
       projectPatchInfo = buildProjectProgressPatch(project, log, now)
       Object.assign(updateData, {
         isHistoricalOrRework: projectPatchInfo.isHistoricalOrRework,
@@ -76,7 +85,8 @@ async function reviewStageLog(options) {
     }
 
     await transaction.collection('stage_logs').doc(stageLogId).update({ data: updateData })
-    await transaction.collection('photos').where({ stageLogId, tenantId: _.in([tenantId, '', null]) }).update({
+    const photoTenantScope = tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId
+    await transaction.collection('photos').where({ stageLogId, tenantId: photoTenantScope }).update({
       data: {
         ownerVisible: approved,
         updatedAt: now
@@ -98,7 +108,11 @@ async function reviewStageLog(options) {
 
   const notice = await runApprovalNotice({
     now,
-    sendNotice: () => sendOwnerNotice(transactionResult.projectId, stageLogId),
+    sendNotice: () => sendOwnerNotice({
+      projectId: transactionResult.projectId,
+      stageLogId,
+      tenantId
+    }),
     updateStatus: (data) => db.collection('stage_logs').doc(stageLogId).update({ data })
   })
   return Object.assign({}, transactionResult, notice)

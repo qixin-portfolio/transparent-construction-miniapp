@@ -880,9 +880,16 @@ Page({
       .then((res) => {
         this.clearDraft({ silent: true })
         const autoApproved = !!(res && res.autoApproved)
+        const noticeWarning = res && res.noticeStatus === 'persist_failed'
+          ? '日报已完成审核，但提醒状态暂未记录，请让管理员核查。'
+          : (res && ['failed', 'partial'].indexOf(res.noticeStatus) !== -1
+            ? '日报已完成审核，但业主提醒未全部送达。'
+            : '')
         wx.showModal({
           title: autoApproved ? '已上传并自动审核' : (res.noticeSent ? '已提交并提醒审核' : '已提交待审核'),
-          content: autoApproved ? '业主现在可以查看今日工地记录。' : '管理员审核通过后，业主才能看到这条日报和现场照片。',
+          content: autoApproved
+            ? (noticeWarning || '业主现在可以查看今日工地记录。')
+            : '管理员审核通过后，业主才能看到这条日报和现场照片。',
           showCancel: false,
           confirmText: '知道了',
           success: () => wx.navigateBack()

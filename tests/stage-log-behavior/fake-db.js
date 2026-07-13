@@ -44,6 +44,9 @@ class FakeDocRef {
   async update({ data }) {
     const doc = this.db.data[this.name][this.id]
     if (!doc) throw new Error(`${this.name}/${this.id} 不存在`)
+    if (this.db.failNoticeStatusUpdate && Object.prototype.hasOwnProperty.call(data || {}, 'noticeStatus')) {
+      throw new Error('通知状态写回失败')
+    }
     applyUpdate(doc, data)
     this.db.updates.push({ collection: this.name, id: this.id, data: clone(data) })
     return { stats: { updated: 1 } }
@@ -55,6 +58,32 @@ class FakeQuery {
     this.db = db
     this.name = name
     this.where = where || {}
+    this.sort = null
+    this.limitCount = null
+  }
+
+  orderBy(field, direction = 'asc') {
+    this.sort = { field, direction }
+    return this
+  }
+
+  limit(count) {
+    this.limitCount = count
+    return this
+  }
+
+  async get() {
+    let items = Object.values(this.db.data[this.name]).filter((doc) => matchesWhere(doc, this.where))
+    if (this.sort) {
+      const { field, direction } = this.sort
+      items.sort((left, right) => {
+        if (left[field] === right[field]) return 0
+        const result = left[field] > right[field] ? 1 : -1
+        return direction === 'desc' ? -result : result
+      })
+    }
+    if (this.limitCount != null) items = items.slice(0, this.limitCount)
+    return { data: clone(items) }
   }
 
   async update({ data }) {
@@ -93,12 +122,13 @@ class FakeCollection {
 }
 
 class FakeDb {
-  constructor(seed = {}) {
+  constructor(seed = {}, options = {}) {
     this.data = clone(seed)
     this.nextId = 0
     this.adds = []
     this.updates = []
     this.transactionLock = Promise.resolve()
+    this.failNoticeStatusUpdate = !!options.failNoticeStatusUpdate
     ;['projects', 'stage_logs', 'photos'].forEach((name) => {
       if (!this.data[name]) this.data[name] = {}
     })

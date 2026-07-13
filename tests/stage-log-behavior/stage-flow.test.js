@@ -4,18 +4,25 @@ const fs = require('node:fs')
 const path = require('node:path')
 
 const stageFlow = require('../../shared/stage-flow')
+const { targets, generatedContent } = require('../../scripts/sync-stage-flow')
 
 test('runtime stage-flow copies match the shared source', () => {
   const root = path.resolve(__dirname, '../..')
-  const shared = fs.readFileSync(path.join(root, 'shared/stage-flow.js'), 'utf8')
-  const copies = [
-    'miniprogram/utils/stage-flow.js',
-    'cloudfunctions/submitStageLog/stage-flow.js',
-    'cloudfunctions/reviewStageLog/stage-flow.js'
-  ]
-  copies.forEach((file) => {
-    assert.equal(fs.readFileSync(path.join(root, file), 'utf8'), shared, `${file} drifted from shared/stage-flow.js`)
+  targets.forEach(([source, copies]) => {
+    copies.forEach((file) => {
+      assert.equal(
+        fs.readFileSync(path.join(root, file), 'utf8'),
+        generatedContent(source),
+        `${file} drifted from ${source}`
+      )
+    })
   })
+})
+
+test('generated runtime stage modules can be loaded from their deployment directories', () => {
+  assert.equal(typeof require('../../cloudfunctions/submitStageLog/stage-flow').resolveStage, 'function')
+  assert.equal(typeof require('../../cloudfunctions/reviewStageLog/owner-notice').createOwnerNoticeSender, 'function')
+  assert.equal(typeof require('../../cloudfunctions/submitStageLog/access').assertProjectAccess, 'function')
 })
 
 test('missing event stage falls back to project current stage', () => {
