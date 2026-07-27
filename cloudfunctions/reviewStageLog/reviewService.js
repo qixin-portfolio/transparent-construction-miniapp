@@ -85,6 +85,22 @@ async function reviewStageLog(options) {
     }
 
     await transaction.collection('stage_logs').doc(stageLogId).update({ data: updateData })
+    if (log.submissionKeyId) {
+      const submissionKeyRef = transaction.collection('stage_log_submission_keys').doc(log.submissionKeyId)
+      const submissionKey = (await submissionKeyRef.get()).data || null
+      if (submissionKey && submissionKey.currentStageLogId === stageLogId) {
+        const keyStatus = submissionKey.currentStatus || 'pending'
+        if (keyStatus !== 'pending') {
+          throw createError('SUBMISSION_STATE_INCONSISTENT', '日报提交状态异常，请联系管理员处理')
+        }
+        const keyUpdate = {
+          currentStatus: approved ? 'approved' : 'rejected',
+          updatedAt: now
+        }
+        if (!approved) keyUpdate.lastRejectedAt = now
+        await submissionKeyRef.update({ data: keyUpdate })
+      }
+    }
     const photoTenantScope = tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId
     await transaction.collection('photos').where({ stageLogId, tenantId: photoTenantScope }).update({
       data: {
