@@ -6,15 +6,23 @@ function createCommand() {
   return {
     in: (values) => ({ __op: 'in', values }),
     gte: (value) => ({ __op: 'gte', value }),
+    lt: (value) => ({ __op: 'lt', value }),
     push: (value) => ({ __op: 'push', value })
   }
+}
+
+function comparableValue(value) {
+  if (value instanceof Date) return value.getTime()
+  const parsed = new Date(value).getTime()
+  return Number.isNaN(parsed) ? value : parsed
 }
 
 function matchesWhere(doc, where) {
   return Object.entries(where || {}).every(([key, expected]) => {
     const actual = doc[key]
     if (expected && expected.__op === 'in') return expected.values.indexOf(actual) !== -1
-    if (expected && expected.__op === 'gte') return actual >= expected.value
+    if (expected && expected.__op === 'gte') return comparableValue(actual) >= comparableValue(expected.value)
+    if (expected && expected.__op === 'lt') return comparableValue(actual) < comparableValue(expected.value)
     return actual === expected
   })
 }
@@ -51,6 +59,12 @@ class FakeDocRef {
     this.db.updates.push({ collection: this.name, id: this.id, data: clone(data) })
     return { stats: { updated: 1 } }
   }
+
+  async set({ data }) {
+    this.db.data[this.name][this.id] = Object.assign({ _id: this.id }, clone(data))
+    this.db.updates.push({ collection: this.name, id: this.id, data: clone(data), set: true })
+    return { stats: { updated: 1 } }
+  }
 }
 
 class FakeQuery {
@@ -60,6 +74,7 @@ class FakeQuery {
     this.where = where || {}
     this.sort = null
     this.limitCount = null
+    this.skipCount = 0
   }
 
   orderBy(field, direction = 'asc') {
@@ -69,6 +84,11 @@ class FakeQuery {
 
   limit(count) {
     this.limitCount = count
+    return this
+  }
+
+  skip(count) {
+    this.skipCount = count
     return this
   }
 
@@ -82,6 +102,7 @@ class FakeQuery {
         return direction === 'desc' ? -result : result
       })
     }
+    if (this.skipCount) items = items.slice(this.skipCount)
     if (this.limitCount != null) items = items.slice(0, this.limitCount)
     return { data: clone(items) }
   }
@@ -129,7 +150,7 @@ class FakeDb {
     this.updates = []
     this.transactionLock = Promise.resolve()
     this.failNoticeStatusUpdate = !!options.failNoticeStatusUpdate
-    ;['projects', 'stage_logs', 'photos'].forEach((name) => {
+    ;['projects', 'stage_logs', 'photos', 'stage_log_submission_keys'].forEach((name) => {
       if (!this.data[name]) this.data[name] = {}
     })
   }
