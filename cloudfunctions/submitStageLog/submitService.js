@@ -14,6 +14,7 @@ const {
 } = require('./guards')
 const {
   isLegacyStageLog,
+  buildSubmissionKeyId,
   validateSubmissionSlotLinkage,
   submissionStateInconsistent
 } = require('./submission-slot')
@@ -116,12 +117,12 @@ async function createStageLog(options) {
 
     const stage = resolveSubmissionStage(event, freshProject)
     const businessDate = requestContext.businessDate
-    const submissionKeyId = buildSubmissionIdempotencyKey({
+    const submitterId = user._id || openid
+    const submissionKeyId = buildSubmissionKeyId({
       tenantId,
       projectId,
       stageCode: stage.code,
-      openid,
-      userId: user._id || '',
+      submitterId,
       businessDate
     })
     const submissionKeyRef = transaction.collection('stage_log_submission_keys').doc(submissionKeyId)
@@ -239,7 +240,7 @@ async function createStageLog(options) {
       tenantId,
       projectId,
       stageCode: stage.code,
-      submitterId: user._id || openid,
+      submitterId,
       businessDate,
       currentStageLogId: logId,
       currentStatus,

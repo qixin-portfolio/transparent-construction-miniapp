@@ -44,8 +44,8 @@ function keyIdFor(options) {
     tenantId: options.tenantId,
     projectId: 'p1',
     stageCode: 'carpentry_ceiling',
-    openid: options.openid,
-    userId: options.user._id,
+    openid: 'openid_worker',
+    userId: 'u1',
     businessDate: createSubmissionRequestContext(options.requestNow).businessDate
   })
 }

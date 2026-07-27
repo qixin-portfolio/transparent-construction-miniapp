@@ -55,11 +55,14 @@ async function reviewStageLog(options) {
     const log = logRes.data
     if (!log) throw createError('STAGE_LOG_NOT_FOUND', '日报不存在')
     if (!tenantMatches(log.tenantId, tenantId)) {
+      if (!isLegacyStageLog(log)) {
+        throw submissionStateInconsistent('', 'tenant_mismatch')
+      }
       throw createError('TENANT_MISMATCH', '无权审核该日报')
     }
 
     const currentReviewStatus = log.reviewStatus || 'pending'
-    if (currentReviewStatus !== 'pending') {
+    if (currentReviewStatus === 'approved' || currentReviewStatus === 'rejected') {
       return {
         ok: true,
         code: 'ALREADY_REVIEWED',

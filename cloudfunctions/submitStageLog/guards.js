@@ -1,5 +1,5 @@
 const { DEFAULT_TENANT_ID } = require('./stage-flow')
-const crypto = require('node:crypto')
+const { buildSubmissionKeyId } = require('./submission-slot')
 
 const QUERY_PAGE_SIZE = 100
 
@@ -59,9 +59,13 @@ function isSameSubmitter(item, openid, userId) {
 }
 
 function buildSubmissionIdempotencyKey({ tenantId, projectId, stageCode, openid, userId, date, businessDate }) {
-  const identity = openid || userId
-  const payload = [tenantId, projectId, stageCode, businessDate || getChinaDayKey(date), identity].join('\n')
-  return `stage-log-submit-${crypto.createHash('sha256').update(payload).digest('hex')}`
+  return buildSubmissionKeyId({
+    tenantId,
+    projectId,
+    stageCode,
+    submitterId: userId || openid,
+    businessDate: businessDate || getChinaDayKey(date)
+  })
 }
 
 async function findStageLogsForBusinessDay(database, _, projectId, tenantId, stageCode, stage, openid, userId, requestContext) {
