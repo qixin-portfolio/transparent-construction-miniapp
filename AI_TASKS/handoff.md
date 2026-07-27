@@ -17,6 +17,19 @@
 
 ---
 
+### 2026-07-27 — Phase 0F-3C 提交槽位语义合法性校验修复
+
+- 来源：用户任务“Phase 0F-3C——修复提交槽位语义合法性校验”
+- 分支：`fix/pr5-release-blockers-v4`，起点 `56139ab1b69922eaaa6f81b9b4797b0234dc139e`
+- PR：未创建，未 push；未访问 CloudBase、测试环境或生产环境
+- 本次做了什么：以 service 层失败测试先行，集中校验 key 和新结构日报的正整数 attemptNo、严格上海业务日期、状态枚举、非空未 trim 的 ID 与规范派生 key ID；submit/review 复用同一共享实现，审核仅对合法已审核记录保留幂等早退
+- 修改文件：`shared/submission-slot.js`、submit/review 生成副本与 service、key helper、第三/四轮测试、`docs/pr5-remediation-v4/`、本任务单和本条 handoff
+- 检查结果：原有 `48/48`、第一轮 `27/27`、第二轮 `14/14`、第三轮 `34/34`、第四轮 `48/48`，合计 `171/171`；生成副本、JSON、39 页面完整性、V2 双入口关闭、环境变更检查和 `git diff --check` 通过。新增测试先在 `56139ab` 上 `12/28` 通过、`16/28` 失败
+- 风险与未决问题：本地事务模型不等同真实 CloudBase；未创建集合、未部署或访问任何环境，真实事务/权限/索引仍无证据
+- 下一步建议：只进入第五次独立代码复审；复审和后续 Human Gate 前，不得创建测试集合、部署测试环境、创建发布候选、受控发布或进入量房风格预览 Task 1
+
+---
+
 ### 2026-07-27 — Phase 0F-3B 第三轮定向修复
 
 - 来源：用户任务“修复业务日期漂移与提交槽位一致性缺口”，对应独立复审目录 `production-evidence/2026-07-27/pr5-remediation-v2-independent-review`
