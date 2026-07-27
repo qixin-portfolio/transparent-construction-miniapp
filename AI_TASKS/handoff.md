@@ -17,6 +17,19 @@
 
 ---
 
+### 2026-07-27 — Phase 0F-3B 第三轮定向修复
+
+- 来源：用户任务“修复业务日期漂移与提交槽位一致性缺口”，对应独立复审目录 `production-evidence/2026-07-27/pr5-remediation-v2-independent-review`
+- 分支：`fix/pr5-release-blockers-v3`，起点 `8d4c017ca4b0dfb3cc0f6d32762d7f4d4ae20a35`
+- PR：未创建，未 push
+- 本次做了什么：在提交入口固定一次请求级上海业务时间；key、日报、历史查询和事务重试复用同一 context；新增共享槽位关联校验与严格旧数据识别；提交与审核均在缺 key/关联不一致时安全失败；审核事务错误收敛为公开安全错误；新增本地回滚覆盖
+- 修改文件：`cloudfunctions/submitStageLog/`、`cloudfunctions/reviewStageLog/`、`shared/submission-slot.js`、`scripts/sync-stage-flow.js`、`tests/stage-log-behavior/pr5-remediation-v3.test.js`、`docs/pr5-remediation-v3/`、本任务单
+- 检查结果：原有 `48/48`、第一轮 `27/27`、第二轮 `14/14`、第三轮 `34/34`，合计 `123/123`；JS 语法、生成副本同步待最终提交前复跑
+- 风险与未决问题：本地事务模型不等同真实 CloudBase；未创建集合、未部署或访问任何环境，真实事务/权限/索引仍无证据
+- 下一步建议：只进入新的独立代码复审；复审和后续 Human Gate 前，不得创建测试集合、部署测试环境、创建发布候选、受控发布或进入量房风格预览 Task 1
+
+---
+
 ### 2026-07-27 — Phase 0F-3 二次阻塞修复
 
 - 来源：用户任务“Phase 0F-3——修复拒绝后重提与真实事务验证缺口”
