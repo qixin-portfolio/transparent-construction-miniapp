@@ -199,6 +199,7 @@ test('owner notice sender reports all delivery failures as failed counts', async
   })
   const sender = createOwnerNoticeSender({
     db,
+    environment: { ENABLE_EXTERNAL_NOTIFICATIONS: 'true', WECHAT_MINIPROGRAM_STATE: 'developer' },
     cloud: { openapi: { subscribeMessage: { send: async () => { throw new Error('delivery failed') } } } }
   })
   const result = await sender({ projectId: 'p1', stageLogId: 'log1', tenantId: 't1' })
@@ -272,12 +273,13 @@ test('generated file drift is detectable without changing the workspace', () => 
   assert.notEqual(actual.replace('progress: 10', 'progress: 11'), expected)
 })
 
-test('stage sync targets include the frontend and both deployable functions', () => {
+test('stage sync targets include the frontend and all notification runtime functions', () => {
   const files = targets[0][1]
   assert.deepEqual(files, [
     'miniprogram/utils/stage-flow.js',
     'cloudfunctions/submitStageLog/stage-flow.js',
-    'cloudfunctions/reviewStageLog/stage-flow.js'
+    'cloudfunctions/reviewStageLog/stage-flow.js',
+    'cloudfunctions/sendOwnerNotice/stage-flow.js'
   ])
 })
 

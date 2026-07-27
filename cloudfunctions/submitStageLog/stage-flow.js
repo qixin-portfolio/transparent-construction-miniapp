@@ -82,9 +82,14 @@ function isDeliveredProject(project = {}) {
 }
 
 function resolveSubmissionStage(event = {}, project = {}) {
-  const eventStage = findStageByCode(event.stageCode)
-  if (eventStage) {
-    return Object.assign({}, eventStage, { source: 'event' })
+  const hasStageCode = Object.prototype.hasOwnProperty.call(event, 'stageCode') &&
+    event.stageCode !== undefined && event.stageCode !== null && event.stageCode !== ''
+  if (hasStageCode) {
+    const rawStageCode = String(event.stageCode)
+    if (rawStageCode !== rawStageCode.trim() || !findStageByCode(rawStageCode)) {
+      throw createError('INVALID_STAGE_CODE', '施工工序编码无效，请重新选择')
+    }
+    return Object.assign({}, findStageByCode(rawStageCode), { source: 'event' })
   }
 
   const projectStage = resolveStage({

@@ -3,6 +3,7 @@ const assert = require('node:assert/strict')
 
 const { createStageLog } = require('../../cloudfunctions/submitStageLog/submitService')
 const { createOwnerNoticeSender } = require('../../shared/owner-notice')
+const { reviewStageLog } = require('../../cloudfunctions/reviewStageLog/reviewService')
 const { FakeDb, createCommand } = require('./fake-db')
 
 let createSendOwnerNoticeService
@@ -94,10 +95,11 @@ test('a valid explicit stageCode is accepted from the shared stage configuration
   assert.equal(result.stage.code, 'painting')
 })
 
-test('duplicate detection finds a same-user log older than 20 newer project logs', async () => {
+for (const newerRecordCount of [19, 20, 30]) {
+  test(`duplicate detection finds a same-user log behind ${newerRecordCount} newer project logs`, async () => {
   const start = startOfChinaDay()
   const stageLogs = {}
-  for (let index = 0; index < 30; index += 1) {
+  for (let index = 0; index < newerRecordCount; index += 1) {
     stageLogs[`other-${index}`] = stageLogSeed({
       _id: `other-${index}`,
       submittedByOpenid: `other-${index}`,
@@ -108,6 +110,15 @@ test('duplicate detection finds a same-user log older than 20 newer project logs
   stageLogs.target = stageLogSeed({ submittedByOpenid: 'openid_worker', submittedBy: 'u1', createdAt: new Date(start.getTime() + 1000) })
   const options = submitOptions({ db: new FakeDb({ projects: { p1: { _id: 'p1', tenantId: 't1', currentStageCode: 'carpentry_ceiling', progress: 65 } }, stage_logs: stageLogs }) })
   await assert.rejects(() => createStageLog(options), (error) => error.code === 'ALREADY_SUBMITTED')
+  })
+}
+
+test('same submission identity in another tenant does not block the current tenant', async () => {
+  const options = submitOptions({ db: new FakeDb({
+    projects: { p1: { _id: 'p1', tenantId: 't1', currentStageCode: 'carpentry_ceiling', progress: 65 } },
+    stage_logs: { foreign: stageLogSeed({ tenantId: 't2', submittedByOpenid: 'openid_worker', submittedBy: 'u1', createdAt: new Date() }) }
+  }) })
+  await createStageLog(options)
 })
 
 test('same user can submit to another project and another user can submit to the same project', async () => {
@@ -244,4 +255,31 @@ test('direct send service requires a reviewer role and keeps tenant boundaries',
   })
   const result = await service({ projectId: 'p1', stageLogId: 'log1', tenantId: 't2' })
   assert.equal(result.errorCode, 'ROLE_NOT_ALLOWED')
+})
+
+test('review followed by a direct authorized call reuses the same owner notification', async () => {
+  let sends = 0
+  const db = notificationDb({ log: { reviewStatus: 'pending', ownerVisible: false } })
+  const cloud = { openapi: { subscribeMessage: { send: async () => { sends += 1 } } } }
+  const environment = { ENABLE_EXTERNAL_NOTIFICATIONS: 'true', WECHAT_MINIPROGRAM_STATE: 'developer' }
+  const sender = createOwnerNoticeSender({ db, cloud, environment })
+  await reviewStageLog({
+    db,
+    _: createCommand(),
+    event: { stageLogId: 'log1', action: 'approve' },
+    user: { _id: 'boss1', role: 'boss_qi', name: '审核人' },
+    openid: 'boss-openid',
+    tenantId: 't1',
+    now: new Date(),
+    sendOwnerNotice: sender
+  })
+  const directService = createSendOwnerNoticeService({
+    db,
+    cloud,
+    environment,
+    getCurrentUser: async () => ({ openid: 'boss-openid', user: { _id: 'boss1', role: 'boss_qi', tenantId: 't1' } })
+  })
+  const repeated = await directService({ projectId: 'p1', stageLogId: 'log1' })
+  assert.equal(repeated.duplicate, true)
+  assert.equal(sends, 1)
 })

@@ -7,7 +7,7 @@ const {
   runApprovalNotice,
   tenantMatches
 } = require('./stage-flow')
-const { findExistingStageLog } = require('./guards')
+const { findExistingStageLog, buildSubmissionIdempotencyKey } = require('./guards')
 
 function clipText(value, limit = 1200) {
   return String(value || '').trim().slice(0, limit)
@@ -91,11 +91,38 @@ async function createStageLog(options) {
       stage.code,
       stage.name,
       openid,
-      user._id || ''
+      user._id || '',
+      new Date()
     )
     if (existingLog) {
       throw createError('ALREADY_SUBMITTED', `${stage.name} 节点今天已提交过日报，请勿重复操作`)
     }
+
+    const submissionKey = buildSubmissionIdempotencyKey({
+      tenantId,
+      projectId,
+      stageCode: stage.code,
+      openid,
+      userId: user._id || '',
+      date: new Date()
+    })
+    const submissionKeyRef = transaction.collection('stage_log_submission_keys').doc(submissionKey)
+    const existingClaim = (await submissionKeyRef.get()).data || null
+    if (existingClaim) {
+      throw createError('ALREADY_SUBMITTED', `${stage.name} 节点今天已提交过日报，请勿重复操作`)
+    }
+    await submissionKeyRef.set({
+      data: {
+        tenantId,
+        projectId,
+        stageCode: stage.code,
+        submittedByOpenid: openid,
+        submittedBy: user._id || openid,
+        status: 'reserved',
+        createdAt: now,
+        updatedAt: now
+      }
+    })
 
     const progress = normalizeProgress(event.progress || stage.progress)
     const logData = {
@@ -119,6 +146,7 @@ async function createStageLog(options) {
       aiDraft: normalizeAiDraft(event.aiDraft),
       aiGenerated: /^ai_/.test(sourceType),
       sourceType,
+      submissionKey,
       reviewStatus: reviewerSelfUpload ? 'approved' : 'pending',
       ownerVisible: reviewerSelfUpload,
       submittedByOpenid: openid,
@@ -152,6 +180,13 @@ async function createStageLog(options) {
 
     const logRes = await transaction.collection('stage_logs').add({ data: logData })
     const logId = logRes._id
+    await submissionKeyRef.update({
+      data: {
+        stageLogId: logId,
+        status: 'completed',
+        updatedAt: now
+      }
+    })
     for (const fileID of photoFileIDs) {
       await transaction.collection('photos').add({
         data: {
