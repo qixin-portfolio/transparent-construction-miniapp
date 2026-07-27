@@ -40,7 +40,7 @@ function validateSubmissionSlotLinkage({
 }
 
 function submissionStateInconsistent(submissionKeyId, reason) {
-  console.warn('stage submission state inconsistent', { submissionKeyId, reason })
+  console.warn('stage submission state inconsistent', { reason })
   return createError('SUBMISSION_STATE_INCONSISTENT', '日报提交状态异常，请联系管理员处理')
 }
 
