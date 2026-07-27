@@ -7,7 +7,16 @@ const {
   runApprovalNotice,
   tenantMatches
 } = require('./stage-flow')
-const { findExistingStageLog, buildSubmissionIdempotencyKey, getChinaDayKey } = require('./guards')
+const {
+  findStageLogsForBusinessDay,
+  buildSubmissionIdempotencyKey,
+  createSubmissionRequestContext
+} = require('./guards')
+const {
+  isLegacyStageLog,
+  validateSubmissionSlotLinkage,
+  submissionStateInconsistent
+} = require('./submission-slot')
 
 function clipText(value, limit = 1200) {
   return String(value || '').trim().slice(0, limit)
@@ -72,12 +81,6 @@ function submissionFailure(error) {
   return createError('SUBMISSION_TRANSACTION_FAILED', '日报提交事务失败，请稍后重试')
 }
 
-function submissionStateInconsistent(submissionKeyId, reason) {
-  // The deterministic key is a hash and this log intentionally excludes raw business data.
-  console.warn('stage submission state inconsistent', { submissionKeyId, reason })
-  return createError('SUBMISSION_STATE_INCONSISTENT', '日报提交状态异常，请联系管理员处理')
-}
-
 async function createStageLog(options) {
   const {
     db,
@@ -99,6 +102,7 @@ async function createStageLog(options) {
   const photoFileIDs = Array.isArray(event.photoFileIDs) ? event.photoFileIDs.filter(Boolean) : []
   const sourceType = String(event.sourceType || 'manual').trim()
   const reviewerSelfUpload = isReviewRole(user.role)
+  const requestContext = options.requestContext || createSubmissionRequestContext(options.requestNow || new Date())
 
   let transactionResult
   try {
@@ -111,14 +115,14 @@ async function createStageLog(options) {
     }
 
     const stage = resolveSubmissionStage(event, freshProject)
-    const businessDate = getChinaDayKey(new Date())
+    const businessDate = requestContext.businessDate
     const submissionKeyId = buildSubmissionIdempotencyKey({
       tenantId,
       projectId,
       stageCode: stage.code,
       openid,
       userId: user._id || '',
-      date: new Date()
+      businessDate
     })
     const submissionKeyRef = transaction.collection('stage_log_submission_keys').doc(submissionKeyId)
     const existingKey = (await submissionKeyRef.get()).data || null
@@ -126,32 +130,30 @@ async function createStageLog(options) {
     let lastRejectedAt = null
 
     if (existingKey) {
-      if (existingKey.tenantId !== tenantId || existingKey.projectId !== projectId || existingKey.stageCode !== stage.code) {
-        throw submissionStateInconsistent(submissionKeyId, 'key_scope_mismatch')
-      }
       const currentStageLogId = String(existingKey.currentStageLogId || '').trim()
-      const currentStatus = String(existingKey.currentStatus || '').trim()
-      if (!currentStageLogId || !currentStatus || !Number.isInteger(existingKey.attemptNo) || existingKey.attemptNo < 1) {
+      if (!currentStageLogId) {
         throw submissionStateInconsistent(submissionKeyId, 'key_schema_incomplete')
       }
       const currentLog = (await transaction.collection('stage_logs').doc(currentStageLogId).get()).data || null
-      if (!currentLog || currentLog.tenantId !== tenantId || currentLog.projectId !== projectId) {
-        throw submissionStateInconsistent(submissionKeyId, 'current_log_missing_or_out_of_scope')
-      }
-      const actualStatus = currentLog.reviewStatus || 'pending'
-      if (actualStatus !== currentStatus) {
-        throw submissionStateInconsistent(submissionKeyId, 'current_status_mismatch')
-      }
-      if (currentStatus === 'pending' || currentStatus === 'approved') {
+      const linkageReason = validateSubmissionSlotLinkage({
+        stageLog: currentLog,
+        stageLogId: currentStageLogId,
+        submissionKey: existingKey,
+        submissionKeyId,
+        tenantId,
+        project: freshProject
+      })
+      if (linkageReason) throw submissionStateInconsistent(submissionKeyId, linkageReason)
+      if (existingKey.currentStatus === 'pending' || existingKey.currentStatus === 'approved') {
         throw createError('ALREADY_SUBMITTED', `${stage.name} 节点今天已提交过日报，请勿重复操作`)
       }
-      if (currentStatus !== 'rejected') {
+      if (existingKey.currentStatus !== 'rejected') {
         throw submissionStateInconsistent(submissionKeyId, 'unsupported_current_status')
       }
       attemptNo = existingKey.attemptNo + 1
       lastRejectedAt = existingKey.lastRejectedAt || currentLog.reviewedAt || currentLog.updatedAt || now
     } else {
-      const existingLog = await findExistingStageLog(
+      const businessDayLogs = await findStageLogsForBusinessDay(
         transaction,
         _,
         projectId,
@@ -160,8 +162,13 @@ async function createStageLog(options) {
         stage.name,
         openid,
         user._id || '',
-        new Date()
+        requestContext
       )
+      const partialNewLog = businessDayLogs.find((log) => !isLegacyStageLog(log))
+      if (partialNewLog) {
+        throw submissionStateInconsistent(String(partialNewLog.submissionKeyId || '').trim(), 'missing_or_partial_key')
+      }
+      const existingLog = businessDayLogs.find((log) => (log.reviewStatus || 'pending') !== 'rejected')
       if (existingLog) {
         throw createError('ALREADY_SUBMITTED', `${stage.name} 节点今天已提交过日报，请勿重复操作`)
       }
@@ -192,6 +199,7 @@ async function createStageLog(options) {
       submissionKey: submissionKeyId,
       submissionKeyId,
       submissionAttemptNo: attemptNo,
+      businessDate,
       submissionBusinessDate: businessDate,
       reviewStatus: reviewerSelfUpload ? 'approved' : 'pending',
       ownerVisible: reviewerSelfUpload,
@@ -327,5 +335,6 @@ module.exports = {
   clipText,
   normalizeIssueText,
   normalizeAiDraft,
+  createSubmissionRequestContext,
   createStageLog
 }

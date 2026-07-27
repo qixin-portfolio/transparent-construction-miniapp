@@ -16,6 +16,10 @@ const targets = [
     'cloudfunctions/reviewStageLog/owner-notice.js',
     'cloudfunctions/sendOwnerNotice/owner-notice.js'
   ]],
+  ['shared/submission-slot.js', [
+    'cloudfunctions/submitStageLog/submission-slot.js',
+    'cloudfunctions/reviewStageLog/submission-slot.js'
+  ]],
   ['cloudfunctions/submitStageLog/access.js', [
     'cloudfunctions/reviewStageLog/access.js'
   ]]

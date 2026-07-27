@@ -143,6 +143,7 @@ exports.main = async (event) => {
       tenantName,
       project,
       now,
+      requestNow: new Date(),
       sendWecomMarkdown,
       sendOwnerNotice: createOwnerNoticeSender({ cloud, db })
     })

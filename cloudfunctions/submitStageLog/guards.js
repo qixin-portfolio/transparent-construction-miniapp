@@ -37,6 +37,18 @@ function getChinaDayKey(date = new Date()) {
   ].join('-')
 }
 
+function createSubmissionRequestContext(now = new Date()) {
+  const requestNow = new Date(now)
+  if (Number.isNaN(requestNow.getTime())) throw new Error('提交时间无效')
+  const range = getChinaDayRange(requestNow)
+  return Object.freeze({
+    requestNow,
+    businessDate: getChinaDayKey(requestNow),
+    businessDayStart: range.start,
+    businessDayEnd: range.end
+  })
+}
+
 function tenantScope(_, tenantId) {
   return tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId
 }
@@ -46,14 +58,16 @@ function isSameSubmitter(item, openid, userId) {
     (userId && (item.submittedBy === userId || item.createdBy === userId))
 }
 
-function buildSubmissionIdempotencyKey({ tenantId, projectId, stageCode, openid, userId, date }) {
+function buildSubmissionIdempotencyKey({ tenantId, projectId, stageCode, openid, userId, date, businessDate }) {
   const identity = openid || userId
-  const payload = [tenantId, projectId, stageCode, getChinaDayKey(date), identity].join('\n')
+  const payload = [tenantId, projectId, stageCode, businessDate || getChinaDayKey(date), identity].join('\n')
   return `stage-log-submit-${crypto.createHash('sha256').update(payload).digest('hex')}`
 }
 
-async function findExistingStageLog(database, _, projectId, tenantId, stageCode, stage, openid, userId, date) {
-  const range = getChinaDayRange(date)
+async function findStageLogsForBusinessDay(database, _, projectId, tenantId, stageCode, stage, openid, userId, requestContext) {
+  const range = requestContext && requestContext.businessDayStart
+    ? { start: requestContext.businessDayStart, end: requestContext.businessDayEnd }
+    : getChinaDayRange(requestContext)
   const baseWhere = {
     projectId,
     tenantId: tenantScope(_, tenantId),
@@ -78,6 +92,8 @@ async function findExistingStageLog(database, _, projectId, tenantId, stageCode,
     })
   })
 
+  const seen = new Set()
+  const matches = []
   for (const where of queries) {
     let offset = 0
     while (true) {
@@ -87,24 +103,32 @@ async function findExistingStageLog(database, _, projectId, tenantId, stageCode,
         .limit(QUERY_PAGE_SIZE)
         .get()
       const records = res.data || []
-      const existing = records.find((item) => {
-        if ((item.reviewStatus || 'pending') === 'rejected') return false
+      records.forEach((item) => {
+        if (seen.has(item._id)) return
         if (!isSameSubmitter(item, openid, userId)) return false
         const time = toTime(item.createdAt || item.submittedAt || item.updatedAt)
-        return time >= range.start.getTime() && time < range.end.getTime()
+        if (time < range.start.getTime() || time >= range.end.getTime()) return
+        seen.add(item._id)
+        matches.push(item)
       })
-      if (existing) return existing
       if (records.length < QUERY_PAGE_SIZE) break
       offset += records.length
     }
   }
-  return null
+  return matches
+}
+
+async function findExistingStageLog(database, _, projectId, tenantId, stageCode, stage, openid, userId, requestContext) {
+  const matches = await findStageLogsForBusinessDay(database, _, projectId, tenantId, stageCode, stage, openid, userId, requestContext)
+  return matches.find((item) => (item.reviewStatus || 'pending') !== 'rejected') || null
 }
 
 module.exports = {
   getChinaDayRange,
   getChinaDayKey,
+  createSubmissionRequestContext,
   tenantScope,
+  findStageLogsForBusinessDay,
   findExistingStageLog,
   buildSubmissionIdempotencyKey
 }

@@ -5,6 +5,29 @@ const {
   tenantMatches,
   DEFAULT_TENANT_ID
 } = require('./stage-flow')
+const {
+  isLegacyStageLog,
+  validateSubmissionSlotLinkage,
+  submissionStateInconsistent
+} = require('./submission-slot')
+
+function isReviewBusinessError(error) {
+  return error && [
+    'STAGE_LOG_NOT_FOUND',
+    'PROJECT_NOT_FOUND',
+    'TENANT_MISMATCH',
+    'ALREADY_REVIEWED',
+    'SUBMISSION_STATE_INCONSISTENT'
+  ].indexOf(error.code) !== -1
+}
+
+function reviewFailure(error) {
+  if (isReviewBusinessError(error)) return error
+  if (error && ['COLLECTION_NOT_FOUND', 'PERMISSION_DENIED', 'TRANSACTION_UNAVAILABLE'].indexOf(error.code) !== -1) {
+    return createError('REVIEW_STORE_UNAVAILABLE', '日报审核存储不可用，请稍后重试')
+  }
+  return createError('REVIEW_TRANSACTION_FAILED', '日报审核事务失败，请稍后重试')
+}
 
 async function reviewStageLog(options) {
   const {
@@ -25,7 +48,9 @@ async function reviewStageLog(options) {
 
   const approved = action === 'approve'
   const rejectReason = String(event.rejectReason || event.comment || '').trim()
-  const transactionResult = await db.runTransaction(async (transaction) => {
+  let transactionResult
+  try {
+    transactionResult = await db.runTransaction(async (transaction) => {
     const logRes = await transaction.collection('stage_logs').doc(stageLogId).get()
     const log = logRes.data
     if (!log) throw createError('STAGE_LOG_NOT_FOUND', '日报不存在')
@@ -43,6 +68,27 @@ async function reviewStageLog(options) {
         reviewStatus: currentReviewStatus,
         noticeRequired: false
       }
+    }
+
+    let project = null
+    let submissionKeyRef = null
+    if (!isLegacyStageLog(log)) {
+      project = (await transaction.collection('projects').doc(log.projectId).get()).data || null
+      if (!project || !tenantMatches(project.tenantId, tenantId)) {
+        throw submissionStateInconsistent(String(log.submissionKeyId || '').trim(), 'project_missing_or_out_of_scope')
+      }
+      const submissionKeyId = String(log.submissionKeyId || '').trim()
+      submissionKeyRef = transaction.collection('stage_log_submission_keys').doc(submissionKeyId)
+      const submissionKey = (await submissionKeyRef.get()).data || null
+      const linkageReason = validateSubmissionSlotLinkage({
+        stageLog: log,
+        stageLogId,
+        submissionKey,
+        submissionKeyId,
+        tenantId,
+        project
+      })
+      if (linkageReason) throw submissionStateInconsistent(submissionKeyId, linkageReason)
     }
 
     const updateData = {
@@ -69,8 +115,10 @@ async function reviewStageLog(options) {
 
     let projectPatchInfo = null
     if (approved && log.projectId) {
-      const projectRes = await transaction.collection('projects').doc(log.projectId).get()
-      const project = projectRes.data || null
+      if (!project) {
+        const projectRes = await transaction.collection('projects').doc(log.projectId).get()
+        project = projectRes.data || null
+      }
       if (!project) throw createError('PROJECT_NOT_FOUND', '日报对应工地不存在')
       if (!tenantMatches(project.tenantId, tenantId)) {
         throw createError('TENANT_MISMATCH', '无权审核该工地日报')
@@ -85,21 +133,13 @@ async function reviewStageLog(options) {
     }
 
     await transaction.collection('stage_logs').doc(stageLogId).update({ data: updateData })
-    if (log.submissionKeyId) {
-      const submissionKeyRef = transaction.collection('stage_log_submission_keys').doc(log.submissionKeyId)
-      const submissionKey = (await submissionKeyRef.get()).data || null
-      if (submissionKey && submissionKey.currentStageLogId === stageLogId) {
-        const keyStatus = submissionKey.currentStatus || 'pending'
-        if (keyStatus !== 'pending') {
-          throw createError('SUBMISSION_STATE_INCONSISTENT', '日报提交状态异常，请联系管理员处理')
-        }
-        const keyUpdate = {
-          currentStatus: approved ? 'approved' : 'rejected',
-          updatedAt: now
-        }
-        if (!approved) keyUpdate.lastRejectedAt = now
-        await submissionKeyRef.update({ data: keyUpdate })
+    if (submissionKeyRef) {
+      const keyUpdate = {
+        currentStatus: approved ? 'approved' : 'rejected',
+        updatedAt: now
       }
+      if (!approved) keyUpdate.lastRejectedAt = now
+      await submissionKeyRef.update({ data: keyUpdate })
     }
     const photoTenantScope = tenantId === DEFAULT_TENANT_ID ? _.in([tenantId, '', null]) : tenantId
     await transaction.collection('photos').where({ stageLogId, tenantId: photoTenantScope }).update({
@@ -118,7 +158,10 @@ async function reviewStageLog(options) {
       projectId: log.projectId || '',
       projectPatchInfo
     }
-  })
+    })
+  } catch (error) {
+    throw reviewFailure(error)
+  }
 
   if (!transactionResult.noticeRequired) return transactionResult
 
