@@ -17,6 +17,19 @@
 
 ---
 
+### 2026-07-27 — Phase 0F-3 二次阻塞修复
+
+- 来源：用户任务“Phase 0F-3——修复拒绝后重提与真实事务验证缺口”
+- 分支：`fix/pr5-release-blockers-v2`，起点 `4cd7ec3d565eac12fa99e38c4279e6346f9ca2af`
+- PR：未创建，未 push
+- 本次做了什么：将 `stage_log_submission_keys` 改为当前业务提交槽位；拒绝后保留旧日报并创建新尝试；审核在同一事务中同步当前 key；集合/权限/事务错误安全失败；新增乐观冲突与回滚本地模拟
+- 修改文件：`cloudfunctions/submitStageLog/submitService.js`、`cloudfunctions/reviewStageLog/reviewService.js`、`tests/stage-log-behavior/pr5-remediation-v2.test.js`、`tests/stage-log-behavior/transaction-model.js`、`docs/pr5-remediation-v2/`
+- 检查结果：原有 `48/48`、第一轮 `27/27`、本轮 `14/14`，合计 `89/89`；本地模拟不等同 CloudBase 真实事务证据
+- 风险与未决问题：必须人工创建并验证 `stage_log_submission_keys` 集合、服务端权限、真实事务、并发、索引与精确测试数据清理；测试环境部署仍需新的独立复审和齐鑫 Human Gate
+- 下一步建议：新的 Codex 会话进行独立代码复审；本轮不得部署、创建集合、访问生产、创建发布候选或进入量房风格预览
+
+---
+
 ### 2026-07-27 — Phase 0F-1 PR #5 发布阻塞修复
 
 - 来源：用户任务“Phase 0F-1——修复 PR #5 独立复审阻塞项”
