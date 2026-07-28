@@ -1,0 +1,10 @@
+{
+  "$schema": "https://static.cloudbase.net/cli/cloudbaserc.schema.json",
+  "envId": "shengjing-style-test-d3ac90f38b1",
+  "functionRoot": "../../../cloudfunctions",
+  "functions": [
+    { "name": "submitStageLog", "runtime": "Nodejs16.13", "timeout": 20, "handler": "index.main" },
+    { "name": "reviewStageLog", "runtime": "Nodejs16.13", "timeout": 20, "handler": "index.main" },
+    { "name": "sendOwnerNotice", "runtime": "Nodejs16.13", "timeout": 20, "handler": "index.main" }
+  ]
+}

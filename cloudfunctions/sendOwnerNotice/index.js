@@ -3,7 +3,7 @@ const { createSendOwnerNoticeService } = require('./noticeService')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-const db = cloud.database()
+const db = cloud.database({ env: cloud.DYNAMIC_CURRENT_ENV })
 async function getCurrentUser() {
   const { OPENID } = cloud.getWXContext()
   const res = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()

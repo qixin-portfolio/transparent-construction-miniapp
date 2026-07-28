@@ -17,6 +17,56 @@
 
 ---
 
+### 2026-07-28 — PR #5 Release Candidate Ready
+
+- 来源：真实小程序会话通过后，齐鑫授权创建发布候选。
+- 分支：`fix/pr5-release-blockers-v4`；候选 commit 见 PR #6 的当前分支头。
+- PR：[ #6](https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/6)，目标分支 `hotfix/stage-regression-release-blockers`，这是该修复分支的唯一直接上游祖先。
+- 检查结果：日报行为测试 `171/171`、运行时副本同步、111 个 JSON 解析、V2 双入口关闭、候选 JS 语法和 `git diff --check` 均通过；真实测试和清理证据在 `production-evidence/2026-07-28/pr5-real-miniapp-session/`。
+- 未做事项：未访问生产环境、未部署生产、未合并、未打 tag、未上传体验版或正式发布。
+- 下一步建议：审查 PR #6；生产发布仅在齐鑫单独确认后执行。
+
+---
+
+### 2026-07-28 — PR #5 Real Mini Program Session Pass and Candidate Authorization
+
+- 来源：齐鑫明确授权“按本次真实成功结果继续创建发布候选”。
+- 分支：`fix/pr5-release-blockers-v4`，基线 `899401614a3b92416ec6c3f47b6d5e6bb8ea94ad`。
+- PR：候选创建中；未访问或操作生产环境 `cloud1-d4g7zh8kpca0e26d5`。
+- 本次做了什么：在测试环境 `shengjing-style-test-d3ac90f38b1` 的真实小程序管理员会话中创建 `pr5t-stage-core-20260728-r3` 合成工地，成功提交无图片、无语音日报；审核通过后待审核列表为空。提交没有出现 `runTransaction` 错误，因此没有可提取的 `errorCode`、`errorMessage`、`requestId`、堆栈或报错行。重复提交入口被页面按当前节点拦截，未产生第二条日报。
+- 清理：已从同一测试环境精确删除该 `pr5t-` 工地，删除确认明确包含关联日报；按精确名称搜索返回“暂无工地”，工地总数从 `15` 降至 `14`。未触及其他工地、真实数据或生产环境。
+- 检查结果：`node --test tests/stage-log-behavior/*.test.js` 为 `171/171`；运行时副本同步、111 个 JSON 解析、V2 双入口关闭、候选 JS 语法与 `git diff --check` 通过。
+- 风险与未决问题：本次路径未复现旧事务失败，故未新增业务修复；未刻意制造并发事务冲突。生产发布、体验版上传、tag 和合并仍未授权。
+- 下一步建议：提交并推送用户已授权的发布候选；随后等待生产发布的单独 Human Gate。
+
+---
+
+### 2026-07-27 — PR #5 P0 Transaction Gate Recheck
+
+- 来源：Goal Mode 快速收口 PR #5；针对测试环境事务失败的一次定向修复
+- 分支：`fix/pr5-release-blockers-v4`，基线 `899401614a3b92416ec6c3f47b6d5e6bb8ea94ad`
+- PR：未创建，未 push；未访问或操作生产环境 `cloud1-d4g7zh8kpca0e26d5`
+- 本次做了什么：将 `submitStageLog`、`reviewStageLog`、`sendOwnerNotice` 的数据库实例显式改为 `cloud.database({ env: cloud.DYNAMIC_CURRENT_ENV })`，完整本地 `171/171` 回归通过，并只部署这三项到测试环境。
+- 修改文件：三个函数入口、`production-evidence/2026-07-27/pr5-fast-release-test/`、本条 handoff；无其它业务逻辑改动。
+- 检查结果：测试环境三函数均 Active 且环境变量为空；同一合成普通用户提交两次仍安全失败为“日报提交事务失败”，零日报、零照片、零通知、零提交槽位残留；第二轮夹具已精确删除，测试用户角色已恢复。
+- 风险与未决问题：同一 P0 在一次定向修复后仍存在，按 Goal Mode 停止生产发布、发布候选、tag、上传和量房风格预览 Task 1。控制面调用缺少小程序 OPENID，支持的函数日志接口没有暴露底层事务错误。
+- 下一步建议：由人工通过开发者工具的测试小程序会话取得真实用户上下文和原始事务错误；在该 Gate 通过前不得发布。
+
+---
+
+### 2026-07-27 — PR #5 Fast Release Test Environment Gate
+
+- 来源：Goal Mode 快速收口 PR #5
+- 分支：`fix/pr5-release-blockers-v4`，候选 `899401614a3b92416ec6c3f47b6d5e6bb8ea94ad`
+- PR：未创建，未 push；未访问或操作生产环境 `cloud1-d4g7zh8kpca0e26d5`
+- 本次做了什么：只在 `shengjing-style-test-d3ac90f38b1` 创建 `stage_log_submission_keys`（ACL `PRIVATE`），以无环境变量白名单部署 `submitStageLog`、`reviewStageLog`、`sendOwnerNotice`，验证函数 Active 且通知默认关闭；使用合成 `pr5t-` 夹具尝试真实普通用户提交。
+- 修改文件：`production-evidence/2026-07-27/pr5-fast-release-test/` 测试证据；无业务代码改动。
+- 检查结果：本地行为测试 `171/171` 通过；测试环境两次 submit 均安全失败为“日报提交事务失败”，零日报、零照片、零通知、零提交槽位残留；合成项目和成员已精确删除，测试用户角色已恢复。
+- 风险与未决问题：真实 `runTransaction` 路径未通过，CloudBase 控制面直调没有小程序 OPENID，开发者工具 GUI 自动化超时，且支持的日志命令未给出事务底层错误。该项是 P0，不能发布。
+- 下一步建议：由人工在开发者工具中以测试小程序身份重现并取得原始事务错误；仅在首次普通用户 submit 成功、重复拦截、rejected 重提、审核和进度单调性等核心场景完整通过后，才重新讨论发布候选。
+
+---
+
 ### 2026-07-27 — Phase 0F-3C 提交槽位语义合法性校验修复
 
 - 来源：用户任务“Phase 0F-3C——修复提交槽位语义合法性校验”
