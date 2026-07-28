@@ -17,6 +17,16 @@
 
 ---
 
+### 2026-07-28 13:30 — PR #6 Experience Validation Evidence Matrix
+
+- 候选：体验版 `7.3.2`，上传源为 merge commit `70724a7838cb641c2ce7f05fac3b736d2ad8b97b`。
+- 本地回归：在该锁定 commit 重新执行 `node --test tests/stage-log-behavior/*.test.js`，结果 `171/171` 通过。
+- 验证边界：真实测试小程序会话覆盖普通提交、人工审核、重复入口拦截与夹具精确清理；rejected 重提、重复审核 `ALREADY_REVIEWED`、进度单调性、自动审核和通知幂等性由候选事务回归覆盖。审核图片、V2 关闭和业主查看由既有真机证据及候选静态开关覆盖。
+- 生产边界：未创建生产夹具，不对生产制造 rejected/并发场景，不绑定真实业主，不发送真实消息。
+- 下一步建议：微信公众平台提交审核；审核通过后发布、创建稳定 tag 与正式发布目录。
+
+---
+
 ### 2026-07-28 13:23 — PR #6 Experience Version Uploaded
 
 - 来源：齐鑫明确确认 PR #6 最小受控生产发布。

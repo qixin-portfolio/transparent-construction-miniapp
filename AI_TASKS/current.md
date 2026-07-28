@@ -1,10 +1,10 @@
 ---
 schema_version: 1
 task_id: phase-0f-3c-submission-slot-semantic-validation
-revision: 6
+revision: 7
 owner: codex
 status: in_progress
-updated_at: 2026-07-28T13:23:26+08:00
+updated_at: 2026-07-28T13:30:00+08:00
 ---
 
 # Current AI Task
@@ -48,7 +48,7 @@ PR #6：最小受控生产发布。
 - 合并提交：`70724a7838cb641c2ce7f05fac3b736d2ad8b97b`
 - 发布分支：`release/pr5-production`
 - 检查命令：`node --test tests/stage-log-behavior/*.test.js`
-- 结果：`171/171` 通过；真实测试夹具已清理；`stage_log_submission_keys` 存在且为空、ACL 为 `PRIVATE`；三函数于 2026-07-28 13:05-13:06 部署并与本地源码一致。开发者工具已从干净 merge worktree 成功上传体验版 `7.3.2`。
+- 结果：`171/171` 已在锁定 merge commit 再次通过；真实测试夹具已清理；`stage_log_submission_keys` 存在且为空、ACL 为 `PRIVATE`；三函数于 2026-07-28 13:05-13:06 部署并与本地源码一致。开发者工具已从干净 merge worktree 成功上传体验版 `7.3.2`；体验版最小验证按真实测试环境、既有真机证据和候选回归矩阵固化，未在生产制造 rejected、并发或通知夹具。
 
 ## 下一步
 
