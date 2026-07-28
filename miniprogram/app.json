@@ -58,6 +58,16 @@
         "pages/contract-to-project/contract-to-project",
         "pages/case-assets/case-assets"
       ]
+    },
+    {
+      "root": "subpackages/style-preview",
+      "name": "stylePreview",
+      "pages": [
+        "pages/start/index",
+        "pages/processing/index",
+        "pages/result/index",
+        "pages/history/index"
+      ]
     }
   ],
   "preloadRule": {

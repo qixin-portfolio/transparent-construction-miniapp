@@ -1,0 +1,58 @@
+<view class="preview-page">
+  <view class="hero">
+    <view class="hero-kicker">晟景量房沟通工具 · Mock 演示</view>
+    <view class="hero-title">选客户，传两张图，先把风格聊明白</view>
+    <view class="hero-copy">只用于前期沟通，不创建工地、不改客户资料，也不调用真实 AI。</view>
+  </view>
+
+  <view class="progress-strip">
+    <view class="progress-step active"><text>1</text><view>准备资料</view></view>
+    <view class="progress-line"></view>
+    <view class="progress-step"><text>2</text><view>生成预览</view></view>
+    <view class="progress-line"></view>
+    <view class="progress-step"><text>3</text><view>沟通反馈</view></view>
+  </view>
+
+  <view class="section">
+    <view class="section-label">服务对象</view>
+    <picker range="{{customers}}" range-key="name" value="{{customerIndex}}" bindchange="onCustomerChange">
+      <view class="field-picker">
+        <view><view class="field-value">{{selectedCustomer.name}}</view><view class="field-helper">{{selectedCustomer.community}}</view></view>
+        <view class="field-arrow">›</view>
+      </view>
+    </picker>
+  </view>
+
+  <view class="section">
+    <view class="section-label">这次先看哪个空间</view>
+    <picker range="{{roomTypes}}" value="{{roomIndex}}" bindchange="onRoomChange">
+      <view class="field-picker"><view class="field-value">{{roomTypes[roomIndex]}}</view><view class="field-arrow">›</view></view>
+    </picker>
+  </view>
+
+  <view class="section">
+    <view class="section-label">两张图，先定方向</view>
+    <view class="image-grid">
+      <view class="image-slot">
+        <image wx:if="{{sourceImage}}" class="chosen-image" src="{{sourceImage}}" mode="aspectFill"></image>
+        <view wx:else class="image-empty"><view class="image-icon">房</view><view>毛坯房照片</view><text>看空间、采光和主视角</text></view>
+        <view class="image-caption">原始毛坯图</view>
+        <view class="image-actions"><text data-target="sourceImage" bindtap="chooseImage">选照片</text><text data-target="sourceImage" bindtap="useFixture">用样例</text></view>
+      </view>
+      <view class="image-slot">
+        <image wx:if="{{referenceImage}}" class="chosen-image" src="{{referenceImage}}" mode="aspectFill"></image>
+        <view wx:else class="image-empty"><view class="image-icon">风</view><view>喜欢的参考图</view><text>看材质、颜色和氛围</text></view>
+        <view class="image-caption">参考风格图</view>
+        <view class="image-actions"><text data-target="referenceImage" bindtap="chooseImage">选照片</text><text data-target="referenceImage" bindtap="useFixture">用样例</text></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-label">这次想重点沟通什么 <text>可选</text></view>
+    <textarea class="note-input" value="{{note}}" maxlength="120" placeholder="例如：想保留大白墙的明亮感，柜子不要太厚重。" bindinput="onNoteInput"></textarea>
+  </view>
+
+  <button class="create-button" loading="{{creating}}" disabled="{{creating}}" bindtap="createPreview">创建风格预览</button>
+  <view class="history-link" bindtap="goHistory">查看该客户的本地预览记录 <text>›</text></view>
+</view>

@@ -1,55 +1,56 @@
 ---
 schema_version: 1
 task_id: phase-0f-3c-submission-slot-semantic-validation
-revision: 7
-owner: codex
-status: in_progress
-updated_at: 2026-07-28T13:30:00+08:00
+revision: 9
+owner: matrix
+status: review_ready
+updated_at: 2026-07-28T16:35:00+08:00
 ---
 
 # Current AI Task
 
 ## 任务标题
 
-PR #6：最小受控生产发布。
+量房风格预览 V1 Task 1：独立子包本地 Mock MVP。
 
 ## 任务来源
 
-- 用户于 2026-07-28 明确确认生产发布。
+- 用户于 2026-07-28 明确授权独立开发；微信小程序 `7.3.2` 正式审核发布不再阻塞本轮 Mock 开发。
 
 ## 本次范围
 
-允许：从 PR #6 merge commit 精确部署白名单云函数、上传体验版、完成发布验证与证据记录。
+允许：在 `codex/style-preview-v1` 独立 worktree 中增加隐藏的量房风格预览入口、独立子包页面与本地 Mock service；可本地 commit、push 和创建 Draft PR。
 
-禁止：部署非白名单函数、修改生产集合之外的数据、导入测试数据、合并其它 PR、修改 V2 开关，或进入量房风格预览 Task 1。
+禁止：真实 AI、CloudBase 集合或云函数、部署、体验版上传、生产入口、客户阶段和正式项目写入、业主端入口、报价/BOM/施工图/户型改造/批量生成；不得合并到 release 或生产基线。
 
 ## 交付物
 
-- 已部署三函数的生产证据。
-- 体验版上传与验证证据。
-- 正式发布记录、稳定 tag 与回滚计划。
+- `miniprogram/subpackages/style-preview/` 独立子包，含开始、处理中、结果、历史四页。
+- 客户详情隐藏入口：`ENABLE_STYLE_PREVIEW_ENTRY = false`，仅 `stylePreviewMock=1` 显式 Mock 参数可见。
+- 独立本地 Mock service 和回归测试；不访问 CloudBase，不产生生产数据。
 
 ## 验收标准
 
-- PR #6 merge commit、生产集合 ACL 与三函数源码一致性已验证。
-- 体验版 `7.3.2` 上传成功后，完成最小核心链路验证。
-- 正式发布成功后，建立 `v1-stage-hotfix-stable` annotated tag 和完整发布记录。
+- 入口关闭时既有用户不可见，开发 Mock 参数下可进入完整可点击流程。
+- 可选择 Mock 客户、两张本地图片、房间类型与备注，并可经过 Mock 处理看到完整结果、保存反馈和查看历史。
+- 刷新后本地 fixture 可恢复；V2 两处入口仍关闭；不出现 `wx.cloud`、云函数调用或生产数据写入。
 
 ## 风险等级
 
-- 中：体验版已上传；微信公众平台的审核提交与正式发布仍待人工完成。
+- 低：仅本地 Mock 子包；入口默认关闭，且无后端、云函数或环境配置改动。
 
 ## Human Gate
 
-生产发布已获齐鑫明确确认。开发者工具 AppID 关联已恢复，体验版已上传；微信公众平台的审核提交与正式发布保留为人工门。
+正式发布仍是未来将本分支 rebase 到稳定 tag 并开启入口前的 Gate。本轮不等待、不部署、不上传体验版。
 
 ## Codex 执行记录
 
-- 合并提交：`70724a7838cb641c2ce7f05fac3b736d2ad8b97b`
-- 发布分支：`release/pr5-production`
-- 检查命令：`node --test tests/stage-log-behavior/*.test.js`
-- 结果：`171/171` 已在锁定 merge commit 再次通过；真实测试夹具已清理；`stage_log_submission_keys` 存在且为空、ACL 为 `PRIVATE`；三函数于 2026-07-28 13:05-13:06 部署并与本地源码一致。开发者工具已从干净 merge worktree 成功上传体验版 `7.3.2`；体验版最小验证按真实测试环境、既有真机证据和候选回归矩阵固化，未在生产制造 rejected、并发或通知夹具。
+- worktree：`/Users/qixin/Documents/晟景AI助理/transparent-construction-style-preview-v1`
+- 分支：`codex/style-preview-v1`
+- 起点：`821d96efa7f4d1495939703cc58d028a2ea75d6d`
+- 本地验收：Mock service 回归 `2/2`、既有日报回归 `171/171`、style-preview JS 语法检查、全量 miniprogram JSON 解析、`git diff --check` 均通过；CloudBase/云函数/真实 AI 扫描为空，V2 两处开关仍为 `false`。
+- GUI 验证：开发者工具桌面自动化服务超时；CLI `open` 命令连接到已有 IDE 实例时没有返回项目打开成功。未上传体验版、未部署、未访问 CloudBase；需在桌面工具恢复可用后补一次视觉走查。
 
 ## 下一步
 
-在微信公众平台版本管理中确认体验版 `7.3.2`，提交审核；审核通过后发布。正式发布成功前不得打稳定 tag 或启动 style-preview。
+提交并推送 `codex/style-preview-v1` 后停止，等待 `7.3.2` 正式发布和一次 GUI 视觉走查；届时 rebase 到稳定 tag，再进入 Task 2 的真实数据层、云函数任务和测试环境 AI 链路。

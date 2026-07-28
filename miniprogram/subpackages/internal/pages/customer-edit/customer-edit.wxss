@@ -215,6 +215,12 @@
   color: #FFFFFF;
 }
 
+.customer-action-btn.preview {
+  grid-column: 1 / -1;
+  background: #F4ECDE;
+  color: #7E5B2A;
+}
+
 .customer-action-btn.danger {
   grid-column: 1 / -1;
   background: #FEE2E2;

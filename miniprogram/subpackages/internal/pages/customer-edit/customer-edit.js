@@ -1,5 +1,7 @@
 const { call, showError } = require('../../../../services/cloud')
 
+const ENABLE_STYLE_PREVIEW_ENTRY = false
+
 Page({
   data: {
     isEdit: false,
@@ -20,10 +22,17 @@ Page({
     },
     submitting: false,
     deleting: false,
-    canDelete: false
+    canDelete: false,
+    stylePreviewEntryVisible: false,
+    stylePreviewMock: false
   },
 
   onLoad(options) {
+    const stylePreviewMock = String(options.stylePreviewMock || '') === '1'
+    this.setData({
+      stylePreviewMock,
+      stylePreviewEntryVisible: ENABLE_STYLE_PREVIEW_ENTRY || stylePreviewMock
+    })
     this.initAccess()
     this.syncDerivedState()
     if (options.id) {
@@ -154,6 +163,18 @@ Page({
     }
     wx.navigateTo({
       url: `/subpackages/internal/pages/project-edit/project-edit?customerId=${this.data.customerId}&customerName=${encodeURIComponent(form.name || '')}&address=${encodeURIComponent(form.address || '')}`
+    })
+  },
+
+  goStylePreview() {
+    if (!this.data.isEdit || !this.data.customerId) {
+      showError('请先保存客户后再创建预览')
+      return
+    }
+    const name = encodeURIComponent(this.data.form.name || '当前客户')
+    const mock = this.data.stylePreviewMock ? '&mock=1' : ''
+    wx.navigateTo({
+      url: `/subpackages/style-preview/pages/start/index?customerId=${this.data.customerId}&customerName=${name}${mock}`
     })
   },
 

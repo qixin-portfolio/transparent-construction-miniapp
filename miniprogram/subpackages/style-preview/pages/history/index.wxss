@@ -1,0 +1,19 @@
+page { background: #F6F2EA; }
+.history-page { min-height: 100vh; padding: 36rpx 28rpx calc(56rpx + env(safe-area-inset-bottom)); box-sizing: border-box; color: #222222; }
+.history-head { padding: 22rpx 6rpx 38rpx; }
+.head-kicker { color: #8B632B; font-size: 21rpx; font-weight: 800; letter-spacing: 2rpx; }
+.head-title { margin-top: 14rpx; color: #304238; font-size: 44rpx; line-height: 1.3; font-weight: 800; }
+.head-copy { margin-top: 14rpx; color: #706B61; font-size: 23rpx; line-height: 1.5; }
+.record-count { margin-bottom: 16rpx; color: #706B61; font-size: 22rpx; }
+.record-list { display: flex; flex-direction: column; gap: 16rpx; }
+.record-card { display: flex; align-items: center; min-height: 154rpx; padding: 12rpx; background: #FFFFFF; box-sizing: border-box; }
+.record-card image { flex: 0 0 auto; width: 130rpx; height: 130rpx; }
+.record-main { flex: 1; min-width: 0; padding: 8rpx 18rpx; }
+.record-top { display: flex; align-items: center; justify-content: space-between; color: #304238; font-size: 25rpx; font-weight: 800; }
+.status { padding: 5rpx 10rpx; background: #F4ECDE; color: #795829; font-size: 19rpx; }
+.status.processing { background: #EEE8DC; color: #807664; }
+.record-style { overflow: hidden; margin-top: 10rpx; color: #333333; font-size: 23rpx; text-overflow: ellipsis; white-space: nowrap; }
+.record-meta { margin-top: 9rpx; color: #8B887E; font-size: 20rpx; }
+.record-arrow { padding-right: 8rpx; color: #CFAE7B; font-size: 42rpx; }
+.new-button { height: 96rpx; margin-top: 34rpx; border: 2rpx solid #304238; border-radius: 0; background: transparent; color: #304238; font-size: 28rpx; line-height: 92rpx; font-weight: 800; }
+.new-button::after { border: none; }

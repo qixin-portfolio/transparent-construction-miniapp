@@ -1,0 +1,21 @@
+<view class="processing-page">
+  <view class="top-note">晟景量房沟通工具 · 本地 Mock</view>
+  <view class="processing-title">正在把两张图<br />整理成一张沟通卡</view>
+  <view class="processing-copy">这是本地演示过程，不会上传图片，也不会调用真实 AI。</view>
+
+  <view class="image-pair" wx:if="{{session}}">
+    <image src="{{session.sourceImage}}" mode="aspectFill"></image>
+    <view class="pair-mark">+</view>
+    <image src="{{session.referenceImage}}" mode="aspectFill"></image>
+  </view>
+
+  <view class="step-list">
+    <view wx:for="{{steps}}" wx:key="title" class="step {{index <= currentStep ? 'active' : ''}} {{index < currentStep ? 'finished' : ''}}">
+      <view class="step-state"><text wx:if="{{index < currentStep}}">√</text><text wx:else>{{index + 1}}</text></view>
+      <view class="step-content"><view class="step-title">{{item.title}}</view><view class="step-copy">{{item.copy}}</view></view>
+      <view wx:if="{{index === currentStep && !completed}}" class="pulse"></view>
+    </view>
+  </view>
+
+  <view class="boundary">预览只表达风格方向，不生成施工图或报价。</view>
+</view>
