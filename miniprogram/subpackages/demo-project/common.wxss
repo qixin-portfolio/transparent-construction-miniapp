@@ -1,0 +1,19 @@
+page { background: #F6F2EA; color: #222222; }
+.demo-page { min-height: 100vh; box-sizing: border-box; padding: 32rpx 32rpx calc(60rpx + env(safe-area-inset-bottom)); }
+.demo-note { display: inline-block; margin-bottom: 28rpx; padding: 9rpx 16rpx; border: 1rpx solid #CFAE7B; color: #735F3E; font-size: 22rpx; }
+.page-title { color: #304238; font-size: 42rpx; font-weight: 700; }
+.page-subtitle { margin-top: 14rpx; color: #6E736D; font-size: 26rpx; line-height: 1.55; }
+.section { margin-top: 36rpx; padding-top: 30rpx; border-top: 1rpx solid #D9CDBB; }
+.section-title { color: #304238; font-size: 30rpx; font-weight: 700; }
+.card { margin-top: 22rpx; padding: 26rpx; background: #FFFFFF; border-radius: 6rpx; box-shadow: 0 8rpx 28rpx rgba(48, 66, 56, .06); }
+.card-title { color: #304238; font-size: 29rpx; font-weight: 700; }
+.card-body { margin-top: 14rpx; color: #656A65; font-size: 26rpx; line-height: 1.65; }
+.status { display: inline-block; margin-top: 16rpx; padding: 8rpx 14rpx; background: #E7EFE8; color: #304238; font-size: 22rpx; }
+.status.pending { background: #F7EBD9; color: #805D2C; }
+.primary-link { margin-top: 30rpx; color: #304238; font-size: 27rpx; font-weight: 700; }
+.nav-list { margin-top: 24rpx; background: #FFFFFF; border-radius: 6rpx; overflow: hidden; }
+.nav-row { display: flex; align-items: center; justify-content: space-between; min-height: 104rpx; padding: 0 26rpx; border-bottom: 1rpx solid #EEE8DD; color: #304238; font-size: 29rpx; }
+.nav-row:last-child { border-bottom: 0; }
+.nav-arrow { color: #CFAE7B; font-size: 36rpx; }
+.photo { display: block; width: 100%; height: 326rpx; margin-top: 18rpx; border-radius: 4rpx; background: #DDD7CA; }
+.photo-caption { margin-top: 14rpx; color: #525952; font-size: 26rpx; }

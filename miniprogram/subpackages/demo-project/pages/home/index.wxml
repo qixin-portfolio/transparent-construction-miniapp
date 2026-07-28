@@ -1,0 +1,16 @@
+<view class="demo-page">
+  <view class="demo-note">示例数据，仅用于功能体验</view>
+  <view class="page-title">{{project.name}}</view>
+  <view class="page-subtitle">{{project.layout}} · 当前阶段：{{project.stage}}</view>
+  <view class="section">
+    <view class="section-title">整体进度</view>
+    <view class="card"><view class="card-title">{{project.progress}}%</view><view class="card-body">{{project.progressText}}</view><view class="status">{{project.stage}}</view></view>
+  </view>
+  <view class="nav-list">
+    <view class="nav-row" data-page="progress" bindtap="goPage"><view>施工进度与节点</view><view class="nav-arrow">›</view></view>
+    <view class="nav-row" data-page="stage-log" bindtap="goPage"><view>施工日报</view><view class="nav-arrow">›</view></view>
+    <view class="nav-row" data-page="photos" bindtap="goPage"><view>现场照片</view><view class="nav-arrow">›</view></view>
+    <view class="nav-row" data-page="design-confirm" bindtap="goPage"><view>设计确认</view><view class="nav-arrow">›</view></view>
+    <view class="nav-row" data-page="issues" bindtap="goPage"><view>问题与验收</view><view class="nav-arrow">›</view></view>
+  </view>
+</view>

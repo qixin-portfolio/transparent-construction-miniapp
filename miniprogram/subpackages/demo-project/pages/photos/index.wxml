@@ -1,0 +1,1 @@
+<view class="demo-page"><view class="demo-note">示例数据，仅用于功能体验</view><view class="page-title">现场照片</view><view class="page-subtitle">水电施工阶段的现场记录</view><view class="section"><view wx:for="{{photos}}" wx:key="title" class="card"><image class="photo" src="{{item.url}}" mode="aspectFill"></image><view class="photo-caption">{{item.title}} · {{item.stage}}</view></view></view></view>

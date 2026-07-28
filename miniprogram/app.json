@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/public-home/public-home",
     "pages/workbench/workbench",
     "pages/register/register",
     "pages/projects/projects",
@@ -57,6 +58,25 @@
         "pages/trust-materials/trust-materials",
         "pages/contract-to-project/contract-to-project",
         "pages/case-assets/case-assets"
+      ]
+    },
+    {
+      "root": "subpackages/public-access",
+      "name": "publicAccess",
+      "pages": [
+        "pages/project-unbound/project-unbound"
+      ]
+    },
+    {
+      "root": "subpackages/demo-project",
+      "name": "demoProject",
+      "pages": [
+        "pages/home/index",
+        "pages/progress/index",
+        "pages/stage-log/index",
+        "pages/photos/index",
+        "pages/design-confirm/index",
+        "pages/issues/index"
       ]
     }
   ],

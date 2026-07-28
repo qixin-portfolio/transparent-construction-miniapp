@@ -268,3 +268,11 @@
 - 检查结果：`miniprogram/app.json` JSON 解析通过；新增 JS 文件 `node --check` 通过；`deal-loop` 未命中云函数、数据库、真实 AI 请求关键词；未运行 build，未部署
 - 风险与未决问题：Phase 2 只保留开发者直达入口，未挂工作台；进入 Phase 3 前需再次 Human Gate
 - 下一步建议：人工用开发者直达路径检查 mock 页面，再决定是否进入 Phase 3 只读接入设计
+### 2026-07-28 — 公开首页审核整改实施，待小程序运行验证
+
+- Worktree：`/Users/qixin/Documents/晟景AI助理/transparent-construction-public-home-review`；分支：`fix/public-home-review-remediation`；起点：`821d96e`；审计提交：`dbe4a62`。
+- 实施：新增公开首页、OpenID 既有身份启动分流、未绑定项目说明页和纯本地示例工地。未知用户不再自动跳老板注册；工作人员入口仅在用户主动点击“我是工作人员”后进入。未新增 `getPhoneNumber`、手机号解密/匹配/迁移、前端项目绑定或新生产集合。
+- 绑定现状：项目负责人可在内部工地详情生成 7 天有效的 6 位绑定码；`bindOwnerProject` 服务端把当前 OpenID 写入 `ownerOpenids`，另有 `unbindOwner`。本轮未改造或公开该机制。
+- 检查：公开入口测试 `14/14`、日报行为测试 `171/171`、修改 JS 语法、全量小程序 JSON、`git diff --check`、示例子包隔离扫描、V2 关闭与未新增量房风格预览入口均通过。
+- 阻塞：微信开发者工具模拟器运行时返回 `41002 appid missing`，虽 `project.config.json` 仍有 `wxbfe2172a118ae67f`，但无法生成可信小程序截图或完成真实运行验证。未上传体验版 `7.3.3`、未 push、未创建 PR、未部署云函数、未改生产数据。
+- 唯一人工动作：在微信开发者工具重新确认该 worktree 根目录与 AppID 的关联并使模拟器可启动；恢复后才能截图、运行验证、上传体验版并决定 push/PR。

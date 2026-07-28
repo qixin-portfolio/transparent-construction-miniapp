@@ -1,0 +1,10 @@
+page { background: #F6F2EA; }
+.unbound-page { min-height: 100vh; box-sizing: border-box; padding: 168rpx 52rpx 80rpx; text-align: center; color: #222222; }
+.checking { margin-top: 260rpx; color: #59615A; font-size: 28rpx; }
+.icon { display: flex; align-items: center; justify-content: center; width: 100rpx; height: 100rpx; margin: 0 auto 38rpx; border: 2rpx solid #CFAE7B; border-radius: 50%; color: #304238; font-size: 38rpx; font-weight: 700; }
+.title { color: #304238; font-size: 42rpx; font-weight: 700; }
+.desc { margin-top: 38rpx; color: #5F625D; font-size: 28rpx; line-height: 1.75; text-align: left; }
+.primary-button { margin-top: 72rpx; height: 98rpx; line-height: 98rpx; border: 0; border-radius: 6rpx; background: #304238; color: #fff; font-size: 30rpx; }
+.primary-button::after { border: 0; }
+.secondary { margin-top: 30rpx; color: #304238; font-size: 28rpx; text-decoration: underline; }
+.privacy-note { margin-top: 92rpx; color: #858176; font-size: 24rpx; line-height: 1.7; }

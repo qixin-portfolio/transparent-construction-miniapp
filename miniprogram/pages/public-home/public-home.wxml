@@ -1,0 +1,29 @@
+<view class="public-home-page">
+  <view class="hero">
+    <view class="brand-mark">晟景透明工地</view>
+    <view class="hero-title">装修进度，看得见才放心</view>
+    <view class="hero-desc">查看您家的施工进度、现场照片<br />和待确认事项。</view>
+    <view class="site-illustration">
+      <view class="site-sun"></view>
+      <view class="site-building site-building-main"></view>
+      <view class="site-building site-building-side"></view>
+      <view class="site-ground"></view>
+    </view>
+  </view>
+
+  <view class="main-action">
+    <button class="primary-button" bindtap="goMyProject">查看我的工地</button>
+    <view class="secondary-action" bindtap="goDemo">暂时没有项目？先体验示例工地</view>
+  </view>
+
+  <view class="value-list">
+    <view class="value-item"><view class="value-dot">进</view><view>每天知道现场做了什么</view></view>
+    <view class="value-item"><view class="value-dot">照</view><view>关键施工过程都有照片</view></view>
+    <view class="value-item"><view class="value-dot">确</view><view>需要您确认的事项不会遗漏</view></view>
+    <view class="value-item"><view class="value-dot">查</view><view>装修进度和问题随时可查</view></view>
+  </view>
+
+  <view class="service-note">晟景装饰为您提供<br />施工过程记录与项目协同服务</view>
+  <view class="help-note">遇到项目绑定问题？<br />请联系您的项目负责人</view>
+  <view class="staff-entry" bindtap="goStaff">我是工作人员</view>
+</view>

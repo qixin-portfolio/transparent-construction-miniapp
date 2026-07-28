@@ -1,3 +1,5 @@
+const { isOwner, resolveEntryRoute } = require('./utils/public-entry-router')
+
 const ROLE_LABELS = {
   admin: '管理员',
   owner: '业主',
@@ -26,6 +28,7 @@ const WORKBENCH_JOIN_OPTION_KEYS = ['saasInviteFlow', 'inviteCode', 'staffInvite
 const PROJECT_PUBLIC_OPTION_KEYS = ['bindCode', 'ownerBindCode', 'scene', 'q']
 const ENTRY_CONTEXT_KEY = 'saasEntryContext'
 const ENTRY_CONTEXT_TTL = 3 * 60 * 1000
+const PUBLIC_HOME_ROUTE = 'pages/public-home/public-home'
 
 function hasAnyOption(options, keys) {
   return keys.some((key) => {
@@ -161,7 +164,7 @@ App({
     if (!context) return
     setTimeout(() => {
       const route = this.getCurrentRoute()
-      if (route !== 'pages/register/register') return
+      if (route !== 'pages/register/register' && route !== PUBLIC_HOME_ROUTE) return
 
       if (context.type === 'owner_bind') {
         const query = context.bindCode ? `?bindCode=${context.bindCode}` : ''
@@ -181,9 +184,9 @@ App({
 
       if (context.type === 'public') {
         this.clearEntryContext()
-        wx.reLaunch({
-          url: '/pages/projects/projects?entry=public'
-        })
+        if (route === 'pages/register/register') {
+          wx.reLaunch({ url: '/pages/public-home/public-home' })
+        }
       }
     }, 0)
   },
@@ -329,6 +332,23 @@ App({
     })
 
     return this.globalData.loginPromise
+  },
+
+  resolveExistingEntry() {
+    return this.ensureLogin({
+      allowGuestFlow: true,
+      skipRegisterRedirect: true
+    }).then((user) => {
+      if (!isOwner(user)) return resolveEntryRoute(user)
+
+      return wx.cloud.callFunction({ name: 'listOwnerProjects' })
+        .then((res) => {
+          const result = res.result || {}
+          if (result.error) return resolveEntryRoute(user)
+          return resolveEntryRoute(user, result.items || [])
+        })
+        .catch(() => resolveEntryRoute(user))
+    }).catch(() => resolveEntryRoute(null))
   },
 
   normalizeUser(user) {

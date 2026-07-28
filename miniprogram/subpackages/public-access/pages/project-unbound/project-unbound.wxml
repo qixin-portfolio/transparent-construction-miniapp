@@ -1,0 +1,12 @@
+<view class="unbound-page">
+  <view wx:if="{{checking}}" class="checking">正在确认项目权限...</view>
+  <block wx:else>
+    <view class="icon">工</view>
+    <view class="title">尚未找到您的工地</view>
+    <view class="desc">当前微信尚未绑定晟景装饰的装修项目。<br /><br />请联系您的项目负责人，确认项目已经为当前微信开通查看权限。<br /><br />项目开通后，重新进入小程序即可查看。</view>
+    <button class="primary-button" bindtap="checkProjectBinding">重新检查项目</button>
+    <view class="secondary" bindtap="goDemo">先体验示例工地</view>
+    <view class="secondary" bindtap="goHome">返回首页</view>
+    <view class="privacy-note">为了保护业主隐私，未完成项目绑定前，<br />无法查看真实工地信息。</view>
+  </block>
+</view>
