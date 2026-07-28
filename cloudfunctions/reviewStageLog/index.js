@@ -5,7 +5,7 @@ const { createOwnerNoticeSender } = require('./owner-notice')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-const db = cloud.database()
+const db = cloud.database({ env: cloud.DYNAMIC_CURRENT_ENV })
 const REVIEW_ROLES = ['admin', 'boss_qi', 'boss_hu']
 const _ = db.command
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'

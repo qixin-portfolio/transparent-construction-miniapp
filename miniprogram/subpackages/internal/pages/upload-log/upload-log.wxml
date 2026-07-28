@@ -46,6 +46,7 @@
         <view class="stage-progress-pill muted-pill">不可选择</view>
       </view>
     </view>
+    <view wx:if="{{stageSelectionError}}" class="ai-warning">{{stageSelectionError}}</view>
     <view wx:if="{{submittedStageStats.length}}" class="completed-stage-list">
       <text class="completed-stage-label">历史记录：</text>
       <text wx:for="{{submittedStageStats}}" wx:key="*this" class="completed-stage-chip">{{item}}</text>

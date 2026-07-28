@@ -17,6 +17,108 @@
 
 ---
 
+### 2026-07-28 — PR #5 Release Candidate Ready
+
+- 来源：真实小程序会话通过后，齐鑫授权创建发布候选。
+- 分支：`fix/pr5-release-blockers-v4`；候选 commit 见 PR #6 的当前分支头。
+- PR：[ #6](https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/6)，目标分支 `hotfix/stage-regression-release-blockers`，这是该修复分支的唯一直接上游祖先。
+- 检查结果：日报行为测试 `171/171`、运行时副本同步、111 个 JSON 解析、V2 双入口关闭、候选 JS 语法和 `git diff --check` 均通过；真实测试和清理证据在 `production-evidence/2026-07-28/pr5-real-miniapp-session/`。
+- 未做事项：未访问生产环境、未部署生产、未合并、未打 tag、未上传体验版或正式发布。
+- 下一步建议：审查 PR #6；生产发布仅在齐鑫单独确认后执行。
+
+---
+
+### 2026-07-28 — PR #5 Real Mini Program Session Pass and Candidate Authorization
+
+- 来源：齐鑫明确授权“按本次真实成功结果继续创建发布候选”。
+- 分支：`fix/pr5-release-blockers-v4`，基线 `899401614a3b92416ec6c3f47b6d5e6bb8ea94ad`。
+- PR：候选创建中；未访问或操作生产环境 `cloud1-d4g7zh8kpca0e26d5`。
+- 本次做了什么：在测试环境 `shengjing-style-test-d3ac90f38b1` 的真实小程序管理员会话中创建 `pr5t-stage-core-20260728-r3` 合成工地，成功提交无图片、无语音日报；审核通过后待审核列表为空。提交没有出现 `runTransaction` 错误，因此没有可提取的 `errorCode`、`errorMessage`、`requestId`、堆栈或报错行。重复提交入口被页面按当前节点拦截，未产生第二条日报。
+- 清理：已从同一测试环境精确删除该 `pr5t-` 工地，删除确认明确包含关联日报；按精确名称搜索返回“暂无工地”，工地总数从 `15` 降至 `14`。未触及其他工地、真实数据或生产环境。
+- 检查结果：`node --test tests/stage-log-behavior/*.test.js` 为 `171/171`；运行时副本同步、111 个 JSON 解析、V2 双入口关闭、候选 JS 语法与 `git diff --check` 通过。
+- 风险与未决问题：本次路径未复现旧事务失败，故未新增业务修复；未刻意制造并发事务冲突。生产发布、体验版上传、tag 和合并仍未授权。
+- 下一步建议：提交并推送用户已授权的发布候选；随后等待生产发布的单独 Human Gate。
+
+---
+
+### 2026-07-27 — PR #5 P0 Transaction Gate Recheck
+
+- 来源：Goal Mode 快速收口 PR #5；针对测试环境事务失败的一次定向修复
+- 分支：`fix/pr5-release-blockers-v4`，基线 `899401614a3b92416ec6c3f47b6d5e6bb8ea94ad`
+- PR：未创建，未 push；未访问或操作生产环境 `cloud1-d4g7zh8kpca0e26d5`
+- 本次做了什么：将 `submitStageLog`、`reviewStageLog`、`sendOwnerNotice` 的数据库实例显式改为 `cloud.database({ env: cloud.DYNAMIC_CURRENT_ENV })`，完整本地 `171/171` 回归通过，并只部署这三项到测试环境。
+- 修改文件：三个函数入口、`production-evidence/2026-07-27/pr5-fast-release-test/`、本条 handoff；无其它业务逻辑改动。
+- 检查结果：测试环境三函数均 Active 且环境变量为空；同一合成普通用户提交两次仍安全失败为“日报提交事务失败”，零日报、零照片、零通知、零提交槽位残留；第二轮夹具已精确删除，测试用户角色已恢复。
+- 风险与未决问题：同一 P0 在一次定向修复后仍存在，按 Goal Mode 停止生产发布、发布候选、tag、上传和量房风格预览 Task 1。控制面调用缺少小程序 OPENID，支持的函数日志接口没有暴露底层事务错误。
+- 下一步建议：由人工通过开发者工具的测试小程序会话取得真实用户上下文和原始事务错误；在该 Gate 通过前不得发布。
+
+---
+
+### 2026-07-27 — PR #5 Fast Release Test Environment Gate
+
+- 来源：Goal Mode 快速收口 PR #5
+- 分支：`fix/pr5-release-blockers-v4`，候选 `899401614a3b92416ec6c3f47b6d5e6bb8ea94ad`
+- PR：未创建，未 push；未访问或操作生产环境 `cloud1-d4g7zh8kpca0e26d5`
+- 本次做了什么：只在 `shengjing-style-test-d3ac90f38b1` 创建 `stage_log_submission_keys`（ACL `PRIVATE`），以无环境变量白名单部署 `submitStageLog`、`reviewStageLog`、`sendOwnerNotice`，验证函数 Active 且通知默认关闭；使用合成 `pr5t-` 夹具尝试真实普通用户提交。
+- 修改文件：`production-evidence/2026-07-27/pr5-fast-release-test/` 测试证据；无业务代码改动。
+- 检查结果：本地行为测试 `171/171` 通过；测试环境两次 submit 均安全失败为“日报提交事务失败”，零日报、零照片、零通知、零提交槽位残留；合成项目和成员已精确删除，测试用户角色已恢复。
+- 风险与未决问题：真实 `runTransaction` 路径未通过，CloudBase 控制面直调没有小程序 OPENID，开发者工具 GUI 自动化超时，且支持的日志命令未给出事务底层错误。该项是 P0，不能发布。
+- 下一步建议：由人工在开发者工具中以测试小程序身份重现并取得原始事务错误；仅在首次普通用户 submit 成功、重复拦截、rejected 重提、审核和进度单调性等核心场景完整通过后，才重新讨论发布候选。
+
+---
+
+### 2026-07-27 — Phase 0F-3C 提交槽位语义合法性校验修复
+
+- 来源：用户任务“Phase 0F-3C——修复提交槽位语义合法性校验”
+- 分支：`fix/pr5-release-blockers-v4`，起点 `56139ab1b69922eaaa6f81b9b4797b0234dc139e`
+- PR：未创建，未 push；未访问 CloudBase、测试环境或生产环境
+- 本次做了什么：以 service 层失败测试先行，集中校验 key 和新结构日报的正整数 attemptNo、严格上海业务日期、状态枚举、非空未 trim 的 ID 与规范派生 key ID；submit/review 复用同一共享实现，审核仅对合法已审核记录保留幂等早退
+- 修改文件：`shared/submission-slot.js`、submit/review 生成副本与 service、key helper、第三/四轮测试、`docs/pr5-remediation-v4/`、本任务单和本条 handoff
+- 检查结果：原有 `48/48`、第一轮 `27/27`、第二轮 `14/14`、第三轮 `34/34`、第四轮 `48/48`，合计 `171/171`；生成副本、JSON、39 页面完整性、V2 双入口关闭、环境变更检查和 `git diff --check` 通过。新增测试先在 `56139ab` 上 `12/28` 通过、`16/28` 失败
+- 风险与未决问题：本地事务模型不等同真实 CloudBase；未创建集合、未部署或访问任何环境，真实事务/权限/索引仍无证据
+- 下一步建议：只进入第五次独立代码复审；复审和后续 Human Gate 前，不得创建测试集合、部署测试环境、创建发布候选、受控发布或进入量房风格预览 Task 1
+
+---
+
+### 2026-07-27 — Phase 0F-3B 第三轮定向修复
+
+- 来源：用户任务“修复业务日期漂移与提交槽位一致性缺口”，对应独立复审目录 `production-evidence/2026-07-27/pr5-remediation-v2-independent-review`
+- 分支：`fix/pr5-release-blockers-v3`，起点 `8d4c017ca4b0dfb3cc0f6d32762d7f4d4ae20a35`
+- PR：未创建，未 push
+- 本次做了什么：在提交入口固定一次请求级上海业务时间；key、日报、历史查询和事务重试复用同一 context；新增共享槽位关联校验与严格旧数据识别；提交与审核均在缺 key/关联不一致时安全失败；审核事务错误收敛为公开安全错误；新增本地回滚覆盖
+- 修改文件：`cloudfunctions/submitStageLog/`、`cloudfunctions/reviewStageLog/`、`shared/submission-slot.js`、`scripts/sync-stage-flow.js`、`tests/stage-log-behavior/pr5-remediation-v3.test.js`、`docs/pr5-remediation-v3/`、本任务单
+- 检查结果：原有 `48/48`、第一轮 `27/27`、第二轮 `14/14`、第三轮 `34/34`，合计 `123/123`；JS 语法、生成副本同步待最终提交前复跑
+- 风险与未决问题：本地事务模型不等同真实 CloudBase；未创建集合、未部署或访问任何环境，真实事务/权限/索引仍无证据
+- 下一步建议：只进入新的独立代码复审；复审和后续 Human Gate 前，不得创建测试集合、部署测试环境、创建发布候选、受控发布或进入量房风格预览 Task 1
+
+---
+
+### 2026-07-27 — Phase 0F-3 二次阻塞修复
+
+- 来源：用户任务“Phase 0F-3——修复拒绝后重提与真实事务验证缺口”
+- 分支：`fix/pr5-release-blockers-v2`，起点 `4cd7ec3d565eac12fa99e38c4279e6346f9ca2af`
+- PR：未创建，未 push
+- 本次做了什么：将 `stage_log_submission_keys` 改为当前业务提交槽位；拒绝后保留旧日报并创建新尝试；审核在同一事务中同步当前 key；集合/权限/事务错误安全失败；新增乐观冲突与回滚本地模拟
+- 修改文件：`cloudfunctions/submitStageLog/submitService.js`、`cloudfunctions/reviewStageLog/reviewService.js`、`tests/stage-log-behavior/pr5-remediation-v2.test.js`、`tests/stage-log-behavior/transaction-model.js`、`docs/pr5-remediation-v2/`
+- 检查结果：原有 `48/48`、第一轮 `27/27`、本轮 `14/14`，合计 `89/89`；本地模拟不等同 CloudBase 真实事务证据
+- 风险与未决问题：必须人工创建并验证 `stage_log_submission_keys` 集合、服务端权限、真实事务、并发、索引与精确测试数据清理；测试环境部署仍需新的独立复审和齐鑫 Human Gate
+- 下一步建议：新的 Codex 会话进行独立代码复审；本轮不得部署、创建集合、访问生产、创建发布候选或进入量房风格预览
+
+---
+
+### 2026-07-27 — Phase 0F-1 PR #5 发布阻塞修复
+
+- 来源：用户任务“Phase 0F-1——修复 PR #5 独立复审阻塞项”
+- 分支：`fix/pr5-release-blockers`，起点 `f9656e18c47bfa169998082fdff344755194961a`
+- PR：未创建，未 push
+- 本次做了什么：创建本地证据分支 `archive/pr5-phase0e-tested-53bbfde`；修复非法 `stageCode` 静默回退、日报最新 20 条去重漏洞、通知默认外发和通知重复调用；上传页对无效保存工序显示明确错误
+- 修改文件：日报提交/阶段工具/通知服务及生成副本、`sendOwnerNotice` 服务入口、阻塞测试与 `docs/pr5-remediation/`
+- 检查结果：原有 `48/48`、新增 `27/27`、合计 `75/75`；JS 语法、JSON 解析、生成文件同步和 `git diff --check` 通过
+- 风险与未决问题：新增 `stage_log_submission_keys` 为惰性创建集合，尚未在任何云环境验证 CloudBase 真实事务；通知默认关闭，外发配置和真实发送必须仅在后续隔离测试环境、且经独立复审后验证
+- 下一步建议：由新的 Codex 会话独立复审代码、测试意义、数据结构影响和测试环境部署清单；本轮不得部署、上传、发布或进入量房风格预览
+
+---
+
 ### 2026-07-03 — 上传日报 -30001 record manager 冲突修复
 
 - 来源：用户真机截图显示 `-30001: record manager record failed`

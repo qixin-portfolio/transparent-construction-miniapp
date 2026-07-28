@@ -7,7 +7,17 @@ const {
   runApprovalNotice,
   tenantMatches
 } = require('./stage-flow')
-const { findExistingStageLog } = require('./guards')
+const {
+  findStageLogsForBusinessDay,
+  buildSubmissionIdempotencyKey,
+  createSubmissionRequestContext
+} = require('./guards')
+const {
+  isLegacyStageLog,
+  buildSubmissionKeyId,
+  validateSubmissionSlotLinkage,
+  submissionStateInconsistent
+} = require('./submission-slot')
 
 function clipText(value, limit = 1200) {
   return String(value || '').trim().slice(0, limit)
@@ -52,6 +62,26 @@ function normalizeAiDraft(value) {
   }
 }
 
+function isBusinessError(error) {
+  return error && [
+    'PROJECT_NOT_FOUND',
+    'TENANT_MISMATCH',
+    'STAGE_REQUIRED',
+    'INVALID_STAGE_CODE',
+    'ALREADY_SUBMITTED',
+    'SUBMISSION_STATE_INCONSISTENT'
+  ].indexOf(error.code) !== -1
+}
+
+function submissionFailure(error) {
+  if (isBusinessError(error)) return error
+  const unavailableCodes = ['COLLECTION_NOT_FOUND', 'PERMISSION_DENIED', 'TRANSACTION_UNAVAILABLE']
+  if (error && unavailableCodes.indexOf(error.code) !== -1) {
+    return createError('IDEMPOTENCY_STORE_UNAVAILABLE', '日报提交去重存储不可用，请稍后重试')
+  }
+  return createError('SUBMISSION_TRANSACTION_FAILED', '日报提交事务失败，请稍后重试')
+}
+
 async function createStageLog(options) {
   const {
     db,
@@ -73,8 +103,11 @@ async function createStageLog(options) {
   const photoFileIDs = Array.isArray(event.photoFileIDs) ? event.photoFileIDs.filter(Boolean) : []
   const sourceType = String(event.sourceType || 'manual').trim()
   const reviewerSelfUpload = isReviewRole(user.role)
+  const requestContext = options.requestContext || createSubmissionRequestContext(options.requestNow || new Date())
 
-  const transactionResult = await db.runTransaction(async (transaction) => {
+  let transactionResult
+  try {
+    transactionResult = await db.runTransaction(async (transaction) => {
     const freshProjectRes = await transaction.collection('projects').doc(projectId).get()
     const freshProject = freshProjectRes.data || null
     if (!freshProject) throw createError('PROJECT_NOT_FOUND', '工地不存在')
@@ -83,18 +116,63 @@ async function createStageLog(options) {
     }
 
     const stage = resolveSubmissionStage(event, freshProject)
-    const existingLog = await findExistingStageLog(
-      transaction,
-      _,
-      projectId,
+    const businessDate = requestContext.businessDate
+    const submitterId = user._id || openid
+    const submissionKeyId = buildSubmissionKeyId({
       tenantId,
-      stage.code,
-      stage.name,
-      openid,
-      user._id || ''
-    )
-    if (existingLog) {
-      throw createError('ALREADY_SUBMITTED', `${stage.name} 节点今天已提交过日报，请勿重复操作`)
+      projectId,
+      stageCode: stage.code,
+      submitterId,
+      businessDate
+    })
+    const submissionKeyRef = transaction.collection('stage_log_submission_keys').doc(submissionKeyId)
+    const existingKey = (await submissionKeyRef.get()).data || null
+    let attemptNo = 1
+    let lastRejectedAt = null
+
+    if (existingKey) {
+      const currentStageLogId = String(existingKey.currentStageLogId || '').trim()
+      if (!currentStageLogId) {
+        throw submissionStateInconsistent(submissionKeyId, 'key_schema_incomplete')
+      }
+      const currentLog = (await transaction.collection('stage_logs').doc(currentStageLogId).get()).data || null
+      const linkageReason = validateSubmissionSlotLinkage({
+        stageLog: currentLog,
+        stageLogId: currentStageLogId,
+        submissionKey: existingKey,
+        submissionKeyId,
+        tenantId,
+        project: freshProject
+      })
+      if (linkageReason) throw submissionStateInconsistent(submissionKeyId, linkageReason)
+      if (existingKey.currentStatus === 'pending' || existingKey.currentStatus === 'approved') {
+        throw createError('ALREADY_SUBMITTED', `${stage.name} 节点今天已提交过日报，请勿重复操作`)
+      }
+      if (existingKey.currentStatus !== 'rejected') {
+        throw submissionStateInconsistent(submissionKeyId, 'unsupported_current_status')
+      }
+      attemptNo = existingKey.attemptNo + 1
+      lastRejectedAt = existingKey.lastRejectedAt || currentLog.reviewedAt || currentLog.updatedAt || now
+    } else {
+      const businessDayLogs = await findStageLogsForBusinessDay(
+        transaction,
+        _,
+        projectId,
+        tenantId,
+        stage.code,
+        stage.name,
+        openid,
+        user._id || '',
+        requestContext
+      )
+      const partialNewLog = businessDayLogs.find((log) => !isLegacyStageLog(log))
+      if (partialNewLog) {
+        throw submissionStateInconsistent(String(partialNewLog.submissionKeyId || '').trim(), 'missing_or_partial_key')
+      }
+      const existingLog = businessDayLogs.find((log) => (log.reviewStatus || 'pending') !== 'rejected')
+      if (existingLog) {
+        throw createError('ALREADY_SUBMITTED', `${stage.name} 节点今天已提交过日报，请勿重复操作`)
+      }
     }
 
     const progress = normalizeProgress(event.progress || stage.progress)
@@ -119,6 +197,11 @@ async function createStageLog(options) {
       aiDraft: normalizeAiDraft(event.aiDraft),
       aiGenerated: /^ai_/.test(sourceType),
       sourceType,
+      submissionKey: submissionKeyId,
+      submissionKeyId,
+      submissionAttemptNo: attemptNo,
+      businessDate,
+      submissionBusinessDate: businessDate,
       reviewStatus: reviewerSelfUpload ? 'approved' : 'pending',
       ownerVisible: reviewerSelfUpload,
       submittedByOpenid: openid,
@@ -152,6 +235,29 @@ async function createStageLog(options) {
 
     const logRes = await transaction.collection('stage_logs').add({ data: logData })
     const logId = logRes._id
+    const currentStatus = reviewerSelfUpload ? 'approved' : 'pending'
+    const keyData = {
+      tenantId,
+      projectId,
+      stageCode: stage.code,
+      submitterId,
+      businessDate,
+      currentStageLogId: logId,
+      currentStatus,
+      attemptNo,
+      updatedAt: now
+    }
+    if (existingKey) {
+      keyData.lastRejectedAt = lastRejectedAt
+      await submissionKeyRef.update({ data: keyData })
+    } else {
+      await submissionKeyRef.set({
+        data: Object.assign({}, keyData, {
+          createdAt: now,
+          lastRejectedAt: null
+        })
+      })
+    }
     for (const fileID of photoFileIDs) {
       await transaction.collection('photos').add({
         data: {
@@ -177,12 +283,15 @@ async function createStageLog(options) {
       id: logId,
       stage,
       autoApproved: reviewerSelfUpload,
-      reviewStatus: reviewerSelfUpload ? 'approved' : 'pending',
+      reviewStatus: currentStatus,
       projectPatchInfo,
       projectName: freshProject.name || '',
       photoCount: photoFileIDs.length
     }
-  })
+    })
+  } catch (error) {
+    throw submissionFailure(error)
+  }
 
   if (reviewerSelfUpload) {
     const notice = await runApprovalNotice({
@@ -227,5 +336,6 @@ module.exports = {
   clipText,
   normalizeIssueText,
   normalizeAiDraft,
+  createSubmissionRequestContext,
   createStageLog
 }

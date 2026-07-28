@@ -39,6 +39,7 @@ Page({
     selectedStageName: '',
     selectedStageProgress: 0,
     stageSelectedByUser: false,
+    stageSelectionError: '',
     projectCurrentStageCode: '',
     projectCurrentStageName: '',
     projectCurrentProgress: 0,
@@ -235,8 +236,9 @@ Page({
     const draftForm = Object.assign({}, this.data.form, draft.form || {})
     draftForm.issue = normalizeIssueText(draftForm.issue)
     const stageSelectedByUser = !!draft.stageSelectedByUser
+    const savedStageCode = String(draft.stageCode || draft.selectedStageCode || '')
     const draftStage = stageSelectedByUser
-      ? (STAGES.find((item) => item.code === (draft.stageCode || draft.selectedStageCode)) || null)
+      ? (STAGES.find((item) => item.code === savedStageCode) || null)
       : null
     this.setData({
       stageIndex: draftStage ? Number(draft.stageIndex || STAGES.findIndex((item) => item.code === draftStage.code)) : -1,
@@ -244,6 +246,9 @@ Page({
       selectedStageName: draftStage ? draftStage.name : '',
       selectedStageProgress: draftStage ? draftStage.progress : 0,
       stageSelectedByUser,
+      stageSelectionError: stageSelectedByUser && savedStageCode && !draftStage
+        ? '保存的施工工序无效，请重新选择后再提交。'
+        : '',
       quickNote: draft.quickNote || '',
       images: Array.isArray(draft.images) ? draft.images : [],
       voiceTempPath: draft.voiceTempPath || '',
@@ -360,6 +365,10 @@ Page({
   },
 
   getCurrentStage() {
+    if (this.data.stageSelectionError) {
+      showError(this.data.stageSelectionError)
+      return null
+    }
     const stage = this.data.stageIndex >= 0 ? this.data.stages[this.data.stageIndex] : null
     if (!stage) {
       if (!this.data.stages.length) {
@@ -412,7 +421,8 @@ Page({
         selectedStageCode: stage.code,
         selectedStageName: stage.name,
         selectedStageProgress: stage.progress,
-        stageSelectedByUser: true
+        stageSelectedByUser: true,
+        stageSelectionError: ''
       })
       this.saveDraft({ silent: true })
     }

@@ -7,7 +7,7 @@ const { createOwnerNoticeSender } = require('./owner-notice')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-const db = cloud.database()
+const db = cloud.database({ env: cloud.DYNAMIC_CURRENT_ENV })
 const _ = db.command
 const SUBMIT_ROLES = ['admin', 'boss_qi', 'boss_hu', 'designer', 'worker', 'project_manager']
 const DEFAULT_TENANT_ID = 'tenant_shengjing_default'
@@ -143,6 +143,7 @@ exports.main = async (event) => {
       tenantName,
       project,
       now,
+      requestNow: new Date(),
       sendWecomMarkdown,
       sendOwnerNotice: createOwnerNoticeSender({ cloud, db })
     })

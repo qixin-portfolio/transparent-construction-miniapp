@@ -8,11 +8,17 @@ const targets = [
   ['shared/stage-flow.js', [
     'miniprogram/utils/stage-flow.js',
     'cloudfunctions/submitStageLog/stage-flow.js',
-    'cloudfunctions/reviewStageLog/stage-flow.js'
+    'cloudfunctions/reviewStageLog/stage-flow.js',
+    'cloudfunctions/sendOwnerNotice/stage-flow.js'
   ]],
   ['shared/owner-notice.js', [
     'cloudfunctions/submitStageLog/owner-notice.js',
-    'cloudfunctions/reviewStageLog/owner-notice.js'
+    'cloudfunctions/reviewStageLog/owner-notice.js',
+    'cloudfunctions/sendOwnerNotice/owner-notice.js'
+  ]],
+  ['shared/submission-slot.js', [
+    'cloudfunctions/submitStageLog/submission-slot.js',
+    'cloudfunctions/reviewStageLog/submission-slot.js'
   ]],
   ['cloudfunctions/submitStageLog/access.js', [
     'cloudfunctions/reviewStageLog/access.js'

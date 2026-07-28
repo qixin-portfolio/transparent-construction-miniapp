@@ -1,5 +1,6 @@
 const { call, showError } = require('../../../../services/cloud')
 const { DEMO_MODE, demoLogs } = require('../../../../utils/demo')
+const { getPhotoDisplayUrls } = require('../../../../utils/photo-display')
 
 function normalizeIssueText(value) {
   const text = String(value || '').trim().slice(0, 300)
@@ -68,17 +69,23 @@ Page({
   },
 
   prepareItems(items) {
-    return (items || []).map((item) => Object.assign({}, item, {
-      photoFileIDs: item.photoFileIDs || item.photos || [],
-      issue: normalizeIssueText(item.issue),
-      dateText: this.formatTime(item.createdAt || item.updatedAt),
-      submitterText: item.submittedByName || '内部人员',
-      aiGenerated: !!item.aiGenerated || /^ai_/.test(item.sourceType || ''),
-      ownerSummary: item.ownerSummary || '',
-      ownerSummaryText: item.ownerSummary || '',
-      voiceTranscriptText: item.voiceTranscript || '',
-      aiSummaryLoading: false
-    }))
+    return (items || []).map((item) => {
+      const rawPhotoFileIDs = Array.isArray(item.photoFileIDs) ? item.photoFileIDs.filter(Boolean) : []
+      const photoDisplayUrls = getPhotoDisplayUrls(item)
+      return Object.assign({}, item, {
+        photoFileIDs: rawPhotoFileIDs,
+        photoDisplayUrls,
+        photoCount: rawPhotoFileIDs.length || photoDisplayUrls.length,
+        issue: normalizeIssueText(item.issue),
+        dateText: this.formatTime(item.createdAt || item.updatedAt),
+        submitterText: item.submittedByName || '内部人员',
+        aiGenerated: !!item.aiGenerated || /^ai_/.test(item.sourceType || ''),
+        ownerSummary: item.ownerSummary || '',
+        ownerSummaryText: item.ownerSummary || '',
+        voiceTranscriptText: item.voiceTranscript || '',
+        aiSummaryLoading: false
+      })
+    })
   },
 
   formatTime(value) {

@@ -28,7 +28,7 @@
         <view class="review-diagnostic-pill pending">待发布</view>
         <view wx:if="{{item.issue}}" class="review-diagnostic-pill risk">有现场问题</view>
         <view class="review-diagnostic-pill {{item.needConfirm ? 'confirm' : ''}}">{{item.needConfirm ? '需确认' : '无需确认'}}</view>
-        <view class="review-diagnostic-pill evidence">{{item.photoFileIDs.length}} 张照片</view>
+        <view class="review-diagnostic-pill evidence">{{item.photoCount}} 张照片</view>
         <view wx:if="{{item.aiGenerated}}" class="review-diagnostic-pill ai">AI整理</view>
       </view>
 
@@ -59,15 +59,15 @@
       </view>
 
       <!-- 现场照片 -->
-      <view wx:if="{{item.photoFileIDs.length}}" class="review-photos">
+      <view wx:if="{{item.photoDisplayUrls.length}}" class="review-photos">
         <view class="form-label">现场照片</view>
         <view class="photo-grid">
           <view
-            wx:for="{{item.photoFileIDs}}"
+            wx:for="{{item.photoDisplayUrls}}"
             wx:for-item="photo"
             wx:key="*this"
             class="photo-wrap"
-            data-urls="{{item.photoFileIDs}}"
+            data-urls="{{item.photoDisplayUrls}}"
             data-url="{{photo}}"
             bindtap="previewPhoto">
             <image class="photo" src="{{photo}}" mode="aspectFill" lazy-load></image>
