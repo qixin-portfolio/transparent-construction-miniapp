@@ -23,7 +23,7 @@
 - 分支：`codex/style-preview-v1`，独立 worktree `/Users/qixin/Documents/晟景AI助理/transparent-construction-style-preview-v1`，起点 `821d96efa7f4d1495939703cc58d028a2ea75d6d`。
 - 本次范围：新增独立 `style-preview` 子包、客户详情隐藏入口和本地 Mock service；不接真实 AI、CloudBase 或云函数，不部署、不上传体验版，也不写正式客户、项目或通知。
 - 当前进度：开始、处理中、结果、历史四页与本地 session/feedback 存储已实现；默认 `ENABLE_STYLE_PREVIEW_ENTRY = false`，仅客户详情 URL 参数 `stylePreviewMock=1` 显式开启 Mock 入口。
-- 检查结果：Mock service 与页面链路 `3/3` 通过，页面链路实际模拟开始页创建会话、处理完成、结果跳转、反馈保存和历史读取；既有日报行为回归 `171/171` 通过；style-preview JS 语法、全量 miniprogram JSON、`git diff --check` 均通过。隔离扫描未发现 `wx.cloud`、`callFunction`、`cloudfunctions`、真实模型或禁用集合名；V2 两处入口仍为 `false`。
+- 检查结果：Mock service 与页面链路 `3/3` 通过，页面链路实际模拟开发 Mock 参数进入、两张 `chooseMedia` 本地图片选择、开始页创建会话、处理完成、结果跳转、反馈保存和历史读取；既有日报行为回归 `171/171` 通过；style-preview JS 语法、全量 miniprogram JSON、`git diff --check` 均通过。隔离扫描未发现 `wx.cloud`、`callFunction`、`cloudfunctions`、真实模型或禁用集合名；V2 两处入口仍为 `false`。
 - GUI 验证：开发者工具桌面自动化服务两次超时；CLI `open` 可执行，但已有 IDE 实例端口返回连接提示而未确认打开项目。未绕过该限制，未上传体验版、未部署、未访问 CloudBase。
 - 风险与未决问题：需要在开发者工具恢复可控后补一次视觉走查；本轮不进入 Task 2。正式发布后才允许将本分支 rebase 到稳定 tag，并开始真实数据层、云函数任务和测试环境 AI 链路。
 - 下一步建议：推送本分支并停止；GUI 走查与正式发布后 rebase 都需在各自 Gate 满足后再做。

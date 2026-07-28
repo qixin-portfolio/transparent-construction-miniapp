@@ -118,6 +118,7 @@ test('start, processing, result, feedback, and history pages complete the local 
   const originalClearInterval = global.clearInterval
   const originalSetTimeout = global.setTimeout
   let progressTick = null
+  let selectedImageCount = 0
 
   global.wx = {
     getStorageSync(key) {
@@ -126,7 +127,10 @@ test('start, processing, result, feedback, and history pages complete the local 
     setStorageSync(key, value) {
       store[key] = value
     },
-    chooseMedia() {},
+    chooseMedia({ success }) {
+      selectedImageCount += 1
+      success({ tempFiles: [{ tempFilePath: `/tmp/style-preview-${selectedImageCount}.jpg` }] })
+    },
     navigateTo({ url, complete }) {
       routes.push({ type: 'navigateTo', url })
       if (complete) complete()
@@ -150,8 +154,11 @@ test('start, processing, result, feedback, and history pages complete the local 
   try {
     const start = createPageInstance(loadPage('start'))
     start.onLoad({ mock: '1' })
-    start.useFixture({ currentTarget: { dataset: { target: 'sourceImage' } } })
-    start.useFixture({ currentTarget: { dataset: { target: 'referenceImage' } } })
+    assert.equal(start.data.mockAccess, true)
+    start.chooseImage({ currentTarget: { dataset: { target: 'sourceImage' } } })
+    start.chooseImage({ currentTarget: { dataset: { target: 'referenceImage' } } })
+    assert.equal(start.data.sourceImage, '/tmp/style-preview-1.jpg')
+    assert.equal(start.data.referenceImage, '/tmp/style-preview-2.jpg')
     start.onRoomChange({ detail: { value: '1' } })
     start.onNoteInput({ detail: { value: '保留窗边采光' } })
     start.createPreview()
