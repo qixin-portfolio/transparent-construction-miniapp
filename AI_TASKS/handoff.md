@@ -17,6 +17,20 @@
 
 ---
 
+### 2026-07-28 — PR #6 Production Function Deployment and Experience Upload Block
+
+- 来源：齐鑫明确确认 PR #6 最小受控生产发布。
+- PR：[#6](https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/6) 已合并到 `hotfix/stage-regression-release-blockers`；merge commit `70724a7838cb641c2ce7f05fac3b736d2ad8b97b`，包含锁定 head `0851acfdf3b7916aa4dd6f94b0b914f7b2daf7ee`。
+- 发布 worktree：`/Users/qixin/Documents/晟景AI助理/transparent-construction-pr5-production-release`，分支 `release/pr5-production`，创建时 clean 且指向 merge commit。
+- 生产数据库 Gate：仅查询 `stage_log_submission_keys`；集合存在、为空、ACL 为 `PRIVATE`。未读取其他集合，未写入或删除生产数据。
+- 部署白名单：仅 `submitStageLog`、`reviewStageLog`、`sendOwnerNotice`。三函数源码从生产下载后与 release worktree 逐项一致，状态均为 `Active`、`Nodejs16.13`、20 秒，`CodeResult=success`；部署完成时间分别为 13:05:45、13:06:02、13:06:21（+08:00）。
+- 函数包 SHA-256：`submitStageLog` `aee12db4d23663b7eb5dfb94b80c325c7991ccdfb1c9b2eebec00b622a1da31d`；`reviewStageLog` `d34a166aeef8b08b5d38cc6499c6052d0514b973f7ecd0179cde7b78e2fb28dc`；`sendOwnerNotice` `f911b5e449969d510956ecf9ac240bf60afbdb7925356fb59806448c8e00ef2b`。
+- 通知配置：未写入、未覆盖生产环境变量；`sendOwnerNotice` 的两个外发开关均未配置，当前代码默认不会外发通知。
+- 上传结果：版本 `7.3.2` 从 clean merge worktree 上传两次均未生成体验版。首次被可选信息输出的二维码路径错误阻断；移除该可选参数后，微信开发者工具返回 `41002 appid missing`。未提交审核、未正式发布、未创建 tag。
+- 下一步建议：在微信开发者工具中恢复 `wxbfe2172a118ae67f` 对发布 worktree 的 AppID 关联，然后只重试一次 `7.3.2` 体验版上传。
+
+---
+
 ### 2026-07-28 — PR #5 Release Candidate Ready
 
 - 来源：真实小程序会话通过后，齐鑫授权创建发布候选。
