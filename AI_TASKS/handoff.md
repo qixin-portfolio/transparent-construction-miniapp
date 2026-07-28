@@ -17,6 +17,17 @@
 
 ---
 
+### 2026-07-28 16:00 — Public Home Review Remediation: Entry and Authorization Audit
+
+- 来源：齐鑫要求从 `821d96efa7f4d1495939703cc58d028a2ea75d6d` 创建隔离 worktree，先审计首次进入和授权链路；完成验证前不得上传体验版。
+- 分支：`fix/public-home-review-remediation`；worktree：`/Users/qixin/Documents/晟景AI助理/transparent-construction-public-home-review`。
+- 本次做了什么：创建干净隔离 worktree，审计 `app.js`、`app.json`、登录、工作台、业主绑定、客户与项目字段、现有邀请码及资料页。
+- 修改文件：`docs/public-home-remediation/00_CURRENT_FLOW.md`。
+- 检查结果：worktree 创建时为 clean 且指向 `821d96efa7f4d1495939703cc58d028a2ea75d6d`；`git diff --check` 通过。未改业务代码、云函数、环境配置或生产数据。
+- 阻塞与风险：仓库不存在 `getPhoneNumber`、手机号解密或“微信手机号 -> 项目”的后端匹配逻辑；项目业主权限基于 OpenID，`projects.customerId` 可为空，而客户手机号仅在 `customers.phone`，无强制关联。不能把现有 6 位 `bindCode` 绑定流程伪称为手机号验证，也不能臆造手机号匹配规则。
+- 下一步建议：齐鑫确认以下其一后再开始实现：提供既有手机号验证/匹配接口及数据归属；或明确授权新增最小手机号解密、匹配和历史数据兜底规则；或将本轮“查看我的工地”改为复用现有绑定码验证。确认前不得上传体验版或发起重新提审。
+
+
 ### 2026-07-28 13:30 — PR #6 Experience Validation Evidence Matrix
 
 - 候选：体验版 `7.3.2`，上传源为 merge commit `70724a7838cb641c2ce7f05fac3b736d2ad8b97b`。
