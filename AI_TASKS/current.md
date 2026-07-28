@@ -1,10 +1,10 @@
 ---
 schema_version: 1
 task_id: phase-0f-3c-submission-slot-semantic-validation
-revision: 9
+revision: 10
 owner: matrix
 status: review_ready
-updated_at: 2026-07-28T16:35:00+08:00
+updated_at: 2026-07-28T16:45:00+08:00
 ---
 
 # Current AI Task
@@ -48,7 +48,7 @@ updated_at: 2026-07-28T16:35:00+08:00
 - worktree：`/Users/qixin/Documents/晟景AI助理/transparent-construction-style-preview-v1`
 - 分支：`codex/style-preview-v1`
 - 起点：`821d96efa7f4d1495939703cc58d028a2ea75d6d`
-- 本地验收：Mock service 回归 `2/2`、既有日报回归 `171/171`、style-preview JS 语法检查、全量 miniprogram JSON 解析、`git diff --check` 均通过；CloudBase/云函数/真实 AI 扫描为空，V2 两处开关仍为 `false`。
+- 本地验收：Mock service 与页面链路回归 `3/3`、既有日报回归 `171/171`、style-preview JS 语法检查、全量 miniprogram JSON 解析、`git diff --check` 均通过；页面链路用小程序 API mock 覆盖开始页创建、处理完成、结果跳转、反馈保存、历史读取。CloudBase/云函数/真实 AI 扫描为空，V2 两处开关仍为 `false`。
 - GUI 验证：开发者工具桌面自动化服务超时；CLI `open` 命令连接到已有 IDE 实例时没有返回项目打开成功。未上传体验版、未部署、未访问 CloudBase；需在桌面工具恢复可用后补一次视觉走查。
 
 ## 下一步
