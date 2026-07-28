@@ -1,10 +1,10 @@
 ---
 schema_version: 1
 task_id: phase-0f-3c-submission-slot-semantic-validation
-revision: 5
+revision: 6
 owner: codex
-status: blocked
-updated_at: 2026-07-28T13:11:25+08:00
+status: in_progress
+updated_at: 2026-07-28T13:23:26+08:00
 ---
 
 # Current AI Task
@@ -37,19 +37,19 @@ PR #6：最小受控生产发布。
 
 ## 风险等级
 
-- 高：微信开发者工具当前发布 worktree 的 AppID 关联异常，体验版未能上传。
+- 中：体验版已上传；微信公众平台的审核提交与正式发布仍待人工完成。
 
 ## Human Gate
 
-生产发布已获齐鑫明确确认。当前唯一阻塞是微信开发者工具的 AppID 关联恢复；恢复后仅重试体验版上传。
+生产发布已获齐鑫明确确认。开发者工具 AppID 关联已恢复，体验版已上传；微信公众平台的审核提交与正式发布保留为人工门。
 
 ## Codex 执行记录
 
 - 合并提交：`70724a7838cb641c2ce7f05fac3b736d2ad8b97b`
 - 发布分支：`release/pr5-production`
 - 检查命令：`node --test tests/stage-log-behavior/*.test.js`
-- 结果：`171/171` 通过；真实测试夹具已清理；`stage_log_submission_keys` 存在且为空、ACL 为 `PRIVATE`；三函数于 2026-07-28 13:05-13:06 部署并与本地源码一致。体验版上传未成功。
+- 结果：`171/171` 通过；真实测试夹具已清理；`stage_log_submission_keys` 存在且为空、ACL 为 `PRIVATE`；三函数于 2026-07-28 13:05-13:06 部署并与本地源码一致。开发者工具已从干净 merge worktree 成功上传体验版 `7.3.2`。
 
 ## 下一步
 
-在微信开发者工具恢复 `wxbfe2172a118ae67f` 对发布 worktree 的 AppID 关联后，重试一次体验版上传；此前不得提交审核、正式发布、打稳定 tag 或启动 style-preview。
+在微信公众平台版本管理中确认体验版 `7.3.2`，提交审核；审核通过后发布。正式发布成功前不得打稳定 tag 或启动 style-preview。

@@ -17,6 +17,17 @@
 
 ---
 
+### 2026-07-28 13:23 — PR #6 Experience Version Uploaded
+
+- 来源：齐鑫明确确认 PR #6 最小受控生产发布。
+- PR：[#6](https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/6) 已合并；release commit 为 `70724a7838cb641c2ce7f05fac3b736d2ad8b97b`。
+- 体验版：`7.3.2` 已从干净 detached worktree `/private/tmp/transparent-construction-pr6-merge-upload` 上传。上传前该 worktree 与 merge commit 完全一致、无未提交改动；开发者工具 CLI 确认 AppID 为 `wxbfe2172a118ae67f` 并输出 `upload` 成功。
+- 根因与处理：之前的 `41002 appid missing` 是开发者工具打开了 `miniprogram/` 子目录。重新导入 merge worktree 根目录后，工具同时显示正确 `projectid` 和 AppID，上传成功。
+- 未做事项：未写入或删除生产数据、未额外部署云函数、未提交审核、未正式发布、未创建 tag、未启动 style-preview。
+- 下一步建议：微信公众平台版本管理确认 `7.3.2` 后提交审核；审核通过后发布，再创建稳定 tag 与正式发布记录。
+
+---
+
 ### 2026-07-28 — PR #6 Production Function Deployment and Experience Upload Block
 
 - 来源：齐鑫明确确认 PR #6 最小受控生产发布。
