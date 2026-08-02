@@ -17,9 +17,9 @@ const demoProject = {
     { date: '6月28日', title: '水路管线铺设', body: '冷热水管试压前安装完成，下一步进行打压检查。', photos: 3 }
   ],
   photos: [
-    { title: '客餐厅强弱电布线', stage: '水电施工', url: '/images/demo/demo-electrical-stage.png' },
-    { title: '厨房水路预留', stage: '水电施工', url: '/images/demo/demo-electrical-stage.png' },
-    { title: '卧室开关点位', stage: '水电施工', url: '/images/demo/demo-electrical-stage.png' }
+    { title: '客餐厅强弱电布线', stage: '水电施工', url: '/subpackages/demo-project/images/demo-electrical-stage.png' },
+    { title: '厨房水路预留', stage: '水电施工', url: '/subpackages/demo-project/images/demo-electrical-stage.png' },
+    { title: '卧室开关点位', stage: '水电施工', url: '/subpackages/demo-project/images/demo-electrical-stage.png' }
   ],
   designConfirmation: {
     title: '厨房插座点位确认',
