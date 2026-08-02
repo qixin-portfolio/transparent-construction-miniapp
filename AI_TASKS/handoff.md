@@ -17,6 +17,19 @@
 
 ---
 
+### 2026-08-02 19:42 — Public Home Review Remediation: Simulator Evidence Complete
+
+- 来源：齐鑫确认已完成微信开发者工具安装，并要求继续处理本轮审核整改。
+- 分支：`fix/public-home-review-remediation`；HEAD `d7d66b2`；worktree：`/Users/qixin/Documents/晟景AI助理/transparent-construction-public-home-review`。
+- PR：未创建；未 push；未上传体验版。
+- 本次做了什么：在微信开发者工具 Nightly `2.02.2607312` 以 worktree 根目录成功运行 AppID `wxbfe2172a118ae67f`。已登录管理员启动实际进入原老板工作台。用只存在于模拟器内存的未知路由桩渲染公开首页，依次验证并截图未绑定项目说明页、示例工地首页、施工进度、日报、现场照片、设计确认、问题与验收；工作人员原工作台路径也已验证。
+- 修改文件：`docs/public-home-remediation/02_VALIDATION_REPORT.md`、`docs/public-home-remediation/screenshots/`、`AI_TASKS/current.md`、本条 handoff。
+- 检查结果：公开入口自动化 `14/14`、日报回归 `171/171`、全量小程序 JavaScript 语法、`50` 个小程序 JSON 解析、`git diff --check`、示例隔离扫描、V2 双入口关闭和量房风格预览入口静态检查均通过。任务 revision 专用检查脚本未在该仓库找到，已先读取 `revision: 8` 后将任务单更新为 `revision: 9`。旧 `41002 appid missing` 未再出现。开发者工具存在基础库 `appServiceSDKScriptError timeout` 和 `reportRealtimeAction:fail not support`，但不影响已验证页面渲染和路由。
+- 风险与未决问题：当前安全可用会话只有管理员，员工及已绑定业主仍无新增模拟器截图，分流由自动化测试覆盖。`project.private.config.json` 仅被开发者工具删除末尾换行，保留为未提交本机配置。
+- 下一步建议：等待齐鑫对 push、PR 和体验版 `7.3.3` 的明确 Human Gate；不得正式发布、部署云函数或修改生产数据。
+
+---
+
 ### 2026-07-28 16:00 — Public Home Review Remediation: Entry and Authorization Audit
 
 - 来源：齐鑫要求从 `821d96efa7f4d1495939703cc58d028a2ea75d6d` 创建隔离 worktree，先审计首次进入和授权链路；完成验证前不得上传体验版。

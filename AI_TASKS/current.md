@@ -1,10 +1,10 @@
 ---
 schema_version: 1
 task_id: public-home-review-remediation
-revision: 8
+revision: 9
 owner: qixin
 status: awaiting_user
-updated_at: 2026-07-28T18:30:00+08:00
+updated_at: 2026-08-02T19:42:00+08:00
 ---
 
 # Current AI Task
@@ -36,13 +36,14 @@ updated_at: 2026-07-28T18:30:00+08:00
 - `node --test tests/public-home-entry.test.js`：`14/14` 通过。
 - `node --test tests/stage-log-behavior/*.test.js`：`171/171` 通过。
 - 改动 JS 语法、全量小程序 JSON 解析、`git diff --check`、示例子包静态禁用扫描、V2 入口开关与量房风格预览入口静态检查均通过。
+- 微信开发者工具已恢复正确 AppID 关联；管理员真实启动进入原工作台，未知路由桩渲染公开首页，未绑定页和示例工地 6 个核心页面均完成模拟器截图。截图目录：`docs/public-home-remediation/screenshots/`。
 
-## 当前阻塞与唯一人工动作
+## 当前状态与唯一人工动作
 
-微信开发者工具已打开本 worktree，但模拟器运行时返回 `41002 appid missing`，无法产生可信小程序截图或完成真实运行验证。
+开发者工具关联和本地运行验证已完成。员工、已绑定业主的真实会话截图尚不可得，但对应启动路由由 `14/14` 自动化覆盖；当前管理员分流有真实模拟器证据。
 
-齐鑫需在微信开发者工具中重新确认本 worktree 根目录与 AppID `wxbfe2172a118ae67f` 的关联并使模拟器能启动。恢复后，才可执行截图、完整运行验证、上传体验版 `7.3.3`、push 和 PR；在此之前不得上传体验版。
+唯一人工动作：齐鑫明确决定是否授权 push 修复分支、创建 PR、上传体验版 `7.3.3`。在明确确认前不得执行上述外部变更。
 
 ## 下一步
 
-等待上述人工关联恢复。恢复后按公开首页、未绑定说明、示例首页/进度/日报/照片、已登录分流逐项截图并验证，再决定是否上传体验版 `7.3.3`。
+等待 Human Gate；若获授权，先复跑全量验证、提交运行证据，再依次 push、创建 PR、上传体验版 `7.3.3`。不得正式发布、部署云函数或修改生产数据。
