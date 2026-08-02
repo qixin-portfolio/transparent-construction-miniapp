@@ -1,10 +1,10 @@
 ---
 schema_version: 1
 task_id: public-home-review-remediation
-revision: 9
+revision: 10
 owner: qixin
-status: awaiting_user
-updated_at: 2026-08-02T19:42:00+08:00
+status: completed
+updated_at: 2026-08-02T22:16:34+08:00
 ---
 
 # Current AI Task
@@ -40,10 +40,12 @@ updated_at: 2026-08-02T19:42:00+08:00
 
 ## 当前状态与唯一人工动作
 
-开发者工具关联和本地运行验证已完成。员工、已绑定业主的真实会话截图尚不可得，但对应启动路由由 `14/14` 自动化覆盖；当前管理员分流有真实模拟器证据。
+- 瘦身提交 `ad993d4c1b530ed99be0341d2cc78859ef5ce285` 已推送到 `origin/fix/public-home-review-remediation`，Draft PR #7 保持 open/draft，base 为 `release/pr5-production`。
+- 微信体验版 `7.3.3` 已于 `2026-08-02 22:16:34 +08:00` 上传成功。微信编译主包 `1,385,369B`（约 `1353KB`），满足 `<= 1900KB` 目标；详见 `docs/public-home-remediation/04_PACKAGE_SIZE_RESULT.md`。
+- 本轮未部署云函数、未访问或修改生产数据、未提交审核、未正式发布、未合并 PR、未创建 tag；V2 和量房风格预览入口保持关闭。
 
-唯一人工动作：齐鑫明确决定是否授权 push 修复分支、创建 PR、上传体验版 `7.3.3`。在明确确认前不得执行上述外部变更。
+唯一人工动作：在微信公众平台检查体验版 `7.3.3`，确认体验无误后再单独决定是否提交审核。
 
 ## 下一步
 
-等待 Human Gate；若获授权，先复跑全量验证、提交运行证据，再依次 push、创建 PR、上传体验版 `7.3.3`。不得正式发布、部署云函数或修改生产数据。
+本轮交付完成。不得在未经齐鑫新确认的情况下提交微信审核、正式发布、合并 PR、部署云函数或修改生产数据。

@@ -289,3 +289,16 @@
 - 检查：公开入口测试 `14/14`、日报行为测试 `171/171`、修改 JS 语法、全量小程序 JSON、`git diff --check`、示例子包隔离扫描、V2 关闭与未新增量房风格预览入口均通过。
 - 阻塞：微信开发者工具模拟器运行时返回 `41002 appid missing`，虽 `project.config.json` 仍有 `wxbfe2172a118ae67f`，但无法生成可信小程序截图或完成真实运行验证。未上传体验版 `7.3.3`、未 push、未创建 PR、未部署云函数、未改生产数据。
 - 唯一人工动作：在微信开发者工具重新确认该 worktree 根目录与 AppID 的关联并使模拟器可启动；恢复后才能截图、运行验证、上传体验版并决定 push/PR。
+
+---
+
+### 2026-08-02 — 公开首页整改主包瘦身与体验版上传
+
+- Worktree：`/Users/qixin/Documents/晟景AI助理/transparent-construction-public-home-review`；分支：`fix/public-home-review-remediation`。
+- 上传源码：`ad993d4c1b530ed99be0341d2cc78859ef5ce285`，已推送到 `origin/fix/public-home-review-remediation`；Draft PR #7 仍为 open/draft，base 为 `release/pr5-production`。
+- 瘦身范围：仅将示例子包唯一使用的 `demo-electrical-stage.png` 从主包移入 `subpackages/demo-project/images/`，同步三处 Mock 本地路径；未改产品逻辑、登录、权限、OpenID、日报、云函数、环境 ID 或生产数据。
+- 验证：公开入口 `14/14`、日报 `171/171` 均重新通过；JS/JSON、示例隔离、资源路径、V2/量房风格预览关闭、敏感信息和 `git diff --check` 均通过。
+- 微信实际编译：主包 `1,385,369B`（约 `1353KB`），由失败时的 `3359KB` 降约 `2006KB`；示例子包 `2,029,844B`（约 `1982KB`）；完整代码包 `3,970,426B`（约 `3877KB`）。
+- 上传：`2026-08-02 22:16:34 +08:00`，版本 `7.3.3`，指定版本说明，开发者工具显示“代码上传成功”。未部署云函数、未访问或修改生产数据、未提交审核、未正式发布、未合并 PR、未创建 tag。
+- 证据：`docs/public-home-remediation/03_PACKAGE_SIZE_ANALYSIS.md`、`docs/public-home-remediation/04_PACKAGE_SIZE_RESULT.md`。
+- 唯一人工动作：在微信公众平台检查体验版 `7.3.3`，确认体验无误后再单独决定是否提交审核。
