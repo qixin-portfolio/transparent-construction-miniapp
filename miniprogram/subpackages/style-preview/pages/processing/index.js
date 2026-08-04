@@ -1,67 +1,10 @@
-const previewService = require('../../mock/style-preview-service')
-
-function decode(value) {
-  try {
-    return decodeURIComponent(String(value || ''))
-  } catch (error) {
-    return String(value || '')
-  }
-}
-
+const mockService = require('../../mock/style-preview-service')
+const realService = require('../../services/real-preview-service')
 Page({
-  data: {
-    session: null,
-    currentStep: 0,
-    completed: false,
-    steps: [
-      { title: '空间分析', copy: '识别采光面、开口与主要空间关系' },
-      { title: '风格提取', copy: '整理参考图里的材质、色彩和氛围' },
-      { title: '预览生成', copy: '按原图主视角生成沟通用预览' },
-      { title: '结果完成', copy: '风格意向卡已经准备好' }
-    ]
-  },
-
-  onLoad(options = {}) {
-    const session = previewService.getSession(
-      String(options.id || ''),
-      decode(options.customerId),
-      decode(options.customerName)
-    )
-    this.setData({ session })
-    this.startProgress()
-  },
-
-  onUnload() {
-    this.clearProgressTimer()
-  },
-
-  startProgress() {
-    this.clearProgressTimer()
-    this.progressTimer = setInterval(() => {
-      const nextStep = this.data.currentStep + 1
-      if (nextStep >= this.data.steps.length) {
-        this.finishPreview()
-        return
-      }
-      this.setData({ currentStep: nextStep })
-    }, 900)
-  },
-
-  clearProgressTimer() {
-    if (this.progressTimer) {
-      clearInterval(this.progressTimer)
-      this.progressTimer = null
-    }
-  },
-
-  finishPreview() {
-    this.clearProgressTimer()
-    const session = previewService.completeSession(this.data.session.id) || this.data.session
-    this.setData({ session, currentStep: this.data.steps.length - 1, completed: true })
-    setTimeout(() => {
-      wx.redirectTo({
-        url: `/subpackages/style-preview/pages/result/index?id=${encodeURIComponent(session.id)}&customerId=${encodeURIComponent(session.customerId)}&customerName=${encodeURIComponent(session.customerName)}`
-      })
-    }, 650)
-  }
+  data: { session: null, currentStep: 0, completed: false, mock: false, steps: [{ title: '空间分析', copy: '识别采光面、开口与主要空间关系' }, { title: '风格提取', copy: '整理参考图里的材质、色彩和氛围' }, { title: '预览生成', copy: '按原图主视角生成沟通用预览' }, { title: '结果完成', copy: '风格意向卡已经准备好' }] },
+  onLoad(options = {}) { this.isMock = String(options.mock || '') === '1'; this.sessionId = String(options.id || ''); this.taskId = String(options.taskId || ''); this.setData({ mock: this.isMock }); if (this.isMock) { this.setData({ session: mockService.getSession(this.sessionId) }); this.mockProgress() } else { realService.checkAccess().then(() => this.poll()).catch(() => this.deny()) } },
+  onShow() { if (!this.isMock && this.taskId) this.poll() }, onHide() { this.stop() }, onUnload() { this.stop() },
+  deny() { wx.showToast({ title: '该功能暂未开放', icon: 'none' }); wx.navigateBack() }, stop() { if (this.timer) { clearTimeout(this.timer); this.timer = null } },
+  mockProgress() { this.timer = setInterval(() => { const next = this.data.currentStep + 1; if (next >= 4) { clearInterval(this.timer); const session = mockService.completeSession(this.sessionId); wx.redirectTo({ url: `/subpackages/style-preview/pages/result/index?id=${session.id}&mock=1` }); return } this.setData({ currentStep: next }) }, 900) },
+  async poll() { this.stop(); try { const task = await realService.getTask(this.taskId); const session = await realService.getSession(this.sessionId); const step = task.status === 'queued' ? 0 : (task.status === 'analyzing' ? 1 : (task.status === 'generating' ? 2 : 3)); this.setData({ session, currentStep: step, completed: task.status === 'succeeded', error: task.status === 'failed' ? task.safeErrorMessage : '' }); if (task.status === 'succeeded') { wx.redirectTo({ url: `/subpackages/style-preview/pages/result/index?id=${this.sessionId}` }); return } if (task.status !== 'failed') this.timer = setTimeout(() => this.poll(), 2500) } catch (_) { this.deny() } }
 })

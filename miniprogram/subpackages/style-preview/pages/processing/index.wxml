@@ -1,7 +1,7 @@
 <view class="processing-page">
-  <view class="top-note">晟景量房沟通工具 · 本地 Mock</view>
+  <view class="top-note">晟景量房沟通工具 · {{mock ? '本地 Mock' : '测试环境任务'}}</view>
   <view class="processing-title">正在把两张图<br />整理成一张沟通卡</view>
-  <view class="processing-copy">这是本地演示过程，不会上传图片，也不会调用真实 AI。</view>
+  <view class="processing-copy">任务由服务端异步处理，图片仅用于本次风格沟通预览。</view>
 
   <view class="image-pair" wx:if="{{session}}">
     <image src="{{session.sourceImage}}" mode="aspectFill"></image>
