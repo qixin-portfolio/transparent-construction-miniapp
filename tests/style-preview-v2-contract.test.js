@@ -14,6 +14,7 @@ test('test deployment config is isolated, mock-only, and contains no production 
   assert.deepEqual(config.functions.map((item) => item.name), ['stylePreviewApi', 'processStylePreviewTask'])
   assert.equal(config.functions[0].envVariables.STYLE_PREVIEW_PROVIDER, 'mock')
   assert.equal(config.functions[0].envVariables.STYLE_PREVIEW_REAL_AI_ENABLED, 'false')
+  assert.equal(Object.hasOwn(config.functions[1], 'asyncRunEnable'), false)
 })
 
 test('deployment script refuses an implicit or production target before invoking CloudBase', () => {

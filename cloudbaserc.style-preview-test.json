@@ -23,7 +23,6 @@
       "handler": "index.main",
       "runtime": "Nodejs16.13",
       "timeout": 60,
-      "asyncRunEnable": true,
       "envVariables": {
         "STYLE_PREVIEW_TEST_ENV": "shengjing-style-test-d3ac90f38b1",
         "STYLE_PREVIEW_FEATURE_ENABLED": "true",
