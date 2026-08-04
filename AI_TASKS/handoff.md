@@ -17,6 +17,18 @@
 
 ---
 
+### 2026-08-04 13:45 — 量房风格预览 V2 测试环境 Mock 管线
+
+- 来源：齐鑫恢复 Task 2，并授权仅对 `shengjing-style-test-d3ac90f38b1` 执行集合、索引、函数、触发器与合成测试数据操作。
+- 分支：`codex/style-preview-v2-real-pipeline`；基线 `c4b7b0c3c12a3b810b17560b687c52c0604f9d28`；部署源码最终 HEAD `97e6d974551aacbb19f693d19dc7f3ef40da9137`。
+- 本次做了什么：创建 `style_preview_sessions` 和 `style_preview_tasks`（session 5 个索引、task 4 个索引含唯一幂等键）；部署 `stylePreviewApi` 与 `processStylePreviewTask`，建立每分钟 `style-preview-worker` 定时触发器；使用 `spv2_test_` 合成图片、session 和 task 验证 worker 真实领取、mock 结果存储、状态更新和二次不重复领取。
+- 检查结果：style preview `7/7`，日报 `171/171`；worker 首次调用返回 `succeeded`，第二次 `processed:false`；合成 task/session 回读为 `0`，测试文件前缀为空。生产入口/V2 入口继续为 `false`，provider 为 `mock`，真实 AI 为 `false`。
+- 生产边界：仅账号级 `env list` 被动显示过生产环境基础元数据；没有对生产环境发出任何定向函数、数据库、存储、日志、配置、触发器或部署命令。
+- 风险与未决问题：CloudBase CLI 不提供小程序 `OPENID`，不能伪造页面登录态。内部/业主拒绝、普通员工隔离、跨 tenant API、页面上传/反馈/历史需在测试小程序真实登录态补验。
+- 下一步建议：push 后创建 base 为 `codex/style-preview-v1` 的 Draft PR；由齐鑫在微信开发者工具用合成账号完成页面级验收。真实 provider 等待单独授权。
+
+---
+
 ### 2026-07-28 16:35 — 量房风格预览 V1 Task 1 本地 Mock MVP
 
 - 来源：齐鑫明确授权立即启动独立开发；`7.3.2` 正式审核发布不再阻塞本轮 Task 1。

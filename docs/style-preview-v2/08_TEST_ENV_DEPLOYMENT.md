@@ -9,4 +9,6 @@ PRODUCTION_ACCESS=false
 PRODUCTION_DEPLOY=false
 ```
 
-Deploy only `stylePreviewApi` and `processStylePreviewTask`, then create the `style-preview-worker` timer trigger. The repository default config is production-bound and must never be used for this task.
+Deployment completed on 2026-08-04. `stylePreviewApi` and `processStylePreviewTask` are `Active`; `style-preview-worker` is enabled with cron `0 */1 * * * * *`. The test collections have 5 session indexes and 4 task indexes, including unique `tenantId + idempotencyKey`.
+
+The repository default config is production-bound and was never used for a V2 deployment. An earlier account-level `env list` passively displayed the production ID; no production business resource was queried or targeted. Every later business command explicitly used the test environment ID.

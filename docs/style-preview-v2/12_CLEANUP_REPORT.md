@@ -1,3 +1,5 @@
 # Cleanup Report
 
-No test environment data or files have been created by this branch. When integration starts, delete only the exact `spv2_test_` records and `style-preview/spv2_test_` file paths created by that run, then record the verification query result here.
+The synthetic IDs `spv2_test_task_20260804` and `spv2_test_session_20260804` were deleted exactly once after the worker pass. Their count queries both returned `0`.
+
+The source, reference and result files under `style-preview/spv2_test_tenant_20260804/...` were deleted by exact path. A prefix-scoped storage list returned an empty array. The two locally generated test images were moved to the system trash. No collection, unrelated test resource or production resource was deleted.
