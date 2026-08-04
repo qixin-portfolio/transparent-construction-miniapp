@@ -113,6 +113,14 @@
   </view>
 
   <!-- 表单内容 -->
+  <view wx:if="{{aiContentDisclosureVisible}}" class="ai-generated-result">
+    <view class="ai-generated-notice">
+      <view class="ai-generated-notice-title">AI生成内容</view>
+      <view class="ai-generated-notice-desc">本页文字由人工智能生成，请人工核验并修改后提交。</view>
+    </view>
+    <view class="ai-generated-draft-title">AI生成草稿</view>
+  </view>
+
   <view class="card form-card work-card">
     <view class="form-label">今日完成 <text wx:if="{{sourceType !== 'manual'}}" class="form-label-hint">（AI 已整理，可修改）</text></view>
     <textarea class="textarea" placeholder="录音或手写补充后点击 AI 识别并整理，会自动回填这里。" value="{{form.workContent}}" data-key="workContent" bindinput="onInput"></textarea>
@@ -160,7 +168,7 @@
 
   <!-- 提交按钮 -->
   <view class="submit-area">
-    <view class="submit-note">提交前可继续修改 AI 内容；提交后进入审核，不会直接展示给业主。</view>
+    <view class="submit-note">提交前请核验并修改 AI 生成内容；提交后进入人工审核，不会直接展示给业主。</view>
     <view class="submit-actions">
       <button class="button-secondary" disabled="{{submitting}}" bindtap="clearDraft">清空草稿</button>
       <button class="button-primary" loading="{{submitting || voiceUploading}}" disabled="{{submitting || voiceUploading}}" bindtap="submit">提交给老齐审核</button>

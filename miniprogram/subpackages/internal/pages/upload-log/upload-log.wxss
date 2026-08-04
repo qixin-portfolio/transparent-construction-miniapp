@@ -618,6 +618,39 @@
   line-height: 1.45;
 }
 
+.ai-generated-result {
+  margin: 4rpx 0 18rpx;
+}
+
+.ai-generated-notice {
+  padding: 20rpx 22rpx;
+  border: 1rpx solid #B9D9CC;
+  border-radius: 18rpx;
+  background: #E8F5EE;
+}
+
+.ai-generated-notice-title {
+  color: #176346;
+  font-size: 26rpx;
+  line-height: 1.35;
+  font-weight: 900;
+}
+
+.ai-generated-notice-desc {
+  margin-top: 6rpx;
+  color: #3F5F50;
+  font-size: 23rpx;
+  line-height: 1.5;
+}
+
+.ai-generated-draft-title {
+  margin: 18rpx 4rpx 0;
+  color: #111827;
+  font-size: 30rpx;
+  line-height: 1.35;
+  font-weight: 900;
+}
+
 /* UI 4.3 · 日报上传按行动顺序组织 */
 .upload-page {
   background: #F7F8F4;

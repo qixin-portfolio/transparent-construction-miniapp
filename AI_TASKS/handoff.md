@@ -2,6 +2,16 @@
 
 > 本文件是 ChatGPT、Codex、GitHub Issue、PR 之间的长期交接记录。每次任务完成或暂停时追加，不覆盖历史。
 
+### 2026-08-04 11:15 — AI 日报生成内容审核标识
+
+- 来源：齐鑫要求按微信审核意见，在上传日报页保留 AI 功能并显著标识 AI 生成内容。
+- 分支：`fix/public-home-review-remediation`；基线 HEAD `5ced578f8a3e3aaac5e5efefdd81c435cae9c00a`；PR [#7](https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/7) 保持 Draft。
+- 本次做了什么：在 AI 回填的四个可编辑表单上方新增常驻提示“AI生成内容 / 本页文字由人工智能生成，请人工核验并修改后提交。”，结果区域标题为“AI生成草稿”，更新提交前提示；生成中、云函数返回失败、重新生成和本地草稿恢复均保留标识。失败提示会随本地草稿保存，不影响原有 AI 请求或日报提交参数。
+- 修改文件：`miniprogram/subpackages/internal/pages/upload-log/upload-log.js`、`.wxml`、`.wxss`、`tests/upload-log-ai-disclosure.test.js`、`docs/public-home-remediation/REVIEW_SUBMISSION_NOTE.md`、`docs/public-home-remediation/screenshots/10-ai-stage-log-disclosure-simulator.jpg`、本条 handoff 与任务状态。
+- 检查结果：页面测试 `3/3`、公开入口 `14/14`、日报回归 `171/171`；全量小程序 JavaScript 语法、`50` 个 JSON 解析、`git diff --check`、V2 入口与量房风格预览入口关闭检查通过。目标 worktree 的微信开发者工具模拟器已用本地演示草稿验证标识位置；截图只保留手机画面，不含客户信息。
+- 风险与未决问题：微信公众平台“深度合成 -> AI问答”服务类目是否已补充并通过，当前没有可核验证据；因此未上传体验版 `7.3.4`。未部署云函数、未访问或修改生产数据、未修改环境 ID、未提交审核或正式发布。
+- 下一步建议：先由齐鑫在微信公众平台确认该服务类目已通过；若明确授权上传，再从本次固定提交上传纯前端体验版 `7.3.4`。
+
 ## 记录格式
 
 ### YYYY-MM-DD HH:mm — 任务标题

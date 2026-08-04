@@ -59,6 +59,7 @@ Page({
     voiceUploaded: false,
     voiceUploading: false,
     aiGenerating: false,
+    aiContentDisclosureVisible: false,
     aiWarning: '',
     voiceTranscript: '',
     voiceRecognitionFailed: false,
@@ -262,6 +263,11 @@ Page({
       aiWarning: draft.aiWarning || '',
       aiDraft: draft.aiDraft || null,
       sourceType: draft.sourceType || 'manual',
+      aiContentDisclosureVisible: !!(
+        draft.aiContentDisclosureVisible ||
+        draft.aiDraft ||
+        (draft.sourceType && draft.sourceType !== 'manual')
+      ),
       form: draftForm,
       draftLoaded: true,
       draftSavedAtText: draft.savedAtText || ''
@@ -397,6 +403,7 @@ Page({
       reviewFocus: this.data.reviewFocus,
       aiWarning: this.data.aiWarning,
       aiDraft: this.data.aiDraft,
+      aiContentDisclosureVisible: this.data.aiContentDisclosureVisible,
       sourceType: this.data.sourceType,
       form: this.data.form,
       savedAt: Date.now(),
@@ -505,6 +512,7 @@ Page({
       voiceFileID: '',
       voiceUploaded: false,
       aiGenerating: false,
+      aiContentDisclosureVisible: false,
       aiWarning: '',
       voiceTranscript: '',
       voiceRecognitionFailed: false,
@@ -546,7 +554,11 @@ Page({
     }
     if (this.data.aiGenerating) return Promise.resolve(this.data.aiDraft)
 
-    this.setData({ aiGenerating: true, aiWarning: '' })
+    this.setData({
+      aiGenerating: true,
+      aiContentDisclosureVisible: true,
+      aiWarning: ''
+    })
     const shouldSendVoiceToDraft = hasVoice && !!this.data.voiceTranscript
     const voiceTask = Promise.resolve(shouldSendVoiceToDraft ? (this.data.voiceFileID || '') : '')
     return voiceTask
@@ -590,8 +602,10 @@ Page({
         return draft
       })
       .catch((error) => {
+        const message = error && error.message ? error.message : 'AI 整理失败'
+        this.setData({ aiWarning: message })
+        this.saveDraft({ silent: true })
         if (!options.silent) {
-          const message = error && error.message ? error.message : 'AI 整理失败'
           if (/语音|识别|现场情况|补一句/.test(message)) {
             this.focusManualNote({ silent: true })
           }

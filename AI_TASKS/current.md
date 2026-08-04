@@ -1,10 +1,10 @@
 ---
 schema_version: 1
 task_id: public-home-review-remediation
-revision: 10
-owner: qixin
-status: completed
-updated_at: 2026-08-02T22:16:34+08:00
+revision: 12
+owner: matrix
+status: review_ready
+updated_at: 2026-08-04T11:15:00+08:00
 ---
 
 # Current AI Task
