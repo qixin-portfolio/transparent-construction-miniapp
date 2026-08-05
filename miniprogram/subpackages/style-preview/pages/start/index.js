@@ -1,13 +1,12 @@
 const mockService = require('../../mock/style-preview-service')
 const realService = require('../../services/real-preview-service')
+const { mockModeEnabled } = require('../../../../utils/style-preview-mock-mode')
 const ROOM_TYPES = ['客厅', '主卧', '次卧', '餐厅', '厨房', '卫生间', '阳台']
-
-function mockEnabled(options) { return String(options.mock || '') === '1' }
 
 Page({
   data: { customers: [], customerIndex: 0, selectedCustomer: null, roomTypes: ROOM_TYPES, roomIndex: 0, sourceImage: '', referenceImage: '', note: '', creating: false, mockAccess: false, loading: true },
   onLoad(options = {}) {
-    this.isMock = mockEnabled(options)
+    this.isMock = mockModeEnabled(options)
     if (this.isMock) {
       const customers = mockService.listCustomers()
       const selectedCustomer = customers.find((item) => item.id === String(options.customerId || '')) || customers[0]

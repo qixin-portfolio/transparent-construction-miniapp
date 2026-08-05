@@ -23,6 +23,7 @@ const SAFE_MESSAGES = {
   TASK_ALREADY_RUNNING: '当前预览仍在处理中',
   DAILY_LIMIT_REACHED: '今日生成次数已达测试环境上限',
   TASK_NOT_FOUND: '生成任务不存在',
+  FEEDBACK_SAVE_FAILED: '反馈保存失败，请稍后重试',
   GENERATION_FAILED: '生成失败，请修改图片后重试'
 }
 
@@ -44,6 +45,11 @@ function enabled() {
 
 function isAllCustomerRole(role) {
   return ALL_CUSTOMER_ROLES.indexOf(String(role || '')) !== -1
+}
+
+function customerOwnedBy(actor, customer) {
+  if (customer.ownerUserId) return customer.ownerUserId === actor.user._id
+  return customer.ownerOpenid === actor.openid
 }
 
 async function getActor() {
@@ -70,10 +76,11 @@ async function assertCustomer(actor, customerId) {
   } catch (_) {
     throw failure('CUSTOMER_NOT_FOUND')
   }
-  if (!customer || customer.deleted === true || (customer.tenantId && customer.tenantId !== actor.tenantId)) {
+  if (!customer || customer.deleted === true) {
     throw failure('CUSTOMER_NOT_FOUND')
   }
-  if (!isAllCustomerRole(actor.user.role) && customer.ownerOpenid !== actor.openid) {
+  if (customer.tenantId && customer.tenantId !== actor.tenantId) throw failure('CUSTOMER_ACCESS_DENIED')
+  if (!isAllCustomerRole(actor.user.role) && !customerOwnedBy(actor, customer)) {
     throw failure('CUSTOMER_ACCESS_DENIED')
   }
   return customer
@@ -154,14 +161,19 @@ async function createTask(actor, event, retry) {
   const roomType = String(event.roomType || session.roomType || '').trim().slice(0, 30)
   if (!roomType) throw failure('GENERATION_FAILED')
   const userNote = normalizedNote(event.userNote === undefined ? session.userNote : event.userNote)
-  const key = buildKey(actor, session, roomType, userNote)
-  const known = await db.collection('style_preview_tasks').where({ tenantId: actor.tenantId, idempotencyKey: key }).orderBy('createdAt', 'desc').limit(1).get()
+  const baseKey = buildKey(actor, session, roomType, userNote)
+  const known = await db.collection('style_preview_tasks').where({ tenantId: actor.tenantId, idempotencyKey: baseKey }).orderBy('createdAt', 'desc').limit(1).get()
   const existing = known.data[0]
   if (existing && ACTIVE_TASK_STATES.indexOf(existing.status) !== -1) return { sessionId: session._id, taskId: existing._id, status: existing.status, reused: true }
   if (existing && existing.status === 'succeeded') return { sessionId: session._id, taskId: existing._id, status: existing.status, reused: true, cached: true }
   if (existing && !retry) throw failure('GENERATION_FAILED')
   const attempts = await db.collection('style_preview_tasks').where({ tenantId: actor.tenantId, sessionId: session._id }).count()
+  const latest = await db.collection('style_preview_tasks').where({ tenantId: actor.tenantId, sessionId: session._id }).orderBy('createdAt', 'desc').limit(1).get()
+  const latestTask = latest.data[0]
+  if (latestTask && ACTIVE_TASK_STATES.indexOf(latestTask.status) !== -1) return { sessionId: session._id, taskId: latestTask._id, status: latestTask.status, reused: true }
+  if (latestTask && latestTask.status === 'succeeded') return { sessionId: session._id, taskId: latestTask._id, status: latestTask.status, reused: true, cached: true }
   if (attempts.total >= 3) throw failure('GENERATION_FAILED')
+  const key = existing && retry ? `${baseKey}:retry:${attempts.total + 1}` : baseKey
   const dailyLimit = Number(process.env.STYLE_PREVIEW_USER_DAILY_LIMIT || 5)
   const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0)
   const today = await db.collection('style_preview_tasks').where({ tenantId: actor.tenantId, createdBy: actor.createdBy, createdAt: _.gte(dayStart) }).count()
@@ -209,9 +221,17 @@ exports.main = async (event = {}) => {
     if (action === 'checkAccess') return { allowed: true, role: actor.user.role }
     if (action === 'listCustomers') {
       const query = { tenantId: _.in([actor.tenantId, '', null]), deleted: _.neq(true) }
-      if (!isAllCustomerRole(actor.user.role)) query.ownerOpenid = actor.openid
+      if (!isAllCustomerRole(actor.user.role)) {
+        query.ownerOpenid = actor.openid
+      }
       const result = await db.collection('customers').where(query).orderBy('updatedAt', 'desc').limit(100).get()
-      return { items: result.data.map((item) => ({ _id: item._id, name: item.name || '未命名客户', address: item.address || '' })) }
+      let customers = result.data
+      if (!isAllCustomerRole(actor.user.role)) {
+        const userOwned = await db.collection('customers').where({ tenantId: _.in([actor.tenantId, '', null]), deleted: _.neq(true), ownerUserId: actor.user._id }).limit(100).get()
+        const known = new Set(customers.map((item) => item._id))
+        customers = customers.concat(userOwned.data.filter((item) => !known.has(item._id)))
+      }
+      return { items: customers.map((item) => ({ _id: item._id, name: item.name || '未命名客户', address: item.address || '' })) }
     }
     if (action === 'createSession') {
       const customer = await assertCustomer(actor, event.customerId)
@@ -220,12 +240,12 @@ exports.main = async (event = {}) => {
         const existing = await db.collection('style_preview_sessions').where({ tenantId: actor.tenantId, createdBy: actor.createdBy, clientRequestId: requestId }).limit(1).get()
         if (existing.data[0]) return { sessionId: existing.data[0]._id, upload: existing.data[0].upload }
       }
+      const sessionId = crypto.randomUUID()
       const now = db.serverDate()
-      const data = { tenantId: actor.tenantId, customerId: customer._id, createdBy: actor.createdBy, createdByOpenid: actor.openid, roomType: '', userNote: '', sourceImageFileId: '', referenceImageFileId: '', status: 'draft', latestTaskId: '', styleIntent: null, resultImageFileId: '', feedback: null, upload: null, clientRequestId: requestId, createdAt: now, updatedAt: now }
-      const result = await db.collection('style_preview_sessions').add({ data })
-      const upload = { source: storagePath(actor.tenantId, customer._id, result._id, 'source', 'image/jpeg'), reference: storagePath(actor.tenantId, customer._id, result._id, 'reference', 'image/jpeg') }
-      await db.collection('style_preview_sessions').doc(result._id).update({ data: { upload, updatedAt: db.serverDate() } })
-      return { sessionId: result._id, upload }
+      const upload = { source: storagePath(actor.tenantId, customer._id, sessionId, 'source', 'image/jpeg'), reference: storagePath(actor.tenantId, customer._id, sessionId, 'reference', 'image/jpeg') }
+      const data = { tenantId: actor.tenantId, customerId: customer._id, createdBy: actor.createdBy, createdByOpenid: actor.openid, roomType: '', userNote: '', sourceImageFileId: '', referenceImageFileId: '', status: 'draft', latestTaskId: '', styleIntent: null, resultImageFileId: '', feedback: null, upload, clientRequestId: requestId, createdAt: now, updatedAt: now }
+      await db.collection('style_preview_sessions').doc(sessionId).set({ data })
+      return { sessionId, upload }
     }
     if (action === 'attachUploadedImages') return attachImage(actor, event)
     if (action === 'createTask') return createTask(actor, event, false)
@@ -241,8 +261,14 @@ exports.main = async (event = {}) => {
     }
     if (action === 'submitFeedback') {
       const session = await assertSession(actor, event.sessionId)
-      const feedback = { rating: Math.max(1, Math.min(5, Number(event.rating || 0))) || null, reason: normalizedNote(event.reason), note: normalizedNote(event.note), createdAt: db.serverDate() }
-      await db.collection('style_preview_sessions').doc(session._id).update({ data: { feedback, updatedAt: db.serverDate() } })
+      const feedback = { rating: Math.max(1, Math.min(5, Number(event.rating || 0))) || null, reason: normalizedNote(event.reason), note: normalizedNote(event.note), createdAt: new Date() }
+      try {
+        const feedbackSession = Object.assign({}, session, { feedback, updatedAt: db.serverDate() })
+        delete feedbackSession._id
+        await db.collection('style_preview_sessions').doc(session._id).set({ data: feedbackSession })
+      } catch (_) {
+        throw failure('FEEDBACK_SAVE_FAILED')
+      }
       return { sessionId: session._id, feedback }
     }
     throw failure('GENERATION_FAILED')

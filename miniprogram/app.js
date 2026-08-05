@@ -90,7 +90,7 @@ function firstCode(query, keys) {
 
 App({
   globalData: {
-    envId: 'cloud1-d4g7zh8kpca0e26d5',
+    envId: 'shengjing-style-test-d3ac90f38b1',
     user: null,
     loginPromise: null,
     loginPromiseAllowGuestFlow: false,

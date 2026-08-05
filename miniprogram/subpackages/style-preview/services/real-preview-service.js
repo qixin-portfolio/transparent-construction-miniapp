@@ -67,8 +67,14 @@ async function listSessions(customerId) {
   return (result.items || []).map(adaptSession)
 }
 
-async function saveFeedback(sessionId, note) {
-  return call('stylePreviewApi', { action: 'submitFeedback', sessionId, note })
+async function saveFeedback(sessionId, feedback = {}) {
+  return call('stylePreviewApi', {
+    action: 'submitFeedback',
+    sessionId,
+    rating: feedback.rating,
+    reason: feedback.reason,
+    note: feedback.note
+  })
 }
 
 async function retry(sessionId) {

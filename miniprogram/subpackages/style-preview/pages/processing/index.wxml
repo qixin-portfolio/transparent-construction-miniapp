@@ -17,5 +17,11 @@
     </view>
   </view>
 
+  <view wx:if="{{error}}" class="failure-panel">
+    <view class="failure-title">本次生成未完成</view>
+    <view class="failure-copy">{{error}}</view>
+    <button class="retry-action" loading="{{retrying}}" bindtap="retry">重新生成</button>
+  </view>
+
   <view class="boundary">预览只表达风格方向，不生成施工图或报价。</view>
 </view>

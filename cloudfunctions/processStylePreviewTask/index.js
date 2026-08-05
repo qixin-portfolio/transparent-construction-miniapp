@@ -64,7 +64,12 @@ async function processOne() {
     const uploaded = await cloud.uploadFile({ cloudPath, fileContent: generated.resultBuffer })
     const now = db.serverDate()
     await db.collection('style_preview_tasks').doc(task._id).update({ data: { status: 'succeeded', provider: generated.provider, providerTaskId: generated.providerTaskId, resultImageFileId: uploaded.fileID, finishedAt: now, updatedAt: now } })
-    await db.collection('style_preview_sessions').doc(session._id).update({ data: { status: 'succeeded', latestTaskId: task._id, styleIntent: generated.styleIntent, resultImageFileId: uploaded.fileID, updatedAt: now } })
+    const completedSession = Object.assign({}, session, {
+      status: 'succeeded', latestTaskId: task._id, styleIntent: generated.styleIntent,
+      resultImageFileId: uploaded.fileID, updatedAt: db.serverDate()
+    })
+    delete completedSession._id
+    await db.collection('style_preview_sessions').doc(task.sessionId).set({ data: completedSession })
     return { processed: true, taskId: task._id, status: 'succeeded' }
   } catch (error) {
     const safe = safeFailure(error)
