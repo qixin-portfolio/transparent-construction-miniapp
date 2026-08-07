@@ -4,11 +4,12 @@
 
 ## 协作原则
 
-1. Codex、Matrix/Reviewer、ChatGPT 可以围绕同一个任务、分支或 PR 持续协作，不要求先创建 Issue、独立 worktree、handoff 或新的 PR。
-2. Reviewer 可以直接审当前可见的工作区、commit、分支或 PR；不要求等任务全部完成后再审。
-3. Codex 可以根据 Reviewer 的阻塞意见直接继续修改当前任务，不要求另开修复分支。
+1. ChatGPT 与 Codex 可以围绕同一个任务、分支或 PR 持续协作，不要求先创建 Issue、独立 worktree、handoff 或新的 PR。
+2. ChatGPT 负责需求拆解、方案判断、代码/PR 审查、风险判断和下一步决策；Codex 负责代码实现、测试和工程执行。
+3. ChatGPT 可以随时审当前可见的 commit、分支或 PR；Codex 可以根据审查意见直接继续修改当前任务，不要求另开修复分支。
 4. commit、push、PR、`AI_TASKS/current.md`、`AI_TASKS/handoff.md` 都是可选的协作载体，按任务需要使用，不是强制步骤。
-5. 优先保持任务范围清晰、改动可验证；不要为了流程文件阻塞正常开发与审查。
+5. 不再使用 Matrix 作为默认协作者或强制 Reviewer；如用户未单独指定，不设置 Matrix 审核 Gate。
+6. 优先保持任务范围清晰、改动可验证；不要为了流程文件阻塞正常开发与审查。
 
 ## 安全底线
 
