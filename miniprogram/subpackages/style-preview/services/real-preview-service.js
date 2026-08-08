@@ -1,4 +1,9 @@
 const { call } = require('../../../services/cloud')
+const STYLE_PREVIEW_TEST_ENV = 'shengjing-style-test-d3ac90f38b1'
+
+function callStylePreview(data) {
+  return call('stylePreviewApi', data, { env: STYLE_PREVIEW_TEST_ENV })
+}
 
 function requestId() {
   return `spv2-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`
@@ -33,42 +38,42 @@ function adaptSession(session = {}) {
 }
 
 async function checkAccess() {
-  return call('stylePreviewApi', { action: 'checkAccess' })
+  return callStylePreview({ action: 'checkAccess' })
 }
 
 async function listCustomers() {
-  const result = await call('stylePreviewApi', { action: 'listCustomers' })
+  const result = await callStylePreview({ action: 'listCustomers' })
   return result.items || []
 }
 
 async function createPreview(values) {
-  const session = await call('stylePreviewApi', { action: 'createSession', customerId: values.customerId, clientRequestId: requestId() })
+  const session = await callStylePreview({ action: 'createSession', customerId: values.customerId, clientRequestId: requestId() })
   const uploads = [
     { kind: 'source', filePath: values.sourceImage, cloudPath: pathWithLocalExtension(session.upload.source, values.sourceImage) },
     { kind: 'reference', filePath: values.referenceImage, cloudPath: pathWithLocalExtension(session.upload.reference, values.referenceImage) }
   ]
   for (const upload of uploads) {
-    const stored = await wx.cloud.uploadFile({ cloudPath: upload.cloudPath, filePath: upload.filePath })
-    await call('stylePreviewApi', { action: 'attachUploadedImages', sessionId: session.sessionId, kind: upload.kind, fileId: stored.fileID })
+    const stored = await wx.cloud.uploadFile({ cloudPath: upload.cloudPath, filePath: upload.filePath, config: { env: STYLE_PREVIEW_TEST_ENV } })
+    await callStylePreview({ action: 'attachUploadedImages', sessionId: session.sessionId, kind: upload.kind, fileId: stored.fileID })
   }
-  return call('stylePreviewApi', { action: 'createTask', sessionId: session.sessionId, roomType: values.roomType, userNote: values.note })
+  return callStylePreview({ action: 'createTask', sessionId: session.sessionId, roomType: values.roomType, userNote: values.note })
 }
 
 async function getTask(taskId) {
-  return (await call('stylePreviewApi', { action: 'getTask', taskId })).task
+  return (await callStylePreview({ action: 'getTask', taskId })).task
 }
 
 async function getSession(sessionId) {
-  return adaptSession((await call('stylePreviewApi', { action: 'getSession', sessionId })).session)
+  return adaptSession((await callStylePreview({ action: 'getSession', sessionId })).session)
 }
 
 async function listSessions(customerId) {
-  const result = await call('stylePreviewApi', { action: 'listSessions', customerId })
+  const result = await callStylePreview({ action: 'listSessions', customerId })
   return (result.items || []).map(adaptSession)
 }
 
 async function saveFeedback(sessionId, feedback = {}) {
-  return call('stylePreviewApi', {
+  return callStylePreview({
     action: 'submitFeedback',
     sessionId,
     rating: feedback.rating,
@@ -78,7 +83,7 @@ async function saveFeedback(sessionId, feedback = {}) {
 }
 
 async function retry(sessionId) {
-  return call('stylePreviewApi', { action: 'retryFailedTask', sessionId })
+  return callStylePreview({ action: 'retryFailedTask', sessionId })
 }
 
-module.exports = { checkAccess, listCustomers, createPreview, getTask, getSession, listSessions, saveFeedback, retry, adaptSession }
+module.exports = { STYLE_PREVIEW_TEST_ENV, checkAccess, listCustomers, createPreview, getTask, getSession, listSessions, saveFeedback, retry, adaptSession }

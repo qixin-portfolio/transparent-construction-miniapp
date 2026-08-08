@@ -17,10 +17,10 @@ test('test deployment config is isolated, mock-only, and contains no production 
   assert.equal(Object.hasOwn(config.functions[1], 'asyncRunEnable'), false)
 })
 
-test('isolated V2 mini program build initializes CloudBase in the test environment', () => {
+test('normal business build keeps global CloudBase on production', () => {
   const app = read('miniprogram/app.js')
-  assert.match(app, /envId:\s*'shengjing-style-test-d3ac90f38b1'/)
-  assert.doesNotMatch(app, /envId:\s*'cloud1-d4g7zh8kpca0e26d5'/)
+  assert.match(app, /envId:\s*'cloud1-d4g7zh8kpca0e26d5'/)
+  assert.doesNotMatch(app, /envId:\s*'shengjing-style-test-d3ac90f38b1'/)
 })
 
 test('deployment script refuses an implicit or production target before invoking CloudBase', () => {
@@ -94,7 +94,9 @@ test('cross-tenant customers are explicitly denied and real feedback retains all
   const api = read('cloudfunctions/stylePreviewApi/index.js')
   const service = read('miniprogram/subpackages/style-preview/services/real-preview-service.js')
   const result = read('miniprogram/subpackages/style-preview/pages/result/index.js')
-  assert.match(api, /customer\.tenantId && customer\.tenantId !== actor\.tenantId\) throw failure\('CUSTOMER_ACCESS_DENIED'\)/)
+  assert.match(api, /!isCustomerTenantAllowed\(actor\.tenantId, customer\.tenantId\)/)
+  assert.match(api, /customerTenantScope\(actor\.tenantId\)/)
+  assert.match(api, /filterCustomersForTenant\(actor\.tenantId, customers\)/)
   assert.match(api, /function customerOwnedBy\(actor, customer\)/)
   assert.match(api, /customer\.ownerUserId === actor\.user\._id/)
   assert.match(api, /ownerUserId: actor\.user\._id/)
