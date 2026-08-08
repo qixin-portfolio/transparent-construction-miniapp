@@ -5,6 +5,7 @@ const SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_INPUT_BYTES = 10 * 1024 * 1024
 const ARK_API_HOST_ALLOWLIST = new Set(['ark.cn-beijing.volces.com'])
 const SEEDREAM_RESULT_HOST_ALLOWLIST = new Set(['ark-content-generation-v2-cn-beijing.tos-cn-beijing.volces.com'])
+const INPUT_MIME_BY_EXTENSION = Object.freeze({ jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' })
 
 class ProviderError extends Error {
   constructor(code, details = {}) {
@@ -70,15 +71,42 @@ function buildPrompt({ roomType, userNote }) {
   ].join('\n')
 }
 
+function validateStylePreviewInputFileId({ fileId, tenantId, customerId, sessionId, kind }) {
+  const id = String(fileId || '').trim()
+  const expectedTenant = String(tenantId || '').trim()
+  const expectedCustomer = String(customerId || '').trim()
+  const expectedSession = String(sessionId || '').trim()
+  const expectedKind = String(kind || '').trim()
+  const match = /^cloud:\/\/([^/]+)\/(.+)$/.exec(id)
+  if (!match || !expectedTenant || !expectedCustomer || !expectedSession || ['source', 'reference'].indexOf(expectedKind) === -1) {
+    throw new ProviderError('PROVIDER_INPUT_FETCH_FAILED')
+  }
+  const path = match[2]
+  const segments = path.split('/')
+  if (
+    /[\\\0]/.test(path) ||
+    segments.length !== 6 ||
+    segments.some((segment) => !segment || segment === '.' || segment === '..') ||
+    segments[0] !== 'style-preview' ||
+    segments[1] !== expectedTenant ||
+    segments[2] !== expectedCustomer ||
+    segments[3] !== expectedSession ||
+    segments[4] !== expectedKind
+  ) throw new ProviderError('PROVIDER_INPUT_FETCH_FAILED')
+  const extensionMatch = /^original\.(jpg|jpeg|png|webp)$/.exec(segments[5])
+  if (!extensionMatch) throw new ProviderError('PROVIDER_INPUT_FETCH_FAILED')
+  const extension = extensionMatch[1]
+  return { fileId: id, mimeType: INPUT_MIME_BY_EXTENSION[extension] }
+}
+
 function validateInput({ sessionId, tenantId, customerId, sourceImageFileId, referenceImageFileId, sourceImageMeta, referenceImageMeta }) {
-  const prefix = `style-preview/${tenantId}/${customerId}/${sessionId}/`
   const validateOne = (fileId, meta, kind) => {
-    const id = required(fileId, 'PROVIDER_INPUT_FETCH_FAILED')
-    if (id.indexOf('cloud://') !== 0 || id.indexOf(`${prefix}${kind}/`) === -1) throw new ProviderError('PROVIDER_INPUT_FETCH_FAILED')
-    if (!meta || SUPPORTED_MIME_TYPES.indexOf(normalizeMimeType(meta.mimeType)) === -1 || !Number.isFinite(meta.size) || meta.size <= 0 || meta.size > MAX_INPUT_BYTES) {
+    const validated = validateStylePreviewInputFileId({ fileId, tenantId, customerId, sessionId, kind })
+    const mimeType = normalizeMimeType(meta && meta.mimeType)
+    if (!meta || SUPPORTED_MIME_TYPES.indexOf(mimeType) === -1 || mimeType !== validated.mimeType || !Number.isFinite(meta.size) || meta.size <= 0 || meta.size > MAX_INPUT_BYTES) {
       throw new ProviderError('PROVIDER_INPUT_FETCH_FAILED')
     }
-    return id
+    return validated.fileId
   }
   return {
     sourceImageFileId: validateOne(sourceImageFileId, sourceImageMeta, 'source'),
@@ -279,5 +307,6 @@ module.exports = {
   normalizeMimeType,
   responseError,
   validateAllowedHttpsUrl,
-  validateInput
+  validateInput,
+  validateStylePreviewInputFileId
 }

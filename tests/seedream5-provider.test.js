@@ -203,6 +203,26 @@ test('input file IDs must be source/reference paths inside the task session with
   }
 })
 
+test('provider input fileIDs require an exact current-session kind path and matching extension metadata', async () => {
+  const base = input()
+  const exactPrefix = `style-preview/${base.tenantId}/${base.customerId}/${base.sessionId}`
+  const cases = [
+    { sourceImageFileId: `cloud://test.bucket/evil/${exactPrefix}/source/original.png` },
+    { sourceImageFileId: `cloud://test.bucket/style-preview/other-tenant/${base.customerId}/${base.sessionId}/source/original.png` },
+    { sourceImageFileId: `cloud://test.bucket/style-preview/${base.tenantId}/other-customer/${base.sessionId}/source/original.png` },
+    { sourceImageFileId: `cloud://test.bucket/style-preview/${base.tenantId}/${base.customerId}/other-session/source/original.png` },
+    { sourceImageFileId: `cloud://test.bucket/${exactPrefix}/reference/original.png` },
+    { sourceImageFileId: `cloud://test.bucket/${exactPrefix}/source/../source/original.png` },
+    { sourceImageFileId: `cloud://test.bucket/${exactPrefix}/source/original.gif` },
+    { sourceImageFileId: `cloud://test.bucket/${exactPrefix}/source/original.jpg` }
+  ]
+  for (const patch of cases) {
+    const { provider, values, seen } = makeProvider()
+    await expectCode(() => provider.generatePreview(Object.assign(values, patch)), 'PROVIDER_INPUT_FETCH_FAILED')
+    assert.equal(seen.requests.length, 0)
+  }
+})
+
 test('CloudBase temporary input URLs must be HTTPS and are not accepted from the client', async () => {
   const { values } = makeProvider()
   const provider = createSeedream5Provider({

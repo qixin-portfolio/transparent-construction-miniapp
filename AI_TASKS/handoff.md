@@ -17,6 +17,15 @@
 
 ---
 
+### 2026-08-08 10:54 — Style Preview V2 P0 safety closure ready for ChatGPT re-review
+
+- 来源：齐鑫授权仅修复 ChatGPT 指出的 3 项 P0，保持 Seedream Ark/Result hostname allowlist 不变，完成后更新并 push 现有 Draft PR #9/#10。
+- 分支与 PR：PR #9 分支 `codex/style-preview-v2-real-pipeline` 已新增 `5bd2857`；PR #10 分支 `codex/style-preview-v2-seedream5` 以普通 merge 同步 PR #9，未改写历史。两个 PR 均保持 Draft、未合并。
+- 本次做了什么：全局 `wx.cloud.init` 环境恢复为生产；Style Preview 的云函数请求和图片上传通过 `config.env` 显式选择独立测试环境；只有默认 tenant 允许 legacy 空 tenant 客户；`attachUploadedImages` 在下载前验证精确 fileID 路径，下载后验证扩展名、MIME 与魔数；Seedream Provider `validateInput` 实施同等精确路径与 MIME 规则。
+- 检查结果：新增 19 项顶层行为测试；PR #9 风格预览 `28/28`，PR #10 Provider `16/16`、合计风格预览 `44/44`，日报 `171/171`；187 个 JS 语法、118 个 JSON、`git diff --check`、敏感信息与生产/Style Preview/V2 入口检查通过。
+- 边界：未调用真实 Seedream，未部署云函数，未访问生产环境，未上传体验版，未开放入口，未合并 PR。
+- 下一步建议：仅交 ChatGPT 二次审查 PR #9/#10；审查前继续保持两个 PR Draft 和所有生产入口关闭。
+
 ### 2026-08-08 09:47 — Seedream Provider network allowlists ready for ChatGPT review
 
 - 来源：齐鑫确认同步 ChatGPT 已推送的协作规则，并仅修复 PR #10 的 Ark 请求和 Seedream 结果下载目标限制。
