@@ -1,5 +1,14 @@
 const crypto = require('crypto')
 const cloud = require('wx-server-sdk')
+const {
+  LEGACY_DEFAULT_TENANT_ID,
+  assertImageExtensionMatchesMime,
+  customerTenantScope,
+  filterCustomersForTenant,
+  imageInfo,
+  isCustomerTenantAllowed,
+  validateStylePreviewFileId
+} = require('./style-preview-security')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -11,7 +20,6 @@ const ACTIVE_TASK_STATES = ['queued', 'analyzing', 'generating']
 const TASK_STATES = ACTIVE_TASK_STATES.concat(['succeeded', 'failed', 'cancelled'])
 const TEST_ENV_ID = 'shengjing-style-test-d3ac90f38b1'
 const PROMPT_VERSION = 'style-preview-v1-structure-first'
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 const SAFE_MESSAGES = {
   FEATURE_DISABLED: '该功能暂未开放',
@@ -57,7 +65,7 @@ async function getActor() {
   const result = await db.collection('users').where({ openid: OPENID, status: 'active' }).limit(1).get()
   const user = result.data[0]
   if (!user || INTERNAL_ROLES.indexOf(user.role) === -1) throw failure('FEATURE_DISABLED')
-  const tenantId = user.tenantId || 'tenant_shengjing_default'
+  const tenantId = user.tenantId || LEGACY_DEFAULT_TENANT_ID
   return { openid: OPENID, user, tenantId, createdBy: user._id || OPENID }
 }
 
@@ -79,7 +87,7 @@ async function assertCustomer(actor, customerId) {
   if (!customer || customer.deleted === true) {
     throw failure('CUSTOMER_NOT_FOUND')
   }
-  if (customer.tenantId && customer.tenantId !== actor.tenantId) throw failure('CUSTOMER_ACCESS_DENIED')
+  if (!isCustomerTenantAllowed(actor.tenantId, customer.tenantId)) throw failure('CUSTOMER_ACCESS_DENIED')
   if (!isAllCustomerRole(actor.user.role) && !customerOwnedBy(actor, customer)) {
     throw failure('CUSTOMER_ACCESS_DENIED')
   }
@@ -104,21 +112,6 @@ function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex')
 }
 
-function imageInfo(buffer) {
-  if (!Buffer.isBuffer(buffer) || !buffer.length) throw failure('INVALID_IMAGE')
-  if (buffer.length > MAX_IMAGE_BYTES) throw failure('IMAGE_TOO_LARGE')
-  if (buffer.length >= 24 && buffer.toString('ascii', 1, 4) === 'PNG') {
-    return { mimeType: 'image/png', width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) }
-  }
-  if (buffer.length >= 12 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') {
-    return { mimeType: 'image/webp', width: 0, height: 0 }
-  }
-  if (buffer.length > 4 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
-    return { mimeType: 'image/jpeg', width: 0, height: 0 }
-  }
-  throw failure('UNSUPPORTED_IMAGE_TYPE')
-}
-
 function extension(mimeType) {
   return mimeType === 'image/png' ? 'png' : (mimeType === 'image/webp' ? 'webp' : 'jpg')
 }
@@ -131,9 +124,16 @@ async function attachImage(actor, event) {
   const session = await assertSession(actor, event.sessionId)
   const kind = event.kind === 'reference' ? 'reference' : (event.kind === 'source' ? 'source' : '')
   const fileId = String(event.fileId || '').trim()
-  if (!kind || !fileId || fileId.indexOf('cloud://') !== 0) throw failure('INVALID_IMAGE')
+  const fileValidation = validateStylePreviewFileId({
+    fileId,
+    tenantId: actor.tenantId,
+    customerId: session.customerId,
+    sessionId: session._id,
+    kind
+  })
   const downloaded = await cloud.downloadFile({ fileID: fileId })
   const info = imageInfo(downloaded.fileContent)
+  assertImageExtensionMatchesMime(fileValidation, info.mimeType)
   const meta = Object.assign(info, { size: downloaded.fileContent.length, sha256: sha256(downloaded.fileContent) })
   const patch = kind === 'source'
     ? { sourceImageFileId: fileId, sourceImageMeta: meta, updatedAt: db.serverDate() }
@@ -220,17 +220,20 @@ exports.main = async (event = {}) => {
     const actor = await assertAccess()
     if (action === 'checkAccess') return { allowed: true, role: actor.user.role }
     if (action === 'listCustomers') {
-      const query = { tenantId: _.in([actor.tenantId, '', null]), deleted: _.neq(true) }
+      const tenantScope = customerTenantScope(actor.tenantId)
+      const tenantQuery = tenantScope.length === 1 ? tenantScope[0] : _.in(tenantScope)
+      const query = { tenantId: tenantQuery, deleted: _.neq(true) }
       if (!isAllCustomerRole(actor.user.role)) {
         query.ownerOpenid = actor.openid
       }
       const result = await db.collection('customers').where(query).orderBy('updatedAt', 'desc').limit(100).get()
       let customers = result.data
       if (!isAllCustomerRole(actor.user.role)) {
-        const userOwned = await db.collection('customers').where({ tenantId: _.in([actor.tenantId, '', null]), deleted: _.neq(true), ownerUserId: actor.user._id }).limit(100).get()
+        const userOwned = await db.collection('customers').where({ tenantId: tenantQuery, deleted: _.neq(true), ownerUserId: actor.user._id }).limit(100).get()
         const known = new Set(customers.map((item) => item._id))
         customers = customers.concat(userOwned.data.filter((item) => !known.has(item._id)))
       }
+      customers = filterCustomersForTenant(actor.tenantId, customers)
       return { items: customers.map((item) => ({ _id: item._id, name: item.name || '未命名客户', address: item.address || '' })) }
     }
     if (action === 'createSession') {
