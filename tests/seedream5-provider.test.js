@@ -1,10 +1,22 @@
 const assert = require('node:assert/strict')
+const { EventEmitter } = require('node:events')
 const fs = require('node:fs')
 const path = require('node:path')
 const test = require('node:test')
 
 const providerPath = '../cloudfunctions/processStylePreviewTask/providers/seedream5-provider'
-const { ProviderError, buildPrompt, createSeedream5Provider, responseError } = require(providerPath)
+const {
+  ARK_API_HOST_ALLOWLIST,
+  ProviderError,
+  SEEDREAM_RESULT_HOST_ALLOWLIST,
+  buildPrompt,
+  createSeedream5Provider,
+  downloadImage,
+  responseError,
+  validateAllowedHttpsUrl
+} = require(providerPath)
+
+const RESULT_HOST = 'ark-content-generation-v2-cn-beijing.tos-cn-beijing.volces.com'
 
 function pngBuffer() {
   const buffer = Buffer.alloc(24)
@@ -42,7 +54,7 @@ function makeProvider(options = {}) {
       request: async (url, payload, headers, timeout) => {
         seen.requests.push({ url, payload, headers, timeout })
         if (options.requestError) throw options.requestError
-        return options.response || { body: { data: [{ url: 'https://result.example/final.png' }], usage: { generated_images: 1, output_tokens: 9, total_tokens: 11 } }, providerRequestId: 'ark-request-1', httpStatus: 200 }
+        return options.response || { body: { data: [{ url: `https://${RESULT_HOST}/final.png` }], usage: { generated_images: 1, output_tokens: 9, total_tokens: 11 } }, providerRequestId: 'ark-request-1', httpStatus: 200 }
       },
       download: async (url, maxBytes, timeout) => {
         seen.downloads.push({ url, maxBytes, timeout })
@@ -70,6 +82,7 @@ test('Seedream request uses the approved endpoint and exactly one two-image gene
   assert.equal(seen.requests[0].payload.stream, false)
   assert.equal(seen.requests[0].payload.response_format, 'url')
   assert.equal(seen.requests[0].payload.watermark, true)
+  assert.equal(seen.downloads[0].url, `https://${RESULT_HOST}/final.png`)
   assert.deepEqual(seen.lifecycle, ['PROVIDER_REQUEST_DISPATCHING', 'PROVIDER_REQUEST_DISPATCHED', 'PROVIDER_RESPONSE_RECEIVED'])
   assert.equal(result.provider, 'volcengine-seedream-5.0')
   assert.equal(result.modelId, 'doubao-seedream-5-0-pro-260628')
@@ -77,6 +90,88 @@ test('Seedream request uses the approved endpoint and exactly one two-image gene
   assert.deepEqual(result.usage, { generatedImages: 1, outputTokens: 9, totalTokens: 11 })
   assert.equal(result.outputWidth, 640)
   assert.equal(result.outputHeight, 480)
+})
+
+test('URL allowlists accept only exact HTTPS hostnames without credentials, local hosts, or IPs', () => {
+  assert.equal(
+    validateAllowedHttpsUrl('https://ark.cn-beijing.volces.com/api/v3', { allowedHosts: ARK_API_HOST_ALLOWLIST, errorCode: 'PROVIDER_UNAVAILABLE' }),
+    'https://ark.cn-beijing.volces.com/api/v3'
+  )
+  assert.equal(
+    validateAllowedHttpsUrl(`https://${RESULT_HOST}/output.jpg`, { allowedHosts: SEEDREAM_RESULT_HOST_ALLOWLIST, errorCode: 'PROVIDER_INVALID_RESULT' }),
+    `https://${RESULT_HOST}/output.jpg`
+  )
+  const invalid = [
+    'http://ark.cn-beijing.volces.com/api/v3',
+    'https://ark.cn-beijing.volces.com.attacker.com/api/v3',
+    'https://user:pass@ark.cn-beijing.volces.com/api/v3',
+    'https://localhost/api/v3',
+    'https://127.0.0.1/api/v3',
+    'https://[::1]/api/v3'
+  ]
+  for (const url of invalid) {
+    assert.throws(
+      () => validateAllowedHttpsUrl(url, { allowedHosts: ARK_API_HOST_ALLOWLIST, errorCode: 'PROVIDER_UNAVAILABLE' }),
+      (error) => error && error.code === 'PROVIDER_UNAVAILABLE'
+    )
+  }
+})
+
+test('Ark base URL allowlist rejects untrusted endpoints before request dispatch', async () => {
+  const invalid = [
+    'http://ark.cn-beijing.volces.com/api/v3',
+    'https://evil.com/api/v3',
+    'https://ark.cn-beijing.volces.com.attacker.com/api/v3',
+    'https://localhost/api/v3',
+    'https://127.0.0.1/api/v3',
+    'https://[::1]/api/v3',
+    'https://user:pass@ark.cn-beijing.volces.com/api/v3'
+  ]
+  for (const baseUrl of invalid) {
+    const { provider, values, seen } = makeProvider({ env: { ARK_BASE_URL: baseUrl } })
+    await expectCode(() => provider.generatePreview(values), 'PROVIDER_UNAVAILABLE')
+    assert.equal(seen.requests.length, 0)
+  }
+})
+
+test('Seedream result allowlist rejects untrusted endpoints before download', async () => {
+  const invalid = [
+    `http://${RESULT_HOST}/final.png`,
+    'https://evil.com/final.png',
+    'https://ark-content-generation-cn-beijing.tos-cn-beijing.volces.com/final.png',
+    `https://${RESULT_HOST}.attacker.com/final.png`,
+    'https://localhost/final.png',
+    'https://127.0.0.1/final.png',
+    'https://[::1]/final.png',
+    `https://user:pass@${RESULT_HOST}/final.png`
+  ]
+  for (const resultUrl of invalid) {
+    const fixture = makeProvider({ response: { body: { data: [{ url: resultUrl }] }, providerRequestId: null } })
+    await expectCode(() => fixture.provider.generatePreview(fixture.values), 'PROVIDER_INVALID_RESULT')
+    assert.equal(fixture.seen.downloads.length, 0)
+  }
+})
+
+test('result downloader rejects redirects without following Location', async () => {
+  let calls = 0
+  const redirectingGet = (_options, onResponse) => {
+    calls += 1
+    const request = new EventEmitter()
+    request.destroy = (error) => { if (error) request.emit('error', error) }
+    process.nextTick(() => {
+      const response = new EventEmitter()
+      response.statusCode = 302
+      response.headers = { location: 'https://evil.com/redirected.png' }
+      response.resume = () => {}
+      onResponse(response)
+    })
+    return request
+  }
+  await expectCode(
+    () => downloadImage(`https://${RESULT_HOST}/final.png`, 1024, 1000, redirectingGet),
+    'RESULT_DOWNLOAD_FAILED'
+  )
+  assert.equal(calls, 1)
 })
 
 test('provider never logs the API key and requires it before dispatch', async () => {
@@ -120,10 +215,10 @@ test('CloudBase temporary input URLs must be HTTPS and are not accepted from the
 test('empty data fails, multiple data items download only the first result, and result URL must be HTTPS', async () => {
   const empty = makeProvider({ response: { body: { data: [] }, providerRequestId: null } })
   await expectCode(() => empty.provider.generatePreview(empty.values), 'PROVIDER_EMPTY_RESULT')
-  const multiple = makeProvider({ response: { body: { data: [{ url: 'https://result.example/first.png' }, { url: 'https://result.example/second.png' }] }, providerRequestId: null } })
+  const multiple = makeProvider({ response: { body: { data: [{ url: `https://${RESULT_HOST}/first.png` }, { url: `https://${RESULT_HOST}/second.png` }] }, providerRequestId: null } })
   await multiple.provider.generatePreview(multiple.values)
   assert.equal(multiple.seen.downloads.length, 1)
-  assert.equal(multiple.seen.downloads[0].url, 'https://result.example/first.png')
+  assert.equal(multiple.seen.downloads[0].url, `https://${RESULT_HOST}/first.png`)
   const invalidUrl = makeProvider({ response: { body: { data: [{ url: 'http://result.example/not-safe.png' }] }, providerRequestId: null } })
   await expectCode(() => invalidUrl.provider.generatePreview(invalidUrl.values), 'PROVIDER_INVALID_RESULT')
 })

@@ -17,6 +17,16 @@
 
 ---
 
+### 2026-08-08 09:47 — Seedream Provider network allowlists ready for ChatGPT review
+
+- 来源：齐鑫确认同步 ChatGPT 已推送的协作规则，并仅修复 PR #10 的 Ark 请求和 Seedream 结果下载目标限制。
+- 分支与 PR：`codex/style-preview-v2-seedream5`；Draft PR [#10](https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/10) 继续以 `codex/style-preview-v2-real-pipeline`（PR #9 head）为 base，保持 stacked、Draft、未合并。
+- 本次做了什么：Ark API 仅精确允许 `ark.cn-beijing.volces.com`；Seedream 结果仅精确允许官方文档确认的生成内容桶 hostname；两类 URL 独立校验 HTTPS、凭据、localhost、IP 和精确 hostname，非法 Ark 在请求前失败、非法 result 在下载前失败，非 2xx redirect 不跟随。
+- 检查结果：新增 4 项安全测试，Provider `15/15`、风格预览 `25/25`、日报 `171/171`；修改 JS 语法、118 个 JSON、`git diff --check`、敏感信息扫描及生产/V2 入口关闭检查均通过。
+- 边界：未调用真实 Seedream，未访问生产环境，未部署任何云函数，未修改或合并 PR #9/#10；下一步仅由 ChatGPT 审查两个 stacked PR 及本次安全 diff。
+
+---
+
 ### 2026-08-07 21:18 — Seedream 5.0 Draft PR ready for review
 
 - 分支与 PR：`codex/style-preview-v2-seedream5` 已 push；独立 Draft PR [#10](https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/10) 为 `OPEN/DRAFT`，base=`codex/style-preview-v2-real-pipeline`，head=`codex/style-preview-v2-seedream5`。

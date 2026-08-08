@@ -1,7 +1,10 @@
 const https = require('https')
+const net = require('net')
 
 const SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_INPUT_BYTES = 10 * 1024 * 1024
+const ARK_API_HOST_ALLOWLIST = new Set(['ark.cn-beijing.volces.com'])
+const SEEDREAM_RESULT_HOST_ALLOWLIST = new Set(['ark-content-generation-v2-cn-beijing.tos-cn-beijing.volces.com'])
 
 class ProviderError extends Error {
   constructor(code, details = {}) {
@@ -93,6 +96,28 @@ function getHttpsUrl(value, code = 'PROVIDER_INVALID_RESULT') {
   }
 }
 
+function validateAllowedHttpsUrl(urlText, { allowedHosts, errorCode }) {
+  try {
+    const url = new URL(String(urlText || ''))
+    const hostname = url.hostname.toLowerCase()
+    const ipHostname = hostname.startsWith('[') && hostname.endsWith(']') ? hostname.slice(1, -1) : hostname
+    if (
+      url.protocol !== 'https:' ||
+      url.username ||
+      url.password ||
+      (url.port && url.port !== '443') ||
+      hostname === 'localhost' ||
+      hostname.endsWith('.localhost') ||
+      net.isIP(ipHostname) !== 0 ||
+      !(allowedHosts instanceof Set) ||
+      !allowedHosts.has(hostname)
+    ) throw new Error('url-not-allowed')
+    return url.toString()
+  } catch (_) {
+    throw new ProviderError(errorCode)
+  }
+}
+
 function responseError(status, body, providerRequestId) {
   const text = JSON.stringify(body || {}).toLowerCase()
   if (/content|safety|moderation|policy/.test(text)) return new ProviderError('PROVIDER_REJECTED', { httpStatus: status, providerRequestId })
@@ -131,10 +156,10 @@ function postJson(urlText, payload, headers, timeoutMs) {
   })
 }
 
-function downloadImage(urlText, maxBytes, timeoutMs) {
+function downloadImage(urlText, maxBytes, timeoutMs, get = https.get) {
   return new Promise((resolve, reject) => {
     const url = new URL(urlText)
-    const request = https.get({ hostname: url.hostname, path: `${url.pathname}${url.search}`, timeout: timeoutMs }, (response) => {
+    const request = get({ hostname: url.hostname, path: `${url.pathname}${url.search}`, timeout: timeoutMs }, (response) => {
       const contentType = normalizeMimeType(response.headers['content-type'])
       const contentLength = Number(response.headers['content-length'] || 0)
       if (response.statusCode < 200 || response.statusCode >= 300) { response.resume(); reject(new ProviderError('RESULT_DOWNLOAD_FAILED', { httpStatus: response.statusCode })); return }
@@ -174,7 +199,10 @@ function createSeedream5Provider({ cloud, env = process.env, transport = {} }) {
       const apiKey = required(env.ARK_API_KEY, 'PROVIDER_AUTH_FAILED')
       const modelId = required(env.SEEDREAM_MODEL_ID, 'PROVIDER_MODEL_UNAVAILABLE')
       if (/lite/i.test(modelId)) throw new ProviderError('PROVIDER_MODEL_UNAVAILABLE')
-      const baseUrl = required(env.ARK_BASE_URL, 'PROVIDER_UNAVAILABLE').replace(/\/+$/, '')
+      const baseUrl = validateAllowedHttpsUrl(required(env.ARK_BASE_URL, 'PROVIDER_UNAVAILABLE'), {
+        allowedHosts: ARK_API_HOST_ALLOWLIST,
+        errorCode: 'PROVIDER_UNAVAILABLE'
+      }).replace(/\/+$/, '')
       const timeoutMs = Math.max(1000, Number(env.SEEDREAM_TIMEOUT_MS || 180000))
       const maxOutputBytes = Math.max(1, Number(env.SEEDREAM_MAX_OUTPUT_BYTES || 20971520))
       const files = validateInput(input)
@@ -210,7 +238,10 @@ function createSeedream5Provider({ cloud, env = process.env, transport = {} }) {
       if (typeof input.onLifecycle === 'function') await input.onLifecycle('PROVIDER_RESPONSE_RECEIVED')
       const first = response.body && Array.isArray(response.body.data) ? response.body.data[0] : null
       if (!first) throw new ProviderError('PROVIDER_EMPTY_RESULT')
-      const resultUrl = getHttpsUrl(first && first.url)
+      const resultUrl = validateAllowedHttpsUrl(first && first.url, {
+        allowedHosts: SEEDREAM_RESULT_HOST_ALLOWLIST,
+        errorCode: 'PROVIDER_INVALID_RESULT'
+      })
       let downloaded
       try {
         downloaded = await download(resultUrl, maxOutputBytes, timeoutMs)
@@ -237,4 +268,16 @@ function createSeedream5Provider({ cloud, env = process.env, transport = {} }) {
   }
 }
 
-module.exports = { ProviderError, buildPrompt, createSeedream5Provider, imageInfo, normalizeMimeType, responseError, validateInput }
+module.exports = {
+  ARK_API_HOST_ALLOWLIST,
+  ProviderError,
+  SEEDREAM_RESULT_HOST_ALLOWLIST,
+  buildPrompt,
+  createSeedream5Provider,
+  downloadImage,
+  imageInfo,
+  normalizeMimeType,
+  responseError,
+  validateAllowedHttpsUrl,
+  validateInput
+}
