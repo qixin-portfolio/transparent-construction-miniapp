@@ -17,6 +17,7 @@ const {
 } = require(providerPath)
 
 const RESULT_HOST = 'ark-content-generation-v2-cn-beijing.tos-cn-beijing.volces.com'
+const COMBINED_RESULT_HOST = 'ark-acg-cn-beijing.tos-cn-beijing.volces.com'
 
 function pngBuffer() {
   const buffer = Buffer.alloc(24)
@@ -101,6 +102,10 @@ test('URL allowlists accept only exact HTTPS hostnames without credentials, loca
     validateAllowedHttpsUrl(`https://${RESULT_HOST}/output.jpg`, { allowedHosts: SEEDREAM_RESULT_HOST_ALLOWLIST, errorCode: 'PROVIDER_INVALID_RESULT' }),
     `https://${RESULT_HOST}/output.jpg`
   )
+  assert.equal(
+    validateAllowedHttpsUrl(`https://${COMBINED_RESULT_HOST}/output.jpg`, { allowedHosts: SEEDREAM_RESULT_HOST_ALLOWLIST, errorCode: 'PROVIDER_INVALID_RESULT' }),
+    `https://${COMBINED_RESULT_HOST}/output.jpg`
+  )
   const invalid = [
     'http://ark.cn-beijing.volces.com/api/v3',
     'https://ark.cn-beijing.volces.com.attacker.com/api/v3',
@@ -137,9 +142,11 @@ test('Ark base URL allowlist rejects untrusted endpoints before request dispatch
 test('Seedream result allowlist rejects untrusted endpoints before download', async () => {
   const invalid = [
     `http://${RESULT_HOST}/final.png`,
+    `http://${COMBINED_RESULT_HOST}/final.png`,
     'https://evil.com/final.png',
     'https://ark-content-generation-cn-beijing.tos-cn-beijing.volces.com/final.png',
     `https://${RESULT_HOST}.attacker.com/final.png`,
+    `https://${COMBINED_RESULT_HOST}.attacker.com/final.png`,
     'https://localhost/final.png',
     'https://127.0.0.1/final.png',
     'https://[::1]/final.png',
@@ -149,6 +156,15 @@ test('Seedream result allowlist rejects untrusted endpoints before download', as
     const fixture = makeProvider({ response: { body: { data: [{ url: resultUrl }] }, providerRequestId: null } })
     await expectCode(() => fixture.provider.generatePreview(fixture.values), 'PROVIDER_INVALID_RESULT')
     assert.equal(fixture.seen.downloads.length, 0)
+  }
+})
+
+test('official Seedream and Seedream-Seedance result buckets both download exactly once', async () => {
+  for (const resultHost of [RESULT_HOST, COMBINED_RESULT_HOST]) {
+    const fixture = makeProvider({ response: { body: { data: [{ url: `https://${resultHost}/final.png` }] }, providerRequestId: null } })
+    await fixture.provider.generatePreview(fixture.values)
+    assert.equal(fixture.seen.downloads.length, 1)
+    assert.equal(fixture.seen.downloads[0].url, `https://${resultHost}/final.png`)
   }
 })
 

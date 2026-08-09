@@ -4,7 +4,10 @@ const net = require('net')
 const SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_INPUT_BYTES = 10 * 1024 * 1024
 const ARK_API_HOST_ALLOWLIST = new Set(['ark.cn-beijing.volces.com'])
-const SEEDREAM_RESULT_HOST_ALLOWLIST = new Set(['ark-content-generation-v2-cn-beijing.tos-cn-beijing.volces.com'])
+const SEEDREAM_RESULT_HOST_ALLOWLIST = new Set([
+  'ark-content-generation-v2-cn-beijing.tos-cn-beijing.volces.com',
+  'ark-acg-cn-beijing.tos-cn-beijing.volces.com'
+])
 const INPUT_MIME_BY_EXTENSION = Object.freeze({ jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' })
 
 class ProviderError extends Error {
