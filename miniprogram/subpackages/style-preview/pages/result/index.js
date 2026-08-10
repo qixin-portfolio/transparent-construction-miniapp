@@ -1,77 +1,11 @@
-const previewService = require('../../mock/style-preview-service')
-
-function decode(value) {
-  try {
-    return decodeURIComponent(String(value || ''))
-  } catch (error) {
-    return String(value || '')
-  }
-}
-
-function decorateSession(session) {
-  const styleIntent = session.styleIntent || {}
-  return Object.assign({}, session, {
-    styleIntent: Object.assign({}, styleIntent, {
-      colorPaletteText: (styleIntent.colorPalette || []).join(' · '),
-      materialsText: (styleIntent.materials || []).join(' · ')
-    })
-  })
-}
-
+const mockService = require('../../mock/style-preview-service')
+const realService = require('../../services/real-preview-service')
+const { mockModeEnabled } = require('../../../../utils/style-preview-mock-mode')
 Page({
-  data: {
-    session: null,
-    feedback: '',
-    feedbackSaved: false
-  },
-
-  onLoad(options = {}) {
-    const session = decorateSession(previewService.getSession(
-      String(options.id || ''),
-      decode(options.customerId),
-      decode(options.customerName)
-    ))
-    this.setData({ session, feedback: session.feedback || '' })
-  },
-
-  previewImage(event) {
-    const current = event.currentTarget.dataset.src
-    const session = this.data.session
-    wx.previewImage({
-      current,
-      urls: [session.sourceImage, session.referenceImage, session.previewImage]
-    })
-  },
-
-  onFeedbackInput(event) {
-    this.setData({ feedback: event.detail.value, feedbackSaved: false })
-  },
-
-  saveFeedback() {
-    const session = previewService.saveFeedback(this.data.session.id, this.data.feedback)
-    if (!session) return
-    this.setData({ session: decorateSession(session), feedback: session.feedback, feedbackSaved: true })
-    wx.showToast({ title: '反馈已保存在本机', icon: 'success' })
-  },
-
-  regenerate() {
-    const session = this.data.session
-    wx.redirectTo({
-      url: `/subpackages/style-preview/pages/start/index?customerId=${encodeURIComponent(session.customerId)}&customerName=${encodeURIComponent(session.customerName)}&mock=1`
-    })
-  },
-
-  goHistory() {
-    const session = this.data.session
-    wx.navigateTo({
-      url: `/subpackages/style-preview/pages/history/index?customerId=${encodeURIComponent(session.customerId)}&customerName=${encodeURIComponent(session.customerName)}`
-    })
-  },
-
-  backToCustomer() {
-    const session = this.data.session
-    wx.redirectTo({
-      url: `/subpackages/internal/pages/customer-edit/customer-edit?id=${encodeURIComponent(session.customerId)}&stylePreviewMock=1`
-    })
-  }
+  data: { session: null, feedback: '', feedbackRating: 5, feedbackReason: '', feedbackSaved: false, mock: false },
+  onLoad(options = {}) { this.isMock = mockModeEnabled(options); this.sessionId = String(options.id || ''); this.setData({ mock: this.isMock }); if (this.isMock) { const session = realService.adaptSession(mockService.getSession(this.sessionId)); this.setData({ session, feedback: session.feedback || '' }); return } realService.checkAccess().then(() => realService.getSession(this.sessionId)).then((session) => { const feedback = session.feedback || {}; this.setData({ session, feedback: feedback.note || '', feedbackRating: feedback.rating || 5, feedbackReason: feedback.reason || '' }) }).catch(() => this.deny()) },
+  deny() { wx.showToast({ title: '该功能暂未开放', icon: 'none' }); wx.navigateBack() }, previewImage(event) { const current = event.currentTarget.dataset.src; const session = this.data.session; wx.previewImage({ current, urls: [session.sourceImage, session.referenceImage, session.previewImage].filter(Boolean) }) }, onFeedbackInput(event) { this.setData({ feedback: event.detail.value, feedbackSaved: false }) }, onFeedbackRating(event) { this.setData({ feedbackRating: Number(event.currentTarget.dataset.value || 5), feedbackSaved: false }) }, onFeedbackReason(event) { this.setData({ feedbackReason: event.detail.value, feedbackSaved: false }) },
+  async saveFeedback() { try { if (this.isMock) { const session = realService.adaptSession(mockService.saveFeedback(this.sessionId, this.data.feedback)); this.setData({ session, feedbackSaved: true }) } else { await realService.saveFeedback(this.sessionId, { rating: this.data.feedbackRating, reason: this.data.feedbackReason, note: this.data.feedback }); this.setData({ feedbackSaved: true }) } wx.showToast({ title: '反馈已保存', icon: 'success' }) } catch (error) { wx.showToast({ title: error.message || '保存失败', icon: 'none' }) } },
+  async regenerate() { if (this.isMock) { wx.redirectTo({ url: `/subpackages/style-preview/pages/start/index?mock=1&customerId=${this.data.session.customerId}` }); return } try { const task = await realService.retry(this.sessionId); wx.redirectTo({ url: `/subpackages/style-preview/pages/processing/index?id=${task.sessionId}&taskId=${task.taskId}` }) } catch (error) { wx.showToast({ title: error.message || '暂不能重试', icon: 'none' }) } },
+  goHistory() { wx.navigateTo({ url: `/subpackages/style-preview/pages/history/index?customerId=${this.data.session.customerId}${this.isMock ? '&mock=1' : ''}` }) }, backToCustomer() { wx.navigateBack() }
 })

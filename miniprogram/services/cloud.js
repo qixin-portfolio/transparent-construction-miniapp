@@ -1,10 +1,12 @@
 const { DEMO_MODE } = require('../utils/demo')
 
-function call(name, data = {}) {
-  return wx.cloud.callFunction({
+function call(name, data = {}, options = {}) {
+  const request = {
     name,
     data
-  }).then((res) => {
+  }
+  if (options.env) request.config = { env: options.env }
+  return wx.cloud.callFunction(request).then((res) => {
     const result = res.result || {}
     if (result.error) {
       throw new Error(result.error.message || result.error)

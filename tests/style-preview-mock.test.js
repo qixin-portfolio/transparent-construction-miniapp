@@ -167,7 +167,7 @@ test('start, processing, result, feedback, and history pages complete the local 
 
     const createdId = decodeURIComponent(routes[0].url.match(/[?&]id=([^&]+)/)[1])
     const processing = createPageInstance(loadPage('processing'))
-    processing.onLoad({ id: createdId })
+    processing.onLoad({ id: createdId, mock: '1' })
     progressTick()
     progressTick()
     progressTick()
@@ -177,7 +177,7 @@ test('start, processing, result, feedback, and history pages complete the local 
     assert.ok(resultRoute)
 
     const result = createPageInstance(loadPage('result'))
-    result.onLoad({ id: createdId })
+    result.onLoad({ id: createdId, mock: '1' })
     assert.equal(result.data.session.status, 'completed')
     assert.equal(result.data.session.roomType, '主卧')
     assert.equal(result.data.session.styleIntent.colorPaletteText, '奶油白 · 浅橡木 · 雾灰绿')
@@ -186,7 +186,7 @@ test('start, processing, result, feedback, and history pages complete the local 
     assert.equal(result.data.session.feedback, '柜子希望更轻一点')
 
     const history = createPageInstance(loadPage('history'))
-    history.onLoad({ customerId: result.data.session.customerId, customerName: result.data.session.customerName })
+    history.onLoad({ customerId: result.data.session.customerId, customerName: result.data.session.customerName, mock: '1' })
     assert.equal(history.data.sessions.length, 1)
     assert.equal(history.data.sessions[0].statusText, '已生成')
     history.viewResult({ currentTarget: { dataset: { id: createdId } } })

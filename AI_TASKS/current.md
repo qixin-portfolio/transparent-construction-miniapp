@@ -1,56 +1,45 @@
 ---
 schema_version: 1
-task_id: phase-0f-3c-submission-slot-semantic-validation
-revision: 11
+task_id: style-preview-v2-real-pipeline
+revision: 12
 owner: matrix
 status: review_ready
-updated_at: 2026-07-28T16:50:00+08:00
+updated_at: 2026-08-04T13:45:00+08:00
 ---
 
 # Current AI Task
 
 ## 任务标题
 
-量房风格预览 V1 Task 1：独立子包本地 Mock MVP。
+量房风格预览 V2：仅测试环境真实数据、上传与异步 Mock 管线。
 
-## 任务来源
+## 已完成范围
 
-- 用户于 2026-07-28 明确授权独立开发；微信小程序 `7.3.2` 正式审核发布不再阻塞本轮 Mock 开发。
+- 从 Task 1 基线 `c4b7b0c` 建立独立 V2 worktree 和分支。
+- 新增 `stylePreviewApi` 与 `processStylePreviewTask`；前者负责服务端身份、tenant、客户、session、task、反馈和临时 URL，后者由测试环境定时触发器领取 queued task。
+- 四页接入真实服务端准入；`mock=1` 仍只走本地 Mock，不能打开真实权限。
+- 只在 `shengjing-style-test-d3ac90f38b1` 创建 `style_preview_sessions`、`style_preview_tasks` 及所需索引，部署两个 V2 函数与 `style-preview-worker`。
+- 合成 `spv2_test_` session/task/图片已完成 worker 成功链路并精确清理。
 
-## 本次范围
+## 仍关闭的边界
 
-允许：在 `codex/style-preview-v1` 独立 worktree 中增加隐藏的量房风格预览入口、独立子包页面与本地 Mock service；可本地 commit、push 和创建 Draft PR。
+- 生产入口 `ENABLE_STYLE_PREVIEW_ENTRY = false`。
+- V2 两处入口 `ENABLE_V2_DEAL_LOOP_ENTRY = false`。
+- `STYLE_PREVIEW_PROVIDER=mock`，`STYLE_PREVIEW_REAL_AI_ENABLED=false`。
+- 不部署、查询或修改生产环境业务资源；不修改日报、审核、通知或既有云函数。
 
-禁止：真实 AI、CloudBase 集合或云函数、部署、体验版上传、生产入口、客户阶段和正式项目写入、业主端入口、报价/BOM/施工图/户型改造/批量生成；不得合并到 release 或生产基线。
+## 验收证据
 
-## 交付物
+- V2/Task 1 Mock 测试：`7/7`。
+- 日报行为回归：`171/171`。
+- 两个 V2 函数均为测试环境 `Active`；worker timer `style-preview-worker` 已启用。
+- 合成 task 从 `queued` 到 `succeeded`，保存 mock 结果图和风格意向；再次调用返回 `processed:false`。
+- 合成 task/session 按 ID 回读为 `0`，`style-preview/spv2_test_tenant_20260804` 文件前缀为空。
 
-- `miniprogram/subpackages/style-preview/` 独立子包，含开始、处理中、结果、历史四页。
-- 客户详情隐藏入口：`ENABLE_STYLE_PREVIEW_ENTRY = false`，仅 `stylePreviewMock=1` 显式 Mock 参数可见。
-- 独立本地 Mock service 和回归测试；不访问 CloudBase，不产生生产数据。
+## 验收缺口
 
-## 验收标准
-
-- 入口关闭时既有用户不可见，开发 Mock 参数下可进入完整可点击流程。
-- 可选择 Mock 客户、两张本地图片、房间类型与备注，并可经过 Mock 处理看到完整结果、保存反馈和查看历史。
-- 刷新后本地 fixture 可恢复；V2 两处入口仍关闭；不出现 `wx.cloud`、云函数调用或生产数据写入。
-
-## 风险等级
-
-- 低：仅本地 Mock 子包；入口默认关闭，且无后端、云函数或环境配置改动。
-
-## Human Gate
-
-正式发布仍是未来将本分支 rebase 到稳定 tag 并开启入口前的 Gate。本轮不等待、不部署、不上传体验版。
-
-## Codex 执行记录
-
-- worktree：`/Users/qixin/Documents/晟景AI助理/transparent-construction-style-preview-v1`
-- 分支：`codex/style-preview-v1`
-- 起点：`821d96efa7f4d1495939703cc58d028a2ea75d6d`
-- 本地验收：Mock service 与页面链路回归 `3/3`、既有日报回归 `171/171`、style-preview JS 语法检查、全量 miniprogram JSON 解析、`git diff --check` 均通过；页面链路用小程序 API mock 覆盖开发 Mock 参数进入、两张 `chooseMedia` 本地图片选择、开始页创建、处理完成、结果跳转、反馈保存、历史读取。CloudBase/云函数/真实 AI 扫描为空，V2 两处开关仍为 `false`。
-- GUI 验证：开发者工具桌面自动化服务超时；CLI `open` 命令连接到已有 IDE 实例时没有返回项目打开成功。未上传体验版、未部署、未访问 CloudBase；需在桌面工具恢复可用后补一次视觉走查。
+CloudBase CLI 无法提供小程序 `OPENID` 上下文。因此内部角色/业主拒绝、普通员工隔离、跨 tenant API、真实页面上传和反馈的真机登录态验证，需在微信开发者工具或测试小程序中以合成账号完成。不得以 CLI 伪造身份。
 
 ## 下一步
 
-提交并推送 `codex/style-preview-v1` 后停止，等待 `7.3.2` 正式发布和一次 GUI 视觉走查；届时 rebase 到稳定 tag，再进入 Task 2 的真实数据层、云函数任务和测试环境 AI 链路。
+创建 Draft PR 供 Matrix 审核；随后由齐鑫在测试小程序登录态完成页面级验收。真实图片模型仍等待单独 provider/凭证授权。

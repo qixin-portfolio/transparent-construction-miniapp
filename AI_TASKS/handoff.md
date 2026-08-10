@@ -17,6 +17,42 @@
 
 ---
 
+### 2026-08-05 — 量房风格预览 V2 真实微信身份验收与精确清理
+
+- 来源：齐鑫要求在真实微信 `OPENID` 登录态下完成测试环境页面、权限、上传、Mock、反馈和历史验收，并在验收后明确确认清理。
+- 分支：`codex/style-preview-v2-real-pipeline`；Draft PR [#9](https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/9) 保持 Draft、未合并。
+- 本次做了什么：使用管理员 A、员工 A、员工 B 和普通/业主四个真实测试账号，经既有小程序登录链路验证 start、客户隔离、跨 tenant 拒绝、真机 Mock 参数不可绕过、两图上传、worker 成功、结果 AI 标识、幂等、反馈和历史隔离；新增真机 Mock 入口平台限制，防止 processing/result/history/customer-edit 直达参数绕开服务端授权。
+- 清理：仅测试环境 `shengjing-style-test-d3ac90f38b1`，精确删除 6 个 session、5 个 task、3 个客户、3 个成员、2 个 tenant 和 13 个 source/reference/result 文件；所有夹具计数和存储前缀查询均为 `0`，三名真实测试用户均已恢复且 `spv2AuthFixture` 标记计数为 `0`。
+- 修改文件：真机 Mock 限制工具及五个入口页面、API/worker/结果反馈实现与契约测试；`docs/style-preview-v2/09_INTEGRATION_TEST_REPORT.md`、`12_CLEANUP_REPORT.md`、`13_PRODUCTION_GAPS.md`、新增 `14_REAL_OPENID_ACCEPTANCE.md`；保留唯一脱敏截图 `docs/style-preview-v2/evidence/admin-start-redacted.png`。
+- 检查结果：风格预览 `10/10`、日报 `171/171`、JS 语法、Mini Program JSON、`git diff --check`、敏感扫描以及 V2/生产入口关闭检查全部通过。
+- 生产边界：未访问或操作生产环境；未部署生产函数；`STYLE_PREVIEW_PROVIDER=mock`、`STYLE_PREVIEW_REAL_AI_ENABLED=false` 和 V2/生产入口关闭状态保持不变。
+- 风险与未决问题：真实图片模型/provider 未接入；上传/结果真机截图中含预览图或设备信息的原始文件未进入 Git，避免保留图像内容、二维码或身份信息。
+- 下一步建议：由 Matrix 审核 Draft PR #9；真实 provider 仅在单独的 provider/凭证授权任务中讨论，不合并、不接真实 provider、不开放生产入口。
+
+---
+
+### 2026-08-04 13:58 — 量房风格预览 V2 真实身份验收前置复核
+
+- 来源：齐鑫要求完成真实微信 `OPENID` 下的页面、权限、上传、Mock 生成、反馈与历史验收；范围严格限定 `shengjing-style-test-d3ac90f38b1`。
+- 分支：`codex/style-preview-v2-real-pipeline`；本地基线 `09089dfaa12f88e35488a440b480b7dee6980cfc`；Draft PR [#9](https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/9) 保持未合并。
+- 本次做了什么：在未访问 CloudBase 业务资源、未部署函数、未伪造 `OPENID` 的前提下，复核到开发者工具当前仅显示项目列表，未打开小程序项目或真实登录会话。补齐两处验收前代码缺口：跨 tenant 的已存在客户明确返回 `CUSTOMER_ACCESS_DENIED`；真实结果页和服务端调用完整提交 `rating`、`reason`、`note`。
+- 修改文件：`cloudfunctions/stylePreviewApi/index.js`、真实预览服务、结果页 JS/WXML/WXSS、`tests/style-preview-v2-contract.test.js`；当前改动尚未提交、未部署、未 push。
+- 检查结果：风格预览契约与 Mock 流程 `8/8`；日报行为回归 `171/171`；V2 相关 JS 语法、全量小程序 JSON、`git diff --check` 和 V2/生产入口关闭检查通过。任务 revision 仍为 `12`；协作协议引用的 `scripts/check-task-revision.mjs` 在此 worktree 未找到，无法执行该可选检查。
+- 风险与未决问题：尚无 A 管理员、A/B 员工和普通/业主三类真实微信账号的当前小程序登录态；没有真实 `OPENID` 就不能创建合成权限夹具或给出页面级身份、上传、隔离、反馈和历史验收结论。新代码也尚未部署至测试环境，等待完成真实登录前置后以测试环境唯一目标受控部署。
+- 下一步建议：由齐鑫分别使用三类测试微信账号登录测试小程序，回复“账号已登录”即可（不要发送 `OPENID`）。随后只在测试环境创建 `spv2_auth_` 夹具，执行完整页面验收、保存脱敏截图并按精确 ID 清理。
+
+### 2026-08-04 13:45 — 量房风格预览 V2 测试环境 Mock 管线
+
+- 来源：齐鑫恢复 Task 2，并授权仅对 `shengjing-style-test-d3ac90f38b1` 执行集合、索引、函数、触发器与合成测试数据操作。
+- 分支：`codex/style-preview-v2-real-pipeline`；基线 `c4b7b0c3c12a3b810b17560b687c52c0604f9d28`；部署源码最终 HEAD `97e6d974551aacbb19f693d19dc7f3ef40da9137`。
+- 本次做了什么：创建 `style_preview_sessions` 和 `style_preview_tasks`（session 5 个索引、task 4 个索引含唯一幂等键）；部署 `stylePreviewApi` 与 `processStylePreviewTask`，建立每分钟 `style-preview-worker` 定时触发器；使用 `spv2_test_` 合成图片、session 和 task 验证 worker 真实领取、mock 结果存储、状态更新和二次不重复领取。
+- 检查结果：style preview `7/7`，日报 `171/171`；worker 首次调用返回 `succeeded`，第二次 `processed:false`；合成 task/session 回读为 `0`，测试文件前缀为空。生产入口/V2 入口继续为 `false`，provider 为 `mock`，真实 AI 为 `false`。
+- 生产边界：仅账号级 `env list` 被动显示过生产环境基础元数据；没有对生产环境发出任何定向函数、数据库、存储、日志、配置、触发器或部署命令。
+- 风险与未决问题：CloudBase CLI 不提供小程序 `OPENID`，不能伪造页面登录态。内部/业主拒绝、普通员工隔离、跨 tenant API、页面上传/反馈/历史需在测试小程序真实登录态补验。
+- 下一步建议：push 后创建 base 为 `codex/style-preview-v1` 的 Draft PR；由齐鑫在微信开发者工具用合成账号完成页面级验收。真实 provider 等待单独授权。
+
+---
+
 ### 2026-07-28 16:35 — 量房风格预览 V1 Task 1 本地 Mock MVP
 
 - 来源：齐鑫明确授权立即启动独立开发；`7.3.2` 正式审核发布不再阻塞本轮 Task 1。

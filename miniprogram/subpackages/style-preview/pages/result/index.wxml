@@ -2,13 +2,13 @@
   <view class="result-head">
     <view class="eyebrow">{{session.customerName}} · {{session.roomType}}</view>
     <view class="result-title">一张图，先把<br />家的感觉对齐</view>
-    <view class="result-copy">本地 Mock 预览，保留原始空间的主视角关系。</view>
+    <view class="result-copy">AI 风格预览，原始空间结构与主视角优先。</view>
   </view>
 
   <view class="image-label">同视角结构优先预览</view>
   <view class="preview-frame" data-src="{{session.previewImage}}" bindtap="previewImage">
     <image src="{{session.previewImage}}" mode="aspectFill"></image>
-    <view class="preview-badge">Mock 预览</view>
+    <view class="preview-badge">AI生成图片</view>
   </view>
 
   <view class="source-row">
@@ -27,12 +27,16 @@
   </view>
 
   <view class="boundary-card"><view class="boundary-title">沟通边界</view><view>{{session.styleIntent.designBoundary}}</view></view>
-  <view class="formal-notice">本结果用于前期风格沟通，不等同于施工图、效果图深化或正式设计方案。</view>
+  <view class="formal-notice">本效果图由人工智能生成，仅用于装修风格沟通。空间结构、材料、尺寸与施工方案请以设计师现场复核为准。</view>
 
   <view class="feedback-section">
     <view class="feedback-title">客户反馈</view>
+    <view class="feedback-rating" aria-label="反馈评分">
+      <button wx:for="{{[1,2,3,4,5]}}" wx:key="*this" class="rating-option {{feedbackRating === item ? 'active' : ''}}" data-value="{{item}}" bindtap="onFeedbackRating">{{item}}分</button>
+    </view>
+    <input value="{{feedbackReason}}" maxlength="80" placeholder="反馈原因，例如：更喜欢暖色调" bindinput="onFeedbackReason" />
     <textarea value="{{feedback}}" maxlength="160" placeholder="例如：喜欢这种暖一点的感觉，但柜子希望再轻一点。" bindinput="onFeedbackInput"></textarea>
-    <button class="feedback-save" bindtap="saveFeedback">{{feedbackSaved ? '已保存到本机' : '保存反馈'}}</button>
+    <button class="feedback-save" bindtap="saveFeedback">{{feedbackSaved ? '已保存反馈' : '保存反馈'}}</button>
   </view>
 
   <button class="primary-action" bindtap="regenerate">重新生成一版</button>

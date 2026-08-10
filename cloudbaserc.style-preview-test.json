@@ -1,0 +1,34 @@
+{
+  "$schema": "https://static.cloudbase.net/cli/cloudbaserc.schema.json",
+  "version": "2.0",
+  "envId": "shengjing-style-test-d3ac90f38b1",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "stylePreviewApi",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 20,
+      "envVariables": {
+        "STYLE_PREVIEW_TEST_ENV": "shengjing-style-test-d3ac90f38b1",
+        "STYLE_PREVIEW_FEATURE_ENABLED": "true",
+        "STYLE_PREVIEW_PROVIDER": "mock",
+        "STYLE_PREVIEW_REAL_AI_ENABLED": "false",
+        "STYLE_PREVIEW_USER_DAILY_LIMIT": "5",
+        "STYLE_PREVIEW_TENANT_DAILY_LIMIT": "20"
+      }
+    },
+    {
+      "name": "processStylePreviewTask",
+      "handler": "index.main",
+      "runtime": "Nodejs16.13",
+      "timeout": 60,
+      "envVariables": {
+        "STYLE_PREVIEW_TEST_ENV": "shengjing-style-test-d3ac90f38b1",
+        "STYLE_PREVIEW_FEATURE_ENABLED": "true",
+        "STYLE_PREVIEW_PROVIDER": "mock",
+        "STYLE_PREVIEW_REAL_AI_ENABLED": "false"
+      }
+    }
+  ]
+}

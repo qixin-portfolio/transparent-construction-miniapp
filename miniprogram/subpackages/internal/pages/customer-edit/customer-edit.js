@@ -1,4 +1,5 @@
 const { call, showError } = require('../../../../services/cloud')
+const { mockModeEnabled } = require('../../../../utils/style-preview-mock-mode')
 
 const ENABLE_STYLE_PREVIEW_ENTRY = false
 
@@ -28,7 +29,7 @@ Page({
   },
 
   onLoad(options) {
-    const stylePreviewMock = String(options.stylePreviewMock || '') === '1'
+    const stylePreviewMock = mockModeEnabled(options, 'stylePreviewMock')
     this.setData({
       stylePreviewMock,
       stylePreviewEntryVisible: ENABLE_STYLE_PREVIEW_ENTRY || stylePreviewMock

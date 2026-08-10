@@ -1,7 +1,7 @@
 <view class="processing-page">
-  <view class="top-note">晟景量房沟通工具 · 本地 Mock</view>
+  <view class="top-note">晟景量房沟通工具 · {{mock ? '本地 Mock' : '测试环境任务'}}</view>
   <view class="processing-title">正在把两张图<br />整理成一张沟通卡</view>
-  <view class="processing-copy">这是本地演示过程，不会上传图片，也不会调用真实 AI。</view>
+  <view class="processing-copy">任务由服务端异步处理，图片仅用于本次风格沟通预览。</view>
 
   <view class="image-pair" wx:if="{{session}}">
     <image src="{{session.sourceImage}}" mode="aspectFill"></image>
@@ -15,6 +15,12 @@
       <view class="step-content"><view class="step-title">{{item.title}}</view><view class="step-copy">{{item.copy}}</view></view>
       <view wx:if="{{index === currentStep && !completed}}" class="pulse"></view>
     </view>
+  </view>
+
+  <view wx:if="{{error}}" class="failure-panel">
+    <view class="failure-title">本次生成未完成</view>
+    <view class="failure-copy">{{error}}</view>
+    <button class="retry-action" loading="{{retrying}}" bindtap="retry">重新生成</button>
   </view>
 
   <view class="boundary">预览只表达风格方向，不生成施工图或报价。</view>

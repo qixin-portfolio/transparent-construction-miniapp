@@ -1,8 +1,8 @@
 <view class="history-page">
   <view class="history-head">
-    <view class="head-kicker">本地 Mock 记录</view>
+    <view class="head-kicker">风格预览记录</view>
     <view class="head-title">{{customerName || '当前客户'}}的<br />风格沟通记录</view>
-    <view class="head-copy">记录只保存在当前设备，不会写入客户档案。</view>
+    <view class="head-copy">仅供内部售前风格沟通使用，不作为施工依据。</view>
   </view>
 
   <view class="record-count">共 {{sessions.length}} 条预览记录</view>
