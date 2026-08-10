@@ -17,6 +17,111 @@
 
 ---
 
+### 2026-08-08 10:54 — Style Preview V2 P0 safety closure ready for ChatGPT re-review
+
+- 来源：齐鑫授权仅修复 ChatGPT 指出的 3 项 P0，保持 Seedream Ark/Result hostname allowlist 不变，完成后更新并 push 现有 Draft PR #9/#10。
+- 分支与 PR：PR #9 分支 `codex/style-preview-v2-real-pipeline` 已新增 `5bd2857`；PR #10 分支 `codex/style-preview-v2-seedream5` 以普通 merge 同步 PR #9，未改写历史。两个 PR 均保持 Draft、未合并。
+- 本次做了什么：全局 `wx.cloud.init` 环境恢复为生产；Style Preview 的云函数请求和图片上传通过 `config.env` 显式选择独立测试环境；只有默认 tenant 允许 legacy 空 tenant 客户；`attachUploadedImages` 在下载前验证精确 fileID 路径，下载后验证扩展名、MIME 与魔数；Seedream Provider `validateInput` 实施同等精确路径与 MIME 规则。
+- 检查结果：新增 19 项顶层行为测试；PR #9 风格预览 `28/28`，PR #10 Provider `16/16`、合计风格预览 `44/44`，日报 `171/171`；187 个 JS 语法、118 个 JSON、`git diff --check`、敏感信息与生产/Style Preview/V2 入口检查通过。
+- 边界：未调用真实 Seedream，未部署云函数，未访问生产环境，未上传体验版，未开放入口，未合并 PR。
+- 下一步建议：仅交 ChatGPT 二次审查 PR #9/#10；审查前继续保持两个 PR Draft 和所有生产入口关闭。
+
+### 2026-08-08 09:47 — Seedream Provider network allowlists ready for ChatGPT review
+
+- 来源：齐鑫确认同步 ChatGPT 已推送的协作规则，并仅修复 PR #10 的 Ark 请求和 Seedream 结果下载目标限制。
+- 分支与 PR：`codex/style-preview-v2-seedream5`；Draft PR [#10](https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/10) 继续以 `codex/style-preview-v2-real-pipeline`（PR #9 head）为 base，保持 stacked、Draft、未合并。
+- 本次做了什么：Ark API 仅精确允许 `ark.cn-beijing.volces.com`；Seedream 结果仅精确允许官方文档确认的生成内容桶 hostname；两类 URL 独立校验 HTTPS、凭据、localhost、IP 和精确 hostname，非法 Ark 在请求前失败、非法 result 在下载前失败，非 2xx redirect 不跟随。
+- 检查结果：新增 4 项安全测试，Provider `15/15`、风格预览 `25/25`、日报 `171/171`；修改 JS 语法、118 个 JSON、`git diff --check`、敏感信息扫描及生产/V2 入口关闭检查均通过。
+- 边界：未调用真实 Seedream，未访问生产环境，未部署任何云函数，未修改或合并 PR #9/#10；下一步仅由 ChatGPT 审查两个 stacked PR 及本次安全 diff。
+
+---
+
+### 2026-08-07 21:18 — Seedream 5.0 Draft PR ready for review
+
+- 分支与 PR：`codex/style-preview-v2-seedream5` 已 push；独立 Draft PR [#10](https://github.com/qixin-portfolio/transparent-construction-miniapp/pull/10) 为 `OPEN/DRAFT`，base=`codex/style-preview-v2-real-pipeline`，head=`codex/style-preview-v2-seedream5`。
+- 提交：Provider/worker/测试配置与 11 项 Provider 测试提交为 `d529428`；公开合成输入、结果、质量/usage/安全/清理证据提交为 `0899c72`；本记录提交后同步推送。
+- 最终检查：风格预览 `21/21`、日报 `171/171`、全量 JS 语法、118 个 JSON、`git diff --check`、敏感字面量扫描及生产/V2 入口关闭检查全部通过。
+- 环境与清理：只访问测试环境；本轮一名客户、五个 session、四个 task、12 个文件及权限标记回读均为 `0`。生产环境未访问，生产函数未部署。
+- 结论：`B. Seedream 5.0 已接通，三组质量验证达到内部试用标准`。这不代表生产上线条件；当前转交 Matrix 审核，不合并 Draft PR。
+
+### 2026-08-07 20:54 — Seedream 5.0 successful fixture cleanup completed
+
+- 来源：齐鑫单独明确确认清理本轮 Seedream 成功夹具。
+- 范围：仅测试环境 `shengjing-style-test-d3ac90f38b1`；删除前再次只读核对精确 ID/路径，未访问生产环境。
+- 删除结果：先以 12 个明确文件路径 dry run 命中 `12`，再精确删除 12 个 source/reference/result 文件、4 个 task、5 个 session（含 1 个空 draft）和 1 名合成客户；删除返回数分别为 `12/4/5/1`。
+- 回读结果：五个 session ID、四个 task ID、客户 ID 查询均为空；客户范围 session/task、`spv2_auth_seedream5` 客户前缀、tenant/member 前缀、用户夹具标记和存储前缀均为 `0`。feedback 原为 `0`，随 session 范围保持为 `0`。
+- 未删除：集合、索引、两个风格预览函数、worker、环境配置、真实测试账号绑定、其他测试数据、Ark 账单和官方日志。本地公开合成输入与压缩结果证据保留。
+- 下一步：最终回归通过后提交、push，并以 `codex/style-preview-v2-real-pipeline` 为 base 创建独立 Draft PR；不更新或合并 PR #9，不触碰 PR #7。
+
+### 2026-08-07 20:25 — Seedream 5.0 three-image quality set completed
+
+- 来源：齐鑫明确授权客厅、主卧、厨房三次真实质量生成；每组只生成一张，失败不重试，总上限包含烟雾共四张。
+- 分支与环境：`codex/style-preview-v2-seedream5`；仅测试环境 `shengjing-style-test-d3ac90f38b1`；未访问生产环境。
+- 真实结果：三次均 `succeeded`、`attemptNo=1`、无重复调用；provider 分别用时 `89089/90788/95181 ms`，每张 usage 为 `generatedImages=1`、`outputTokens=16428`、`totalTokens=16428`，均保存为 JPEG `2368 x 1776`。
+- 质量结论：客厅 `4.6/5`、主卧 `4.5/5`、厨房 `4.6/5`，整体 `4.57/5`；门窗、墙体、梁柱、机位/空间替换、第三方 Logo 和悬浮结构检查均无硬性失败。Provider 的 `AI生成` 水印按要求保留。
+- 网络与证据：经齐鑫在动作前再次确认，Shadowrocket 从原 `英国伦敦01 + 配置` 临时切直连，只下载三张已存结果，随后恢复原节点和原路由；未发起新模型请求。压缩合成结果保存到 `docs/style-preview-v2-seedream5/evidence/`。
+- 检查结果：风格预览 `21/21`、日报 `171/171`、JS 语法、47 个 Mini Program/测试配置 JSON 解析通过；revision 写前校验 `15` 通过并更新为 `16`。
+- 当前待清理：一名合成客户、五个 session（含一个空 draft）、四个 task、12 个 CloudBase 文件、零 feedback；没有新建 tenant/user/member/权限夹具。等待齐鑫单独确认后按精确 ID/路径删除并逐项回读为零。
+- 边界：四张真实生成硬上限已用满，不得再请求；不提交、不 push、不建 Draft PR，直到精确清理完成。生产和 V2 入口保持关闭。
+
+### 2026-08-07 12:12 — Seedream 5.0 smoke page rendering passed
+
+- 来源：齐鑫明确确认启动 Shadowrocket 并调整当前网络路由，只复验已存结果，不重新生成。
+- 分支与环境：`codex/style-preview-v2-seedream5`；仅测试环境 `shengjing-style-test-d3ac90f38b1`；未访问生产环境。
+- 网络诊断：原 `配置` 路由未接管 `198.18.0.0/15` Fake-IP，腾讯存储在 TLS 前失败；海外代理出口同样被腾讯 CDN 重置。临时切到 Shadowrocket `直连` 后，Fake-IP 由客户端正确映射，测试存储端点完成 TLS。验证后已恢复原 `日本高速03` 节点和原 `配置` 路由。
+- 页面证据：重新打开同一条历史记录，原始图、参考图、Seedream 结果图均真实显示，`AI生成图片`、风格意向卡和完整免责声明同时可见。公开样例截图保存于 `docs/style-preview-v2-seedream5/evidence/smoke-result-visible.png`，不含 OPENID、Key、临时 URL、二维码或真实客户信息。
+- 计费与数据边界：未点击重新生成，未创建第二个 task，未发起第二次 Provider 请求。成功夹具仍精确保留，等待质量测试完成后另行确认清理。
+- 下一步：等待齐鑫单独确认是否执行客厅、卧室、厨房或餐厅最多三次质量请求；确认前不生成、不清理、不提交、不 push。
+
+### 2026-08-07 — Seedream 5.0 corrected real smoke generated and stored
+
+- 来源：齐鑫明确确认只在测试环境部署 `processStylePreviewTask`，新建一条合成夹具并发起最多一次真实计费烟雾请求。
+- 分支与环境：`codex/style-preview-v2-seedream5`；仅 `shengjing-style-test-d3ac90f38b1`；未访问生产环境。
+- 执行：本地风格预览 `21/21` 通过后，以 `fn code update` 仅更新 worker 代码并保持现有环境变量；创建一个不含真实身份/联系方式/地址的 `spv2_auth_` 客户；管理员 A 通过真实微信登录态上传方舟公开双图样例并创建一个 session 和一个 task。
+- Provider 结果：单 task 无重试，从 `PROVIDER_REQUEST_DISPATCHED` 到 `PROVIDER_RESPONSE_RECEIVED` 后 `succeeded`；模型为非 Lite `doubao-seedream-5-0-pro-260628`，输出 JPEG `2048 x 2048`，Provider 用时 `105333 ms`，usage 为 `generatedImages=1`、`outputTokens=16384`、`totalTokens=16384`；结果文件 `508533` bytes，已保存到测试 CloudBase。
+- 页面结果：结果页已打开并显示 `AI生成图片`、原图/参考图标签、风格意向卡和完整免责声明；但三张远程图片在 Mac 模拟器中为空白。CLI 下载同样在 TLS 建连前失败，系统 DNS 将测试存储域名解析到 `198.18.0.0/15` Fake-IP，当前代理通道未接管该连接。
+- 当前边界：未发起第二个请求，三组质量测试未执行；成功夹具保留待网络复验和用户确认后精确清理。未读取/输出 Key，未提交临时 URL、完整 provider request ID、OPENID 或图片。
+- 下一步：齐鑫确认是否启动/恢复 Shadowrocket 等本机代理设置；只复验现有结果，不重新生成。页面图片可见后再单独确认三次质量测试 Gate。
+
+### 2026-08-05 — Seedream 5.0 official request contract correction
+
+- 来源：齐鑫提供 Ark Console 的双图生成 cURL 示例，模型为 `doubao-seedream-5-0-pro-260628`。
+- 本次做了什么：删除不在该官方示例中的 `sequential_image_generation` 字段；将 `400` 中仅提及 model/endpoint 的响应恢复为 `PROVIDER_INVALID_REQUEST`，仅 `404` 或明确 unavailable/not-found 才分类为 `PROVIDER_MODEL_UNAVAILABLE`；离线测试模型同步到已确认的 public model，并更新请求、错误和烟雾证据口径。
+- 检查结果：风格预览 `21/21`、日报 `171/171`、JS 语法、113 个 JSON 解析通过；未调用 Ark、未部署测试函数、未访问生产环境。
+- 风险与未决问题：首次烟雾的 `PROVIDER_MODEL_UNAVAILABLE` 不再能作为方舟侧模型不可用的根因结论。必须由齐鑫明确确认后，才可只部署 `processStylePreviewTask` 至测试环境并新建一条独立夹具发起最多一次新的计费烟雾请求。
+- 下一步建议：等待测试环境部署和一次新烟雾请求的 Human Gate；不得重试或恢复已清理的旧 task。
+
+### 2026-08-05 — Seedream 5.0 failed smoke fixture cleanup
+
+- 来源：齐鑫明确确认“清理本轮失败夹具”。
+- 范围：仅测试环境 `shengjing-style-test-d3ac90f38b1` 的本轮 `spv2_auth_` 数据；未访问生产环境。
+- 删除：精确删除 1 个 failed task、1 个 session、1 条合成客户和 2 个输入图片；该任务没有结果图或 feedback，因此没有对应删除项。
+- 回读：task、session、customer 三项精确查询均为 `0`；该 session 的 storage 前缀列表为空。
+- 未删除：集合、索引、`stylePreviewApi`、`processStylePreviewTask`、worker、任何其它测试数据和 Ark 官方账单/日志。
+- 下一步建议：维持安全停止。只有用户人工复核测试 Key 对非 Lite 模型/接入点的调用权限并重新明确授权后，才可创建新的独立烟雾夹具和发起最多一次新请求。
+
+### 2026-08-05 — Seedream 5.0 first real smoke request safety stop
+
+- 来源：齐鑫确认仅在测试环境部署 `processStylePreviewTask`、将其超时设为 240 秒，并在管理员 A 的真实服务端准入页面确认一张真实烟雾测试。
+- 分支：`codex/style-preview-v2-seedream5`；测试环境：`shengjing-style-test-d3ac90f38b1`；未访问或操作生产环境。
+- 本次做了什么：仅代码更新 `processStylePreviewTask`，以单字段 CLI 配置更新将函数超时设为 240 秒且不覆盖环境变量；创建一条 `spv2_auth_` 合成客户；管理员 A 通过开发者工具的本地编译模式进入受服务端保护的真实 start 页面、完成两图上传并发起一次真实请求。
+- 结果：页面进入 processing；task 的脱敏状态为 `failed`、`PROVIDER_REQUEST_DISPATCHED`、`PROVIDER_MODEL_UNAVAILABLE`。这表明 worker 已越过本地开关和输入临时 URL 阶段并向 Ark 发起请求，但没有可接受的成功响应。没有自动重试、没有结果图、没有反馈，也未点击页面“重新生成”。
+- 检查结果：部署前风格预览相关测试 18/18、日报 171/171、JS 语法、`git diff --check` 和入口关闭检查均通过；测试函数列表显示部署完成。
+- 风险与未决问题：无法在不读取原始提供方报文或环境变量的前提下进一步区分模型 ID、接入权限或方舟侧临时不可用。用户需手工复核测试函数中实际可调用的非 Lite 模型/接入点和测试 Key 权限；不得发送或复制 Key。
+- 下一步建议：保留当前失败夹具作为证据，等待齐鑫明确确认精确清理；如配置复核完成且齐鑫另行确认，则最多发起一张新的烟雾请求。不得直接重试当前 task，不得进行质量批测、生产部署或开放入口。
+
+### 2026-08-05 — Seedream 5.0 Provider 离线接入准备
+
+- 来源：齐鑫要求从 `4ee1347ca5a6286e74f26d596400aba23168d5a1` 创建独立 Task 2B worktree，且仅为测试环境接入火山方舟非 Lite Seedream 5.0 Provider。
+- 分支：`codex/style-preview-v2-seedream5`；worktree：`/Users/qixin/Documents/晟景AI助理/transparent-construction-style-preview-seedream5`；原 `codex/style-preview-v2-real-pipeline` 和 Draft PR #9 未改动。
+- 本次做了什么：新增 `processStylePreviewTask/providers/seedream5-provider.js`，以服务端生成的双图短期 URL 调用 Ark、固定 source/reference 顺序、禁用组图/流式、限制为 `2K` 一图、校验首个 HTTPS 结果下载与图片字节、只在 CloudBase 上传成功后写 succeeded；保留 Mock，未知 provider 和关闭的真实开关均拒绝调用。新增 11 项离线 Provider 测试与独立安全/接口/提示词/后续测试证据目录。
+- 修改范围：仅 `processStylePreviewTask`、测试 worker 超时配置、Seedream5 文档和测试；未修改页面权限、tenant、客户、session/task 核心语义、worker 领取规则、日报、PR #7 或生产入口。
+- 检查结果：Seedream 适配 `11/11`，风格预览合计 `21/21`，日报 `171/171`，JS 语法、Mini Program JSON、`git diff --check`、敏感字面量扫描和入口关闭检查通过。
+- 生产边界：未访问生产环境，未调用 Ark，未配置 Key，未部署任何函数。测试配置仍为 `STYLE_PREVIEW_PROVIDER=mock`、`STYLE_PREVIEW_REAL_AI_ENABLED=false`。
+- 当前阻塞：必须由齐鑫在方舟控制台确认非 Lite 的实际 `SEEDREAM_MODEL_ID`（公开模型 ID 或脱敏 `ep-...`）并安全写入测试环境专用 `ARK_API_KEY`；不得把 Key 发给 Codex。完成后才可只部署 `processStylePreviewTask` 并执行一次冒烟图。
+
+---
+
 ### 2026-08-05 — 量房风格预览 V2 真实微信身份验收与精确清理
 
 - 来源：齐鑫要求在真实微信 `OPENID` 登录态下完成测试环境页面、权限、上传、Mock、反馈和历史验收，并在验收后明确确认清理。
